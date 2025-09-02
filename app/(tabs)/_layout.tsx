@@ -31,7 +31,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name='index'
+        name='home/index'
         options={{
           title: '홈',
           tabBarIcon: ({ focused, color }) =>
@@ -55,7 +55,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name='travel'
+        name='my-travel/index'
         options={{
           title: '여행',
           tabBarIcon: ({ focused, color }) => (
@@ -105,7 +105,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name='wishlist'
+        name='wishlist/index'
         options={{
           title: '찜',
           tabBarIcon: ({ focused, color }) =>
@@ -117,7 +117,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name='profile'
+        name='profile/index'
         options={{
           title: '프로필',
           tabBarIcon: ({ focused, color }) =>

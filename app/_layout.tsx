@@ -1,10 +1,15 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Redirect, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
+
+// /home으로 redirect
+const Redirector = () => {
+  return (<Redirect href="/home"/>);
+}
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -24,6 +29,7 @@ export default function RootLayout() {
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />
+      <Redirector/>
     </ThemeProvider>
   );
 }
