@@ -1,4 +1,8 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
+} from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Redirect, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -9,8 +13,8 @@ import '../global.css';
 
 // 리다이렉션 컴포넌트
 const Redirector = () => {
-  return (<Redirect href="/login"/>);
-}
+  return <Redirect href='/login' />;
+};
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -26,11 +30,12 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
+        <Stack.Screen name='login' options={{ headerShown: false }} />
+        <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
+        <Stack.Screen name='+not-found' />
       </Stack>
-      <StatusBar style="auto" />
-      <Redirector/>
+      <StatusBar style='auto' />
+      <Redirector />
     </ThemeProvider>
   );
 }
