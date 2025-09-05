@@ -5,10 +5,11 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
+import '../global.css';
 
-// /home으로 redirect
+// 리다이렉션 컴포넌트
 const Redirector = () => {
-  return (<Redirect href="/home"/>);
+  return (<Redirect href="/login"/>);
 }
 
 export default function RootLayout() {
