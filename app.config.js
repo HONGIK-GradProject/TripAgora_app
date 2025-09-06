@@ -1,4 +1,4 @@
-{
+export default{
   "expo": {
     "name": "gradproj",
     "slug": "gradproj",
@@ -32,6 +32,24 @@
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
+        }
+      ],
+      [
+        "@react-native-seoul/kakao-login",
+        {
+          "kakaoAppKey": process.env.EXPO_PUBLIC_KAKAO_API_KEY,
+          "overrideKakaoSDKVersion": "2.11.2",
+          "kotlinVersion": "2.0.21"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "extraMavenRepos": [
+              "https://devrepo.kakao.com/nexus/content/groups/public/"
+            ]
+          }
         }
       ]
     ],
