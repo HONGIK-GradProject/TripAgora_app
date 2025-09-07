@@ -1,8 +1,15 @@
 import { Link } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
 import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const SetProfileScreen: React.FC = () => {
+  const [nickname, setNickname] = useState('');
+
+  const handleNicknameChange = (text: string) => {
+    const filteredText = text.replace(/[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣]/g, '');
+    setNickname(filteredText);
+  };
+
   return (
     <View className="flex-1 items-center bg-white pt-20">
       <Text className="text-4xl text-center mb-1 font-normal">환영합니다!</Text>
@@ -19,6 +26,8 @@ const SetProfileScreen: React.FC = () => {
         <TextInput
           className="w-full h-12 border-b border-black px-0"
           placeholder="닉네임을 입력하세요"
+          value={nickname}
+          onChangeText={handleNicknameChange}
         />
       </View>
 
