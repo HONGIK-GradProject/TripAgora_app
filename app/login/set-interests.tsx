@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Text, TouchableOpacity, View } from 'react-native';
 
 import InterestTag from '@/components/InterestTag';
 import { INTEREST_TAGS } from '@/constants/Tags';
@@ -7,7 +7,7 @@ import { INTEREST_TAGS } from '@/constants/Tags';
 const SetInterestsScreen: React.FC = () => {
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
 
-  // 태그 선택 상태 확인용. 사용 시 useEffect를 import할 것
+  /// selectedTags 디버깅용. 사용 시 useEffect import 필요
   // useEffect(() => {
   //   console.log(selectedTags);
   // }, [selectedTags]);
@@ -16,6 +16,16 @@ const SetInterestsScreen: React.FC = () => {
     setSelectedTags((prev) =>
       prev.includes(tagId) ? prev.filter((t) => t !== tagId) : [...prev, tagId]
     );
+  };
+
+  const handleStart = () => {
+    if (selectedTags.length < 3) {
+      // TODO: react-native-toast-message로 변경 여부 검토
+      Alert.alert('태그를 3개 이상 선택해 주세요.');
+      return;
+    }
+    // TODO: 서버에 태그 전송 로직 추가
+    console.log('선택된 태그 ID:', selectedTags);
   };
 
   return (
@@ -44,8 +54,10 @@ const SetInterestsScreen: React.FC = () => {
         })}
       </View>
 
-      {/* 시작하기 버튼 */}
-      <TouchableOpacity className='w-[390px] h-[52px] bg-primary rounded-md justify-center items-center absolute bottom-7'>
+      <TouchableOpacity
+        className='w-[390px] h-[52px] bg-primary rounded-md justify-center items-center absolute bottom-7'
+        onPress={handleStart}
+      >
         <Text className='text-xl font-bold text-white'>시작하기</Text>
       </TouchableOpacity>
     </View>
