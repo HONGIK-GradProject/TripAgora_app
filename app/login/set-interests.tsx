@@ -1,10 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 
 import InterestTag from '@/components/InterestTag';
 import { INTEREST_TAGS } from '@/constants/Tags';
 
 const SetInterestsScreen: React.FC = () => {
+  const [selectedTags, setSelectedTags] = useState<number[]>([]);
+
+  const handleToggleTag = (tagId: number) => {
+    setSelectedTags((prev) =>
+      prev.includes(tagId) ? prev.filter((t) => t !== tagId) : [...prev, tagId]
+    );
+  };
+
   return (
     <View className='flex-1 items-center bg-white pt-20'>
       <Text className='text-2xl text-black text-left w-4/5 mb-1'>
@@ -18,9 +26,17 @@ const SetInterestsScreen: React.FC = () => {
       </Text>
 
       <View className='flex-row flex-wrap justify-start w-4/5 mb-10'>
-        {INTEREST_TAGS.map((tag) => (
-          <InterestTag key={tag} tag={tag} />
-        ))}
+        {INTEREST_TAGS.map((tag, index) => {
+          const tagId = index + 1;
+          return (
+            <InterestTag
+              key={tag}
+              tag={tag}
+              isSelected={selectedTags.includes(tagId)}
+              onPress={() => handleToggleTag(tagId)}
+            />
+          );
+        })}
       </View>
 
       {/* 시작하기 버튼 */}
