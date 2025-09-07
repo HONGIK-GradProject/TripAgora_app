@@ -7,6 +7,11 @@ import { INTEREST_TAGS } from '@/constants/Tags';
 const SetInterestsScreen: React.FC = () => {
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
 
+  // 태그 선택 상태 확인용. 사용 시 useEffect를 import할 것
+  // useEffect(() => {
+  //   console.log(selectedTags);
+  // }, [selectedTags]);
+
   const handleToggleTag = (tagId: number) => {
     setSelectedTags((prev) =>
       prev.includes(tagId) ? prev.filter((t) => t !== tagId) : [...prev, tagId]
