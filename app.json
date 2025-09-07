@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "gradproj",
-    "slug": "gradproj",
+    "name": "TripAgora",
+    "slug": "TripAgora",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "gradproj",
+    "scheme": "tripagora",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
