@@ -9,6 +9,8 @@ web-build/
 android/
 ios/
 expo-env.d.ts
+android/
+ios/
 
 # --- Native (Android / iOS) ---
 .kotlin/
@@ -49,6 +51,7 @@ coverage/
 
 # --- Local env files ---
 .env*.local
+.env
 
 # --- TypeScript ---
 *.tsbuildinfo
