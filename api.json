@@ -1,0 +1,1232 @@
+{
+	"info": {
+		"_postman_id": "814600b7-7322-4712-92ba-659da8742ddf",
+		"name": "Trip Agora",
+		"description": "## 성공 응답 규칙\n\n| 항목 | 설명 |\n| --- | --- |\n| `200` | 성공(응답 data 존재) |\n| `201` | 성공(생성됨) |\n| `204` | 성공(응답 data 없음) |\n\n---\n\n## 응답 예시\n\n### **성공**\n\n**200 Ok**\n\n``` json\n{\n  \"code\": 200,\n  \"message\": \"요청이 처리되었습니다.\",\n  \"data\": []\n}\b\n\n ```\n\n**201 Created**\n\n``` json\n{\n  \"code\": 201,\n  \"message\": \"리소스가 생성되었습니다.\"\n}\n\n ```\n\n**204 No Content**\n\n``` json\n{\n  \"code\": 204,\n  \"message\": \"요청이 처리되었습니다.\"\n}\n\n ```\n\n### **실패**\n\n**기본 실패 형식 예시**\n\n``` json\n{\n  \"code\": 409,\n  \"message\": \"이미 존재하는 캘린더입니다.\"\n}\n\n ```\n\n**요청 body의 유효성 검사 실패 예시**\n\nerrors에서 Request body의 어떤 컬럼(field)이 유효성 검증에 실패했는지와 이유(reason)를 추가로 알려줍니다.\n\n``` json\n{\n  \"code\": 400,\n  \"message\": \"잘못된 입력 값입니다.\",\n  \"errors\": [\n    {\n      \"field\": \"username\",\n      \"reason\": \"공백일 수 없습니다\"\n    }\n  ]\n}\n\n ```\n\n---\n\n모든 성공 응답의 상태코드는 200으로 통일(body 내의 code로 구분합니다.)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "1455916"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "카카오 로그인",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"pm.environment.set(\"accessToken\", jsonData.data.accessToken);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"socialAccessToken\": \"n3COEdjLPGWYE42arhcJaWMHvMuXC8XoAAAAAQoXC9cAAAGZDXw6hkPPWzORmYVE\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "ec2-13-125-89-40.ap-northeast-2.compute.amazonaws.com:8080/api/auth/login/KAKAO",
+							"host": [
+								"ec2-13-125-89-40",
+								"ap-northeast-2",
+								"compute",
+								"amazonaws",
+								"com"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"auth",
+								"login",
+								"KAKAO"
+							]
+						},
+						"description": "카카오 소셜로그인을 위한 경로입니다.\n\n# Request\n\n## Body\n\n| 항목 | **타입** | 설명 |\n| --- | --- | --- |\n| socialAccessToken | String | 소셜로부터 사용자정보를 조회하기 위한 토큰 |\n\n---\n\n# Response\n\n### **Data**\n\n| 항목 | **타입** | 설명 |\n| --- | --- | --- |\n| accessToken | String | 엑세스 토큰 |\n| refreshToken | String | 리프레시 토큰 |\n| isNewUser | Boolean | 첫 로그인 여부(첫 로그인이면 true) |\n\n---"
+					},
+					"response": [
+						{
+							"name": "성공",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"socialAccessToken\": \"n3COEdjLPGWYE42arhcJaWMHvMuXC8XoAAAAAQoXC9cAAAGZDXw6hkPPWzORmYVE\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "ec2-13-125-89-40.ap-northeast-2.compute.amazonaws.com:8080/api/auth/login/KAKAO",
+									"host": [
+										"ec2-13-125-89-40",
+										"ap-northeast-2",
+										"compute",
+										"amazonaws",
+										"com"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"auth",
+										"login",
+										"KAKAO"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "X-XSS-Protection",
+									"value": "0"
+								},
+								{
+									"key": "Cache-Control",
+									"value": "no-cache, no-store, max-age=0, must-revalidate"
+								},
+								{
+									"key": "Pragma",
+									"value": "no-cache"
+								},
+								{
+									"key": "Expires",
+									"value": "0"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Date",
+									"value": "Wed, 03 Sep 2025 07:37:26 GMT"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=60"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"code\": 200,\n    \"message\": \"요청이 처리되었습니다.\",\n    \"data\": {\n        \"accessToken\": \"eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjEsInJvbGUiOiJVU0VSIiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc1Njg4NTA0NiwiZXhwIjoxNzU2ODkyMjQ2fQ.QZdsraltHMJQBjW0vJxAtYplo2Q3V0pVmes3dQDeGts\",\n        \"refreshToken\": \"eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjEsInJvbGUiOiJVU0VSIiwidHlwZSI6InJlZnJlc2giLCJpYXQiOjE3NTY4ODUwNDYsImV4cCI6MTc1NzQ4OTg0Nn0.m-j_X_93N9zIb_y73nWWMEMwGtv71ukqwDOqOJhzYhI\",\n        \"isNewUser\": false\n    }\n}"
+						},
+						{
+							"name": "socialAccessToken이 유효하지 않은 경우",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"socialAccessToken\": \"n3COEdjLPGWYE42arhcJaWMHvMuXC8XoAAAAAQoXC9cAAAGZDXw6hkPPWzORmYV\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "ec2-13-125-89-40.ap-northeast-2.compute.amazonaws.com:8080/api/auth/login/KAKAO",
+									"host": [
+										"ec2-13-125-89-40",
+										"ap-northeast-2",
+										"compute",
+										"amazonaws",
+										"com"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"auth",
+										"login",
+										"KAKAO"
+									]
+								}
+							},
+							"status": "Unauthorized",
+							"code": 401,
+							"_postman_previewlanguage": "Text",
+							"header": [
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "X-XSS-Protection",
+									"value": "0"
+								},
+								{
+									"key": "Cache-Control",
+									"value": "no-cache, no-store, max-age=0, must-revalidate"
+								},
+								{
+									"key": "Pragma",
+									"value": "no-cache"
+								},
+								{
+									"key": "Expires",
+									"value": "0"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Date",
+									"value": "Wed, 03 Sep 2025 09:00:28 GMT"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=60"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"code\": 401,\n    \"message\": \"유효하지 않은 소셜 로그인 엑세스 토큰입니다.\"\n}"
+						}
+					]
+				},
+				{
+					"name": "로그아웃",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "ec2-13-125-89-40.ap-northeast-2.compute.amazonaws.com:8080/api/auth/logout",
+							"host": [
+								"ec2-13-125-89-40",
+								"ap-northeast-2",
+								"compute",
+								"amazonaws",
+								"com"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"auth",
+								"logout"
+							]
+						},
+						"description": "로그아웃을 하기 위한 경로입니다."
+					},
+					"response": [
+						{
+							"name": "성공",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "ec2-13-125-89-40.ap-northeast-2.compute.amazonaws.com:8080/api/auth/logout",
+									"host": [
+										"ec2-13-125-89-40",
+										"ap-northeast-2",
+										"compute",
+										"amazonaws",
+										"com"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"auth",
+										"logout"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "X-XSS-Protection",
+									"value": "0"
+								},
+								{
+									"key": "Cache-Control",
+									"value": "no-cache, no-store, max-age=0, must-revalidate"
+								},
+								{
+									"key": "Pragma",
+									"value": "no-cache"
+								},
+								{
+									"key": "Expires",
+									"value": "0"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Date",
+									"value": "Wed, 03 Sep 2025 09:12:09 GMT"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=60"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"code\": 204,\n    \"message\": \"요청이 처리되었습니다.\"\n}"
+						}
+					]
+				},
+				{
+					"name": "엑세스 토큰 재발급",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"pm.environment.set(\"accessToken\", jsonData.data.accessToken);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjEsInJvbGUiOiJVU0VSIiwidHlwZSI6InJlZnJlc2giLCJpYXQiOjE3NTczMDY1NDgsImV4cCI6MTc1NzkxMTM0OH0.w_CegUMzQ0B_Vy_vxedWk4g3gJIAFUIhxjWBlHMn_Ok\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "ec2-13-125-89-40.ap-northeast-2.compute.amazonaws.com:8080/api/auth/reissue",
+							"host": [
+								"ec2-13-125-89-40",
+								"ap-northeast-2",
+								"compute",
+								"amazonaws",
+								"com"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"auth",
+								"reissue"
+							]
+						},
+						"description": "엑세스 토큰 만료시, 리프레시 토큰을 통해 엑세스 토큰을 재발급받는 경로입니다.\n\n엑세스 토큰 재발급시 리프레시 토큰도 자동으로 재발급됩니다.(기존 리프레시 토큰 무효화처리)\n\n# Request\n\n## Body\n\n| 항목 | **타입** | 설명 |\n| --- | --- | --- |\n| refreshToken | String | 엑세스 토큰을 재발급받기 위한 리프레시 토큰 |\n\n---\n\n# Response\n\n### **Data**\n\n| 항목 | **타입** | 설명 |\n| --- | --- | --- |\n| accessToken | String | 새로운 엑세스 토큰 |\n| refreshToken | String | 새로운 리프레시 토큰 |\n\n---"
+					},
+					"response": [
+						{
+							"name": "성공",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjEsInJvbGUiOiJVU0VSIiwidHlwZSI6InJlZnJlc2giLCJpYXQiOjE3NTY4OTEyNzMsImV4cCI6MTc1NzQ5NjA3M30._rWmsNfhTwEN1L_ZuSKrYRMV29eX2AKwh5sS2rP-4Os\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "ec2-13-125-89-40.ap-northeast-2.compute.amazonaws.com:8080/api/auth/reissue",
+									"host": [
+										"ec2-13-125-89-40",
+										"ap-northeast-2",
+										"compute",
+										"amazonaws",
+										"com"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"auth",
+										"reissue"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "X-XSS-Protection",
+									"value": "0"
+								},
+								{
+									"key": "Cache-Control",
+									"value": "no-cache, no-store, max-age=0, must-revalidate"
+								},
+								{
+									"key": "Pragma",
+									"value": "no-cache"
+								},
+								{
+									"key": "Expires",
+									"value": "0"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Date",
+									"value": "Wed, 03 Sep 2025 09:21:22 GMT"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=60"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"code\": 201,\n    \"message\": \"리소스가 생성되었습니다.\",\n    \"data\": {\n        \"accessToken\": \"eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjEsInJvbGUiOiJVU0VSIiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc1Njg5MTI4MiwiZXhwIjoxNzU2ODk4NDgyfQ.KzkRbaGUwTEueNxasucMMBlOAdKDILr218qtp0sIE0c\",\n        \"refreshToken\": \"eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjEsInJvbGUiOiJVU0VSIiwidHlwZSI6InJlZnJlc2giLCJpYXQiOjE3NTY4OTEyODIsImV4cCI6MTc1NzQ5NjA4Mn0.EYS804fKE9uQtxkdRjXNlOvWKrqCkUSijxcC2GzX0-Q\"\n    }\n}"
+						},
+						{
+							"name": "실패(리프레시 토큰이 유효하지 않은 경우)",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjEsInJvbGUiOiJVU0VSIiwidHlwZSI6InJlZnJlc2giLCJpYXQiOjE3NTcwMzQ0MzAsImV4cCI6MTc1NzYzOTIzMH0.Prb5t5HNuK9sbbSaoG_0cLsEhWvPMh4L0_-TNLV0QO\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "ec2-13-125-89-40.ap-northeast-2.compute.amazonaws.com:8080/api/auth/reissue",
+									"host": [
+										"ec2-13-125-89-40",
+										"ap-northeast-2",
+										"compute",
+										"amazonaws",
+										"com"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"auth",
+										"reissue"
+									]
+								}
+							},
+							"status": "Unauthorized",
+							"code": 401,
+							"_postman_previewlanguage": "Text",
+							"header": [
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "X-XSS-Protection",
+									"value": "0"
+								},
+								{
+									"key": "Cache-Control",
+									"value": "no-cache, no-store, max-age=0, must-revalidate"
+								},
+								{
+									"key": "Pragma",
+									"value": "no-cache"
+								},
+								{
+									"key": "Expires",
+									"value": "0"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 05 Sep 2025 01:32:15 GMT"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=60"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"code\": 401,\n    \"message\": \"유효하지 않은 리프레시 토큰입니다.\"\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "닉네임 변경",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"nickname\": \"nickname1\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "ec2-13-125-89-40.ap-northeast-2.compute.amazonaws.com:8080/api/users/me/nickname",
+							"host": [
+								"ec2-13-125-89-40",
+								"ap-northeast-2",
+								"compute",
+								"amazonaws",
+								"com"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"users",
+								"me",
+								"nickname"
+							]
+						},
+						"description": "첫 회원가입 이후 닉네임 설정 혹은 닉네임을 변경하기 위한 경로입니다.\n\n# Request\n\n## Body\n\n| 항목 | **타입** | 설명 |\n| --- | --- | --- |\n| nickname | String | 변경하기 원하는 닉네임 |\n\n---\n\n# Response\n\n### **Data**\n\n| 항목 | **타입** | 설명 |\n| --- | --- | --- |\n| nickname | String | 변경이 완료된 닉네임 |\n\n---"
+					},
+					"response": [
+						{
+							"name": "성공",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"nickname\": \"nickname1\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "ec2-13-125-89-40.ap-northeast-2.compute.amazonaws.com:8080/api/users/me/nickname",
+									"host": [
+										"ec2-13-125-89-40",
+										"ap-northeast-2",
+										"compute",
+										"amazonaws",
+										"com"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"users",
+										"me",
+										"nickname"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "X-XSS-Protection",
+									"value": "0"
+								},
+								{
+									"key": "Cache-Control",
+									"value": "no-cache, no-store, max-age=0, must-revalidate"
+								},
+								{
+									"key": "Pragma",
+									"value": "no-cache"
+								},
+								{
+									"key": "Expires",
+									"value": "0"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 05 Sep 2025 01:26:50 GMT"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=60"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"code\": 200,\n    \"message\": \"요청이 처리되었습니다.\",\n    \"data\": {\n        \"nickname\": \"nickname1\"\n    }\n}"
+						},
+						{
+							"name": "실패(이전과 동일하거나 이미 존재하는 닉네임인 경우)",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"nickname\": \"nickname1\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "ec2-13-125-89-40.ap-northeast-2.compute.amazonaws.com:8080/api/users/me/nickname",
+									"host": [
+										"ec2-13-125-89-40",
+										"ap-northeast-2",
+										"compute",
+										"amazonaws",
+										"com"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"users",
+										"me",
+										"nickname"
+									]
+								}
+							},
+							"status": "Conflict",
+							"code": 409,
+							"_postman_previewlanguage": "Text",
+							"header": [
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "X-XSS-Protection",
+									"value": "0"
+								},
+								{
+									"key": "Cache-Control",
+									"value": "no-cache, no-store, max-age=0, must-revalidate"
+								},
+								{
+									"key": "Pragma",
+									"value": "no-cache"
+								},
+								{
+									"key": "Expires",
+									"value": "0"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 05 Sep 2025 01:28:00 GMT"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=60"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"code\": 409,\n    \"message\": \"이미 존재하는 닉네임입니다.\"\n}"
+						},
+						{
+							"name": "실패(공백이나 개행문자가 포함된 경우)",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"nickname\": \"nick name\\n\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "ec2-13-125-89-40.ap-northeast-2.compute.amazonaws.com:8080/api/users/me/nickname",
+									"host": [
+										"ec2-13-125-89-40",
+										"ap-northeast-2",
+										"compute",
+										"amazonaws",
+										"com"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"users",
+										"me",
+										"nickname"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "Text",
+							"header": [
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "X-XSS-Protection",
+									"value": "0"
+								},
+								{
+									"key": "Cache-Control",
+									"value": "no-cache, no-store, max-age=0, must-revalidate"
+								},
+								{
+									"key": "Pragma",
+									"value": "no-cache"
+								},
+								{
+									"key": "Expires",
+									"value": "0"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 05 Sep 2025 06:42:25 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"code\": 400,\n    \"message\": \"올바르지 않은 닉네임 형식입니다.\"\n}"
+						},
+						{
+							"name": "실패(2자리 미만 혹은 20자리 초과인 경우)",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"nickname\": \"n\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "ec2-13-125-89-40.ap-northeast-2.compute.amazonaws.com:8080/api/users/me/nickname",
+									"host": [
+										"ec2-13-125-89-40",
+										"ap-northeast-2",
+										"compute",
+										"amazonaws",
+										"com"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"users",
+										"me",
+										"nickname"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "Text",
+							"header": [
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "X-XSS-Protection",
+									"value": "0"
+								},
+								{
+									"key": "Cache-Control",
+									"value": "no-cache, no-store, max-age=0, must-revalidate"
+								},
+								{
+									"key": "Pragma",
+									"value": "no-cache"
+								},
+								{
+									"key": "Expires",
+									"value": "0"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 05 Sep 2025 06:43:17 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"code\": 400,\n    \"message\": \"잘못된 입력값입니다.\",\n    \"errors\": [\n        {\n            \"field\": \"nickname\",\n            \"reason\": \"닉네임은 2~20자여야 합니다.\"\n        }\n    ]\n}"
+						}
+					]
+				},
+				{
+					"name": "태그 변경",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"tagIds\": [1, 20, 4, 15, 6, 16]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "ec2-13-125-89-40.ap-northeast-2.compute.amazonaws.com:8080/api/users/me/tags",
+							"host": [
+								"ec2-13-125-89-40",
+								"ap-northeast-2",
+								"compute",
+								"amazonaws",
+								"com"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"users",
+								"me",
+								"tags"
+							]
+						},
+						"description": "첫 회원가입 이후 태그 설정 혹은 태그를 수정하기 위한 경로입니다.\n\n# Request\n\n## Body\n\n| 항목 | **타입** | 설명 |\n| --- | --- | --- |\n| tagIds | Array | 변경하기 원하는 태그 id 리스트 |\n\n---\n\n# Response\n\n### **Data**\n\n| 항목 | **타입** | 설명 |\n| --- | --- | --- |\n| tagNames | Array | 변경이 완료된 태그 이름 리스트 |"
+					},
+					"response": [
+						{
+							"name": "성공",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"tagIds\": [1, 20, 4, 15, 6, 16]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "ec2-13-125-89-40.ap-northeast-2.compute.amazonaws.com:8080/api/users/me/tags",
+									"host": [
+										"ec2-13-125-89-40",
+										"ap-northeast-2",
+										"compute",
+										"amazonaws",
+										"com"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"users",
+										"me",
+										"tags"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "X-XSS-Protection",
+									"value": "0"
+								},
+								{
+									"key": "Cache-Control",
+									"value": "no-cache, no-store, max-age=0, must-revalidate"
+								},
+								{
+									"key": "Pragma",
+									"value": "no-cache"
+								},
+								{
+									"key": "Expires",
+									"value": "0"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 05 Sep 2025 02:52:51 GMT"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=60"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"code\": 200,\n    \"message\": \"요청이 처리되었습니다.\",\n    \"data\": {\n        \"tagNames\": [\n            \"휴양·힐링\",\n            \"쇼핑\",\n            \"카페투어\",\n            \"핫플\",\n            \"스포츠\",\n            \"친구여행\"\n        ]\n    }\n}"
+						},
+						{
+							"name": "실패(3개 미만으로 선택한 경우)",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"tagIds\": [1, 20]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "ec2-13-125-89-40.ap-northeast-2.compute.amazonaws.com:8080/api/users/me/tags",
+									"host": [
+										"ec2-13-125-89-40",
+										"ap-northeast-2",
+										"compute",
+										"amazonaws",
+										"com"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"users",
+										"me",
+										"tags"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "Text",
+							"header": [
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "X-XSS-Protection",
+									"value": "0"
+								},
+								{
+									"key": "Cache-Control",
+									"value": "no-cache, no-store, max-age=0, must-revalidate"
+								},
+								{
+									"key": "Pragma",
+									"value": "no-cache"
+								},
+								{
+									"key": "Expires",
+									"value": "0"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 05 Sep 2025 01:28:44 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"code\": 400,\n    \"message\": \"잘못된 입력 값입니다.\",\n    \"errors\": [\n        {\n            \"field\": \"tagIds\",\n            \"reason\": \"최소 3개 이상의 태그를 선택해야 합니다.\"\n        }\n    ]\n}"
+						},
+						{
+							"name": "실패(중복되거나 없는 태그번호가 포함한 경우)",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"tagIds\": [1, 20, 4, 4, 30]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "ec2-13-125-89-40.ap-northeast-2.compute.amazonaws.com:8080/api/users/me/tags",
+									"host": [
+										"ec2-13-125-89-40",
+										"ap-northeast-2",
+										"compute",
+										"amazonaws",
+										"com"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"users",
+										"me",
+										"tags"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "Text",
+							"header": [
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "X-XSS-Protection",
+									"value": "0"
+								},
+								{
+									"key": "Cache-Control",
+									"value": "no-cache, no-store, max-age=0, must-revalidate"
+								},
+								{
+									"key": "Pragma",
+									"value": "no-cache"
+								},
+								{
+									"key": "Expires",
+									"value": "0"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 05 Sep 2025 01:29:19 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"code\": 400,\n    \"message\": \"존재하지 않거나 중복된 태그 ID가 포함되어 있습니다.\"\n}"
+						}
+					]
+				}
+			]
+		}
+	]
+}
