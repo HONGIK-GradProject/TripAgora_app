@@ -6,24 +6,9 @@ import {
   KakaoLoginResponse,
 } from '@/types';
 
-import axios, { AxiosInstance } from 'axios';
-
-const apiClient: AxiosInstance = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-apiClient.interceptors.request.use((config) => {
-  const accessToken = 'token';  // Replace with actual token retrieval logic
-
-  if (accessToken) {
-    config.headers.Authorization = `${accessToken}`;
-  }
-
-  return config;
-});
+import { clearTokens, saveTokens } from '@/services/auth';
+import axios from 'axios';
+import apiClient from './client';
 
 export const signIn = async (
   socialAccessToken: string
@@ -41,7 +26,8 @@ export const signIn = async (
 
     if (response.data.data) {
       const { accessToken, refreshToken, isNewUser } = response.data.data;
-      // Store tokens securely (e.g., in AsyncStorage)
+      await saveTokens(accessToken, refreshToken);
+
       console.log('Login successful:', { accessToken, refreshToken, isNewUser });
       return response.data.data;
     }
@@ -56,23 +42,23 @@ export const signIn = async (
 
 export const signOut = async (): Promise<void> => {
   try {
-    // You might need to include the access token in the header for logout
-    // For example:
-    // const token = await getAccessToken(); // Function to get the stored token
-    // await apiClient.post('/auth/logout', null, {
-    //   headers: { Authorization: `Bearer ${token}` },
-    // });
-    await apiClient.post('/auth/logout');
+    const response = await apiClient.post<ApiResponse<void>>('/auth/logout');
+    const responseData = response.data;
+
+    if (responseData && responseData.code === 401) {
+      throw new Error(responseData.message || 'Unauthorized: Invalid or expired token');
+    }
+
+    await clearTokens();
     console.log('Logout successful');
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error('Logout failed:', error.response?.data);
+      console.error('Logout failed:', error.toJSON());
     } else {
       console.error('An unexpected error occurred:', error);
     }
   }
 };
-
 
 /**
  * 카카오 로그인을 시도하고 액세스 토큰을 반환합니다.
