@@ -56,7 +56,8 @@ export default {
             flipper: true,
           }
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true
