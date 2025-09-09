@@ -10,4 +10,4 @@ interface ErrorInfo {
   reason: string;
 }
 
-export default APIResponse
+export default APIResponse;
