@@ -1,7 +1,13 @@
 import { login as kakaoLogin, logout as kakaoLogout } from '@react-native-seoul/kakao-login';
 
-import { clearTokens, saveTokens } from '@/services/auth';
-import { LoginRequest, LoginResponse, LogoutResponse } from '@/types/auth';
+import { clearTokens, getTokens, saveTokens } from '@/services/auth';
+import {
+  LoginRequest,
+  LoginResponse,
+  LogoutResponse,
+  ReissueRequest,
+  ReissueResponse
+} from '@/types/auth';
 import axios from 'axios';
 import apiClient from './client';
 
@@ -58,6 +64,36 @@ export const signOut = async (): Promise<void> => {
   } catch (error) {
     if (axios.isAxiosError(error)) {
       console.error('Logout failed:', error.toJSON());
+    } else {
+      console.error('An unexpected error occurred:', error);
+    }
+  }
+};
+
+export const reissueToken = async (): Promise<string | undefined> => {
+  try {
+    const tokens = await getTokens();
+    const refreshToken = tokens.refreshToken;
+
+    if (!refreshToken) {
+      throw new Error('No refresh token available');
+    }
+
+    const requestData: ReissueRequest = { refreshToken };
+
+    const response = await apiClient.post<ReissueResponse>(
+      '/auth/reissue',
+      requestData
+    );
+
+    if (response.data.data) {
+      const { accessToken, refreshToken } = response.data.data;
+      await saveTokens(accessToken, refreshToken);
+      return accessToken;
+    }
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Token reissue failed:', error.toJSON());
     } else {
       console.error('An unexpected error occurred:', error);
     }
