@@ -59,7 +59,6 @@ apiClient.interceptors.response.use(
       try {
         const newAccessToken = await reissueToken();
         if (newAccessToken) {
-          axios.defaults.headers.common['Authorization'] = 'Bearer ' + newAccessToken;
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           return apiClient(originalRequest);
         } else {
