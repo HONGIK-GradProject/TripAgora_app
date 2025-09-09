@@ -1,30 +1,29 @@
+/**
+ * @file 인증 관련 API 함수를 제공합니다. (로그인, 로그아웃, 카카오 연동)
+ * @module api/auth
+ */
+
 import { login as kakaoLogin, logout as kakaoLogout } from '@react-native-seoul/kakao-login';
 
-import { clearTokens, getTokens, saveTokens } from '@/services/auth';
+import { clearTokens, saveTokens } from '@/services/auth';
 import {
   LoginRequest,
   LoginResponse,
-  LogoutResponse,
-  ReissueRequest,
-  ReissueResponse
+  LogoutResponse
 } from '@/types/auth';
 import axios from 'axios';
 import apiClient from './client';
 
-
 /**
  * 소셜 로그인을 통해 서버에 로그인을 시도하고, 성공 시 토큰 정보를 저장합니다.
- * @param socialAccessToken - 소셜 로그인(카카오)을 통해 받은 액세스 토큰
- * @returns 성공 시 LoginResponse를, 실패 시 undefined를 반환합니다.
+ * @param {string} socialAccessToken - 소셜 로그인(카카오)을 통해 받은 액세스 토큰입니다.
+ * @returns {Promise<LoginResponse | undefined>} 성공 시 LoginResponse를, 실패 시 undefined를 반환합니다.
  */
 export const signIn = async (
   socialAccessToken: string
 ): Promise<LoginResponse | undefined> => {
   try {
     const requestData: LoginRequest = { socialAccessToken };
-
-    console.warn('requestData:', requestData);
-    console.warn('apiclient baseURL:', process.env.EXPO_PUBLIC_API_BASE_URL);
 
     const response = await apiClient.post<LoginResponse>(
       '/auth/login/KAKAO',
@@ -35,20 +34,21 @@ export const signIn = async (
       const { accessToken, refreshToken, isNewUser } = response.data.data;
       await saveTokens(accessToken, refreshToken);
 
-      console.log('Login successful:', { accessToken, refreshToken, isNewUser });
+      console.log('로그인 성공:', { accessToken, refreshToken, isNewUser });
       return response.data;
     }
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error('Login failed:', error.toJSON());
+      console.error('로그인 실패:', error.toJSON());
     } else {
-      console.error('An unexpected error occurred:', error);
+      console.error('예상치 못한 오류 발생:', error);
     }
   }
 };
 
 /**
  * 서버에서 로그아웃을 처리하고, 저장된 토큰을 삭제합니다.
+ * @returns {Promise<void>}
  */
 export const signOut = async (): Promise<void> => {
   try {
@@ -56,46 +56,16 @@ export const signOut = async (): Promise<void> => {
     const responseData = response.data;
 
     if (responseData && responseData.code === 401) {
-      throw new Error(responseData.message || 'Unauthorized: Invalid or expired token');
+      throw new Error(responseData.message || '인증되지 않음: 유효하지 않거나 만료된 토큰입니다.');
     }
 
     await clearTokens();
-    console.log('Logout successful');
+    console.log('로그아웃 성공');
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error('Logout failed:', error.toJSON());
+      console.error('로그아웃 실패:', error.toJSON());
     } else {
-      console.error('An unexpected error occurred:', error);
-    }
-  }
-};
-
-export const reissueToken = async (): Promise<string | undefined> => {
-  try {
-    const tokens = await getTokens();
-    const refreshToken = tokens.refreshToken;
-
-    if (!refreshToken) {
-      throw new Error('No refresh token available');
-    }
-
-    const requestData: ReissueRequest = { refreshToken };
-
-    const response = await apiClient.post<ReissueResponse>(
-      '/auth/reissue',
-      requestData
-    );
-
-    if (response.data.data) {
-      const { accessToken, refreshToken } = response.data.data;
-      await saveTokens(accessToken, refreshToken);
-      return accessToken;
-    }
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error('Token reissue failed:', error.toJSON());
-    } else {
-      console.error('An unexpected error occurred:', error);
+      console.error('예상치 못한 오류 발생:', error);
     }
   }
 };
