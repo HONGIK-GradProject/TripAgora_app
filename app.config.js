@@ -1,4 +1,4 @@
-export default{
+export default {
   "expo": {
     "name": "gradproj",
     "slug": "gradproj",
@@ -49,10 +49,15 @@ export default{
           "android": {
             "extraMavenRepos": [
               "https://devrepo.kakao.com/nexus/content/groups/public/"
-            ]
+            ],
+            usesCleartextTraffic: true,
+          },
+          ios: {
+            flipper: true,
           }
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true
