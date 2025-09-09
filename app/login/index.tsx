@@ -1,4 +1,4 @@
-import { signIn } from '@/api/auth';
+import { kakaoSignIn, signIn } from '@/api/auth';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
@@ -18,10 +18,8 @@ const LoginScreen: React.FC = () => {
    */
   const handleKakaoSignIn = async () => {
     try {
-      // 카카오 로그인 로직, 잠시 주석 처리
-      //const accessToken = await kakaoSignIn();
-      //console.warn('Token: ', accessToken);
-      const accessToken = 'sKVjIHZWJ8yPJ-XJv71m_D_-fq4poFXbAAAAAQoNFN0AAAGZKjRcBEPPWzORmYVE'; // Test token
+      const accessToken = await kakaoSignIn();
+      console.warn('Token: ', accessToken);
       await signIn(accessToken);
       router.push('/login/set-profile');
     } catch (error: Error | any) {
