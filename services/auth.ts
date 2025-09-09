@@ -1,5 +1,10 @@
 import * as SecureStore from 'expo-secure-store';
 
+/**
+ * SecureStore에 액세스 토큰과 리프레시 토큰을 저장합니다.
+ * @param accessToken - 저장할 액세스 토큰
+ * @param refreshToken - 저장할 리프레시 토큰
+ */
 const saveTokens = async (accessToken: string, refreshToken: string) => {
   try {
     await SecureStore.setItemAsync('accessToken', accessToken);
@@ -9,6 +14,9 @@ const saveTokens = async (accessToken: string, refreshToken: string) => {
   }
 }
 
+/**
+ * SecureStore에서 액세스 토큰과 리프레시 토큰을 삭제합니다.
+ */
 const clearTokens = async () => {
   try {
     await SecureStore.deleteItemAsync('accessToken');
@@ -18,6 +26,10 @@ const clearTokens = async () => {
   }
 }
 
+/**
+ * SecureStore에서 액세스 토큰과 리프레시 토큰을 가져옵니다.
+ * @returns 액세스 토큰과 리프레시 토큰을 포함하는 객체를 반환합니다. 토큰이 없을 경우 null을 반환합니다.
+ */
 const getTokens = async (): Promise<{ accessToken: string | null; refreshToken: string | null }> => {
   try {
     const accessToken = await SecureStore.getItemAsync('accessToken');

@@ -1,25 +1,26 @@
 import { login as kakaoLogin, logout as kakaoLogout } from '@react-native-seoul/kakao-login';
 
-import {
-  ApiResponse,
-  KakaoLoginRequest,
-  KakaoLoginResponse,
-} from '@/types';
-
 import { clearTokens, saveTokens } from '@/services/auth';
+import { LoginRequest, LoginResponse, LogoutResponse } from '@/types/auth';
 import axios from 'axios';
 import apiClient from './client';
 
+
+/**
+ * 소셜 로그인을 통해 서버에 로그인을 시도하고, 성공 시 토큰 정보를 저장합니다.
+ * @param socialAccessToken - 소셜 로그인(카카오)을 통해 받은 액세스 토큰
+ * @returns 성공 시 LoginResponse를, 실패 시 undefined를 반환합니다.
+ */
 export const signIn = async (
   socialAccessToken: string
-): Promise<KakaoLoginResponse | undefined> => {
+): Promise<LoginResponse | undefined> => {
   try {
-    const requestData: KakaoLoginRequest = { socialAccessToken };
+    const requestData: LoginRequest = { socialAccessToken };
 
     console.warn('requestData:', requestData);
     console.warn('apiclient baseURL:', process.env.EXPO_PUBLIC_API_BASE_URL);
 
-    const response = await apiClient.post<ApiResponse<KakaoLoginResponse>>(
+    const response = await apiClient.post<LoginResponse>(
       '/auth/login/KAKAO',
       requestData
     );
@@ -29,7 +30,7 @@ export const signIn = async (
       await saveTokens(accessToken, refreshToken);
 
       console.log('Login successful:', { accessToken, refreshToken, isNewUser });
-      return response.data.data;
+      return response.data;
     }
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -40,9 +41,12 @@ export const signIn = async (
   }
 };
 
+/**
+ * 서버에서 로그아웃을 처리하고, 저장된 토큰을 삭제합니다.
+ */
 export const signOut = async (): Promise<void> => {
   try {
-    const response = await apiClient.post<ApiResponse<void>>('/auth/logout');
+    const response = await apiClient.post<LogoutResponse>('/auth/logout');
     const responseData = response.data;
 
     if (responseData && responseData.code === 401) {
