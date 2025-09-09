@@ -5,8 +5,6 @@ interface LoginRequest {
 }
 
 interface LoginResponse extends APIResponse<LoginData> {}
-  
-}
 
 interface LogoutRequest {
   accessToken: string;
