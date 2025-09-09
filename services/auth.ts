@@ -1,3 +1,5 @@
+import { ReissueRequest, ReissueResponse } from '@/types/auth';
+import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
 /**
@@ -41,4 +43,40 @@ const getTokens = async (): Promise<{ accessToken: string | null; refreshToken: 
   }
 }
 
-export { clearTokens, getTokens, saveTokens };
+const reissueToken = async (): Promise<string | undefined> => {
+  try {
+    const tokens = await getTokens();
+    const refreshToken = tokens.refreshToken;
+
+    if (!refreshToken) {
+      throw new Error('No refresh token available');
+    }
+
+    const requestData: ReissueRequest = { refreshToken };
+
+    const response = await axios.post<ReissueResponse>(
+      `${process.env.EXPO_PUBLIC_API_BASE_URL}/auth/reissue`,
+      requestData
+    );
+
+    if (!response.data.data) {
+      throw new Error('No data in reissue response');
+    }
+
+    const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data.data;
+    await saveTokens(newAccessToken, newRefreshToken);
+    console.log('Token reissue successful:', { newAccessToken, newRefreshToken });
+    return newAccessToken;
+  } catch (error) {
+    await clearTokens();
+    
+    if (axios.isAxiosError(error)) {
+      console.error('Token reissue failed:', error.toJSON());
+    } else {
+      console.error('An unexpected error occurred:', error);
+    }
+  }
+};
+
+export { clearTokens, getTokens, reissueToken, saveTokens };
+

@@ -1,6 +1,5 @@
-import { clearTokens, getTokens } from '@/services/auth';
+import { clearTokens, getTokens, reissueToken } from '@/services/auth';
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
-import { reissueToken } from './auth';
 
 interface CustomInternalAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
@@ -36,15 +35,14 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
       console.warn('Access token expired, attempting to reissue token...');
       try {
-        const token = await reissueToken();
-        if (token) {
-          originalRequest.headers.Authorization = `Bearer ${token}`;
+        const newAccessToken = await reissueToken();
+        if (newAccessToken) {
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           return apiClient(originalRequest);
         } else {
           throw new Error('Token reissue failed');
         }
       } catch (refreshError) {
-        // remove tokens and redirect to login
         await clearTokens();
         console.error('Token reissue failed, redirecting to login.');
         return Promise.reject(refreshError);
