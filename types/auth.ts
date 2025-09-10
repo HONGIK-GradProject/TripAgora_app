@@ -18,5 +18,15 @@ interface LoginData {
   isNewUser: boolean;
 }
 
-export { LoginRequest, LoginResponse, LogoutRequest, LogoutResponse };
+interface ReissueRequest {
+  refreshToken: string;
+}
 
+interface ReissueResponse extends APIResponse<ReissueData> {}
+
+interface ReissueData {
+  accessToken: string;
+  refreshToken: string;
+}
+
+export { LoginRequest, LoginResponse, LogoutRequest, LogoutResponse, ReissueRequest, ReissueResponse };
