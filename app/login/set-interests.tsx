@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 
-import { setTags } from '@/api/users';
+import { setTags } from '@/api/user';
 import InterestTag from '@/components/InterestTag';
 import { INTEREST_TAGS } from '@/constants/Tags';
 import { router } from 'expo-router';

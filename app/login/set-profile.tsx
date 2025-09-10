@@ -1,20 +1,21 @@
+import { setNickname } from '@/api/user';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Toast from 'react-native-toast-message';
 
 const SetProfileScreen: React.FC = () => {
-  const [nickname, setNickname] = useState('');
+  const [name, setName] = useState('');
   const router = useRouter();
 
   const handleNicknameChange = (text: string) => {
     const filteredText = text.replace(/[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣]/g, '');
-    setNickname(filteredText);
+    setName(filteredText);
   };
 
   useEffect(() => {
-    console.log(nickname);
-  }, [nickname]);
+    console.log(name);
+  }, [name]);
 
   const showToast = () => {
     Toast.show({
@@ -61,7 +62,7 @@ const SetProfileScreen: React.FC = () => {
         <TextInput
           className='w-full h-12 border-b border-black px-0'
           placeholder='2~20자 이내, 특수문자 및 공백 제외'
-          value={nickname}
+          value={name}
           onChangeText={handleNicknameChange}
         />
       </View>
@@ -69,7 +70,7 @@ const SetProfileScreen: React.FC = () => {
       {/* 다음으로 버튼 */}
       <TouchableOpacity
         className='w-[390px] h-[52px] bg-primary rounded-md justify-center items-center absolute bottom-7'
-        onPress={validateNickname.bind(null, nickname)}
+        onPress={validateNickname.bind(null, name)}
       >
         <Text className='text-xl font-bold text-white'>다음으로</Text>
       </TouchableOpacity>
