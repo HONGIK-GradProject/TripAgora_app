@@ -8,7 +8,6 @@ import { Text, TouchableOpacity, View } from 'react-native';
  * 카카오 로그인 버튼을 포함하며, 로그인 성공 시 프로필 설정 화면으로 이동합니다.
  */
 const LoginScreen: React.FC = () => {
-
   const router = useRouter();
 
   /**
@@ -21,6 +20,7 @@ const LoginScreen: React.FC = () => {
       const accessToken = await kakaoSignIn();
       console.warn('Token: ', accessToken);
       await signIn(accessToken);
+      // TODO: Response의 isNewUser 값에 따라 라우팅 분기 처리
       router.push('/login/set-profile');
     } catch (error: Error | any) {
       console.error('Kakao login failed:', error.cause);
@@ -28,17 +28,19 @@ const LoginScreen: React.FC = () => {
   };
 
   return (
-    <View className="flex-1 items-center justify-center bg-white">
+    <View className='flex-1 items-center justify-center bg-white'>
       {/* 로고 */}
-      <View className="w-[133px] h-[133px] rounded-full bg-[#D9D9D9] items-center justify-center mb-16">
-        <Text className="text-2xl text-black font-bold">(로고)</Text>
+      <View className='w-[133px] h-[133px] rounded-full bg-[#D9D9D9] items-center justify-center mb-16'>
+        <Text className='text-2xl text-black font-bold'>(로고)</Text>
       </View>
 
       {/* 로그인 버튼 */}
-      <TouchableOpacity className="w-4/5 h-12 bg-[#FFDE03] rounded-md items-center justify-center mt-6" onPress={handleKakaoSignIn}>
-        <Text className="text-xl text-white font-bold">로그인</Text>
+      <TouchableOpacity
+        className='w-4/5 h-12 bg-[#FFDE03] rounded-md items-center justify-center mt-6'
+        onPress={handleKakaoSignIn}
+      >
+        <Text className='text-xl text-white font-bold'>로그인</Text>
       </TouchableOpacity>
-      
     </View>
   );
 };

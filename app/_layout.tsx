@@ -11,6 +11,8 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import '../global.css';
 
+import Toast from 'react-native-toast-message';
+
 // 리다이렉션 컴포넌트
 const Redirector = () => {
   return <Redirect href='/login' />;
@@ -36,6 +38,7 @@ export default function RootLayout() {
       </Stack>
       <StatusBar style='auto' />
       <Redirector />
+      <Toast />
     </ThemeProvider>
   );
 }
