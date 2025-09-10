@@ -1,13 +1,7 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import {
-  Alert,
-  Image,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 const SetProfileScreen: React.FC = () => {
   const [nickname, setNickname] = useState('');
@@ -22,9 +16,16 @@ const SetProfileScreen: React.FC = () => {
     console.log(nickname);
   }, [nickname]);
 
+  const showToast = () => {
+    Toast.show({
+      type: 'error',
+      text1: '닉네임 오류',
+      text2: '닉네임은 2~20자 이내로 입력해주세요.',
+    });
+  };
   const validateNickname = (name: string) => {
     if (name.length < 2 || name.length > 20) {
-      Alert.alert('닉네임은 2~20자 이내로 입력해주세요.');
+      showToast();
       return false;
     }
     // TODO: 로그인 요청

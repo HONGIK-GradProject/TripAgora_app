@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Alert, Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 
 import InterestTag from '@/components/InterestTag';
 import { INTEREST_TAGS } from '@/constants/Tags';
-
+import Toast from 'react-native-toast-message';
 const SetInterestsScreen: React.FC = () => {
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
 
@@ -11,6 +11,14 @@ const SetInterestsScreen: React.FC = () => {
   // useEffect(() => {
   //   console.log(selectedTags);
   // }, [selectedTags]);
+  const showToast = () => {
+    Toast.show({
+      type: 'error',
+      text1: '닉네임은 2~20자 이내로 입력해주세요.',
+      position: 'bottom',
+      bottomOffset: 100,
+    });
+  };
 
   const handleToggleTag = (tagId: number) => {
     setSelectedTags((prev) =>
@@ -20,8 +28,7 @@ const SetInterestsScreen: React.FC = () => {
 
   const handleStart = () => {
     if (selectedTags.length < 3) {
-      // TODO: react-native-toast-message로 변경 여부 검토
-      Alert.alert('태그를 3개 이상 선택해 주세요.');
+      showToast();
       return;
     }
     // TODO: 서버에 태그 전송 로직 추가
