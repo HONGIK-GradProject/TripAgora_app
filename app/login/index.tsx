@@ -20,6 +20,7 @@ const LoginScreen: React.FC = () => {
       const accessToken = await kakaoSignIn();
       console.warn('Token: ', accessToken);
       await signIn(accessToken);
+      // TODO: Response의 isNewUser 값에 따라 라우팅 분기 처리
       router.push('/login/set-profile');
     } catch (error: Error | any) {
       console.error('Kakao login failed:', error.cause);
