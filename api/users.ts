@@ -1,3 +1,8 @@
+/**
+ * @file 유저 관련 API 함수를 제공합니다. (닉네임 설정, 관심사 태그 설정)
+ * @module api/users
+ */
+
 import { setNicknameRequest, setNicknameResponse, setTagsRequest, setTagsResponse } from "@/types/users";
 import apiClient from "./client";
 
@@ -11,13 +16,14 @@ const setNickname = async (
 ): Promise<setNicknameResponse | undefined> => {
   try {
     const requestData: setNicknameRequest = { nickname };
-    const response = await apiClient.post<setNicknameResponse>(
+    const response = await apiClient.patch<setNicknameResponse>(
       "/users/me/nickname",
       requestData
     );
+    console.log("닉네임 설정 성공: ", response.data);
     return response.data;
   } catch (error) {
-    console.error("Error setting nickname:", error);
+    console.error("닉네임 설정 실패: ", error);
     return undefined;
   }
 };
@@ -32,13 +38,14 @@ const setTags = async (
 ): Promise<setTagsResponse | undefined> => {
   try {
     const requestData: setTagsRequest = { tagIds };
-    const response = await apiClient.post<setTagsResponse>(
+    const response = await apiClient.patch<setTagsResponse>(
       "/users/me/tags",
       requestData
     );
+    console.log("관심사 태그 설정 성공: ", response.data);
     return response.data;
   } catch (error) {
-    console.error("Error setting tags:", error);
+    console.error("관심사 태그 설정 실패: ", error);
     return undefined;
   }
 };
