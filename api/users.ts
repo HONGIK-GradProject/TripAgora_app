@@ -1,4 +1,4 @@
-import { setNicknameRequest, setNicknameResponse, setTagsRequest, setTagsResponse } from "@/types/user";
+import { setNicknameRequest, setNicknameResponse, setTagsRequest, setTagsResponse } from "@/types/users";
 import apiClient from "./client";
 
 /**
