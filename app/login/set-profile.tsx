@@ -1,4 +1,4 @@
-import { setNickname } from '@/api/user';
+import { setNickname } from '@/api/users';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
