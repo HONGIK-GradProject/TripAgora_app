@@ -34,7 +34,7 @@ const SetInterestsScreen: React.FC = () => {
       showToast();
       return;
     }
-    // 닉네임 변경 요청
+    // 태그 변경 요청
     try {
       await setTags(selectedTags);
       router.replace('/(tabs)/home');
