@@ -12,7 +12,7 @@ const setNickname = async (
   try {
     const requestData: setNicknameRequest = { nickname };
     const response = await apiClient.post<setNicknameResponse>(
-      "/user/nickname",
+      "/users/me/nickname",
       requestData
     );
     return response.data;
@@ -33,7 +33,7 @@ const setTags = async (
   try {
     const requestData: setTagsRequest = { tagIds };
     const response = await apiClient.post<setTagsResponse>(
-      "/user/tags",
+      "/users/me/tags",
       requestData
     );
     return response.data;
