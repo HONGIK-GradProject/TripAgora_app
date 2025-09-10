@@ -23,22 +23,23 @@ const SetProfileScreen: React.FC = () => {
       text2: '닉네임은 2~20자 이내로 입력해주세요.',
     });
   };
-  const validateNickname = (name: string) => {
+  const validateNickname = async (name: string) => {
+    // 길이 제한 검사
     if (name.length < 2 || name.length > 20) {
       showToast();
       return false;
     }
-    // TODO: 로그인 요청
-    console.log('닉네임:', name);
-    return true;
-  };
-
-  const handleNextPress = () => {
-    if (validateNickname(nickname)) {
+    // 닉네임 변경 요청
+    try {
+      await setNickname(name);
       router.push('/login/set-interests');
+      return true;
+    } catch (error) {
+      console.error('닉네임 업데이트 실패:', error);
+      Toast.show({ type: 'error', text1: '닉네임 업데이트 실패' });
+      return false;
     }
   };
-
   return (
     <View className='flex-1 items-center bg-white pt-20'>
       <Text className='text-4xl text-center mb-1 font-normal'>환영합니다!</Text>
@@ -68,7 +69,7 @@ const SetProfileScreen: React.FC = () => {
       {/* 다음으로 버튼 */}
       <TouchableOpacity
         className='w-[390px] h-[52px] bg-primary rounded-md justify-center items-center absolute bottom-7'
-        onPress={handleNextPress}
+        onPress={validateNickname.bind(null, nickname)}
       >
         <Text className='text-xl font-bold text-white'>다음으로</Text>
       </TouchableOpacity>

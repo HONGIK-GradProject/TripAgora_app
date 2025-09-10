@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 
+import { setTags } from '@/api/users';
 import InterestTag from '@/components/InterestTag';
 import { INTEREST_TAGS } from '@/constants/Tags';
+import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
 const SetInterestsScreen: React.FC = () => {
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
@@ -14,7 +16,7 @@ const SetInterestsScreen: React.FC = () => {
   const showToast = () => {
     Toast.show({
       type: 'error',
-      text1: '닉네임은 2~20자 이내로 입력해주세요.',
+      text1: '태그를 3개 이상 선택해 주세요.',
       position: 'bottom',
       bottomOffset: 100,
     });
@@ -26,13 +28,22 @@ const SetInterestsScreen: React.FC = () => {
     );
   };
 
-  const handleStart = () => {
+  const handleStart = async () => {
+    // 개수 제한 검사
     if (selectedTags.length < 3) {
       showToast();
       return;
     }
-    // TODO: 서버에 태그 전송 로직 추가
-    console.log('선택된 태그 ID:', selectedTags);
+    // 닉네임 변경 요청
+    try {
+      await setTags(selectedTags);
+      router.replace('/(tabs)/home');
+      return true;
+    } catch (error) {
+      console.error('태그 업데이트 실패:', error);
+      Toast.show({ type: 'error', text1: '태그 업데이트 실패' });
+      return false;
+    }
   };
 
   return (
