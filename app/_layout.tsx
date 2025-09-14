@@ -12,6 +12,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import '../global.css';
 
 import Toast from 'react-native-toast-message';
+import { SessionProvider } from '@/contexts/AuthContext';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -25,13 +26,16 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
-        <Stack.Screen name='+not-found' />
-      </Stack>
-      <StatusBar style='auto' />
-      <Toast />
-    </ThemeProvider>
+    <SessionProvider>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <Stack>
+          <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
+          <Stack.Screen name='login' options={{ headerShown: false }} />
+          <Stack.Screen name='+not-found' />
+        </Stack>
+        <StatusBar style='auto' />
+        <Toast />
+      </ThemeProvider>
+    </SessionProvider>
   );
 }
