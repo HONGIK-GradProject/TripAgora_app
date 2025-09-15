@@ -2,7 +2,7 @@ import { useRouter, useSegments } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-import { signIn as apiSignIn } from '@/api/auth';
+import { signIn as apiSignIn, signOut as apiSignOut } from '@/api/auth';
 
 const AuthContext = createContext<{
   signIn: (accessToken: string) => Promise<void>;
@@ -58,7 +58,7 @@ export function SessionProvider(props: React.PropsWithChildren) {
     if (!isLoading && !session && !inAuthGroup) {
       router.replace('/login');
     } else if (session && inAuthGroup) {
-      router.replace('/');
+      router.replace('/(tabs)/home');
     }
   }, [session, segments, isLoading, router]);
 
@@ -66,19 +66,18 @@ export function SessionProvider(props: React.PropsWithChildren) {
     const response = await apiSignIn(kakaoAccessToken);
     if (response && response.data) {
       const { accessToken, isNewUser } = response.data;
-      await SecureStore.setItemAsync('accessToken', accessToken);
       setSession([false, accessToken]);
 
       if (isNewUser) {
         router.replace('/login/set-profile');
       } else {
-        router.replace('/');
+        router.replace('/(tabs)/home');
       }
     }
   };
 
-  const signOut = () => {
-    SecureStore.deleteItemAsync('accessToken');
+  const signOut = async () => {
+    await apiSignOut();
     setSession([false, null]);
     router.replace('/login');
   };
