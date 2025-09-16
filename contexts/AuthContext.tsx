@@ -83,6 +83,12 @@ export function SessionProvider(props: React.PropsWithChildren) {
     router.replace('/login');
   };
 
+  /**
+   * 전역 인증 에러 핸들러를 API 클라이언트에 등록합니다.
+   * 이 useEffect는 앱이 마운트될 때 한 번 실행되어, axios 인터셉터에서
+   * 토큰 갱신 실패와 같은 인증 에러가 발생했을 때 호출될 콜백 함수를 설정합니다.
+   * 콜백이 호출되면 사용자를 로그인 화면으로 리디렉션합니다.
+   */
   useEffect(() => {
     const handleOnAuthError = () => {
       router.replace('/login');
