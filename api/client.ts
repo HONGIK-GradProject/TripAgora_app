@@ -33,6 +33,11 @@ const apiClient: AxiosInstance = axios.create({
   },
 });
 
+let onAuthError: (() => void) | null = null;
+export function setOnAuthError(callback: () => void) {
+  onAuthError = callback;
+};
+
 // 요청 인터셉터: 헤더에 액세스 토큰 추가
 apiClient.interceptors.request.use(
   async (config) => {
@@ -67,7 +72,11 @@ apiClient.interceptors.response.use(
       } catch (refreshError) {
         await clearTokens();
         console.error('토큰 재발급 실패, 로그인 화면으로 리디렉션합니다.');
-        // 여기서 사용자를 로그인 화면으로 이동시키는 로직을 추가할 수 있습니다.
+
+        if (onAuthError) {
+          onAuthError();
+        }
+        
         return Promise.reject(refreshError);
       }
     }

@@ -3,6 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 import { signIn as apiSignIn, signOut as apiSignOut } from '@/api/auth';
+import { setOnAuthError } from '@/api/client';
 
 const AuthContext = createContext<{
   signIn: (accessToken: string) => Promise<void>;
@@ -33,7 +34,7 @@ export function SessionProvider(props: React.PropsWithChildren) {
   );
   const router = useRouter();
   const segments = useSegments();
-
+    
   useEffect(() => {
     const restoreSession = async () => {
       try {
@@ -81,6 +82,13 @@ export function SessionProvider(props: React.PropsWithChildren) {
     setSession([false, null]);
     router.replace('/login');
   };
+
+  useEffect(() => {
+    const handleOnAuthError = () => {
+      router.replace('/login');
+    }
+    setOnAuthError(handleOnAuthError);
+  }, [router]);
 
   return (
     <AuthContext.Provider
