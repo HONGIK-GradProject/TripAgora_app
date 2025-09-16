@@ -34,7 +34,6 @@ export function SessionProvider(props: React.PropsWithChildren) {
   );
   const router = useRouter();
   const segments = useSegments();
-    
   useEffect(() => {
     const restoreSession = async () => {
       try {
@@ -55,10 +54,16 @@ export function SessionProvider(props: React.PropsWithChildren) {
 
   useEffect(() => {
     const inAuthGroup = segments[0] === 'login';
+    // 프로필 설정 화면인지 확인 (set-profile, set-interests)
+    const isProfileSetupScreen =
+      inAuthGroup &&
+      (segments[1] === 'set-profile' || segments[1] === 'set-interests');
 
     if (!isLoading && !session && !inAuthGroup) {
+      // 로그인되지 않았고, 인증 관련 페이지에 있지 않다면 로그인 페이지로 이동
       router.replace('/login');
-    } else if (session && inAuthGroup) {
+    } else if (session && inAuthGroup && !isProfileSetupScreen) {
+      // 로그인되었고, 인증 관련 페이지에 있지만 프로필 설정 중이 아니라면 홈으로 이동
       router.replace('/(tabs)/home');
     }
   }, [session, segments, isLoading, router]);
@@ -92,7 +97,7 @@ export function SessionProvider(props: React.PropsWithChildren) {
   useEffect(() => {
     const handleOnAuthError = () => {
       router.replace('/login');
-    }
+    };
     setOnAuthError(handleOnAuthError);
   }, [router]);
 
