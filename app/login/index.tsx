@@ -1,5 +1,5 @@
-import { kakaoSignIn, signIn } from '@/api/auth';
-import { useRouter } from 'expo-router';
+import { kakaoSignIn } from '@/api/auth';
+import { useSession } from '@/contexts/AuthContext';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 
@@ -8,7 +8,7 @@ import { Text, TouchableOpacity, View } from 'react-native';
  * 카카오 로그인 버튼을 포함하며, 로그인 성공 시 프로필 설정 화면으로 이동합니다.
  */
 const LoginScreen: React.FC = () => {
-  const router = useRouter();
+  const { signIn } = useSession();
 
   /**
    * 카카오 로그인을 처리하는 비동기 함수입니다.
@@ -20,8 +20,7 @@ const LoginScreen: React.FC = () => {
       const accessToken = await kakaoSignIn();
       console.warn('Token: ', accessToken);
       await signIn(accessToken);
-      // TODO: Response의 isNewUser 값에 따라 라우팅 분기 처리
-      router.push('/login/set-profile');
+      // The redirection is now handled by the SessionProvider
     } catch (error: Error | any) {
       console.error('Kakao login failed:', error.cause);
     }

@@ -33,6 +33,22 @@ const apiClient: AxiosInstance = axios.create({
   },
 });
 
+/**
+ * 전역 인증 에러 발생 시 호출될 콜백 함수입니다.
+ * UI 계층(예: AuthContext)에서 로그아웃 및 리디렉션 로직을 처리하기 위해 사용됩니다.
+ * @type {(() => void) | null}
+ */
+let onAuthError: (() => void) | null = null;
+
+/**
+ * 전역 인증 에러 핸들러를 등록하는 함수입니다.
+ * 애플리케이션의 최상위(일반적으로 AuthProvider)에서 호출되어야 합니다.
+ * @param callback - 토큰 갱신 실패와 같은 인증 에러 발생 시 호출될 함수.
+ */
+export function setOnAuthError(callback: () => void) {
+  onAuthError = callback;
+}
+
 // 요청 인터셉터: 헤더에 액세스 토큰 추가
 apiClient.interceptors.request.use(
   async (config) => {
@@ -67,7 +83,12 @@ apiClient.interceptors.response.use(
       } catch (refreshError) {
         await clearTokens();
         console.error('토큰 재발급 실패, 로그인 화면으로 리디렉션합니다.');
-        // 여기서 사용자를 로그인 화면으로 이동시키는 로직을 추가할 수 있습니다.
+
+        // 등록된 전역 인증 에러 핸들러를 호출하여 UI 계층에서 로그아웃, 리디렉션 등의 후속 처리를 하도록 합니다.
+        if (onAuthError) {
+          onAuthError();
+        }
+        
         return Promise.reject(refreshError);
       }
     }
