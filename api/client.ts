@@ -48,6 +48,10 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+/**
+ * @description Axios 응답 인터셉터를 설정합니다. 401 오류 발생 시 토큰 재발급을 시도하고, 실패 시 로그아웃을 실행합니다.
+ * @param {() => Promise<void>} signOut - 토큰 재발급 실패 시 호출될 로그아웃 함수입니다.
+ */
 export const setupInterceptors = (signOut: () => Promise<void>) => {
   apiClient.interceptors.response.use(
     (response) => response,
