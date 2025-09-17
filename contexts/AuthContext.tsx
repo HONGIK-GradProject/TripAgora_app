@@ -60,6 +60,10 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     }
   };
 
+  /**
+   * @description 컴포넌트가 마운트될 때 API 클라이언트의 인터셉터를 설정합니다.
+   * 토큰 만료 시 signOutHandler를 호출하여 로그아웃 처리합니다.
+   */
   useEffect(() => {
     setupInterceptors(signOutHandler);
   }, [signOutHandler]);
