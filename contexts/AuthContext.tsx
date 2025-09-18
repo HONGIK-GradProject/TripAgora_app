@@ -4,6 +4,7 @@
  */
 import { kakaoSignIn, signIn, signOut } from '@/api/auth';
 import { setupInterceptors } from '@/api/client';
+import { getTokens } from '@/services/auth';
 import { AuthContextType } from '@/types/auth';
 import { createContext, useEffect, useState } from 'react';
 
@@ -67,6 +68,25 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   useEffect(() => {
     setupInterceptors(signOutHandler);
   }, [signOutHandler]);
+
+  useEffect(() => {
+    const loadAccessToken = async() => {
+      try {
+        const token = (await getTokens()).accessToken;
+
+        if (token) {
+          setAccessToken(token);
+        }
+      } catch (error) {
+        console.error("토큰 로딩 중 에러 발생: ", error);
+      }
+      finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadAccessToken();
+  }, []);
 
   return (
     <AuthContext.Provider
