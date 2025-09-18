@@ -1,4 +1,5 @@
 import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 
@@ -8,12 +9,14 @@ import { Text, TouchableOpacity, View } from 'react-native';
  */
 const LoginScreen: React.FC = () => {
   const { signIn } = useAuth();
+  const router = useRouter();
 
   /**
    * 카카오 로그인 + 자체 로그인을 처리하는 함수입니다.
    */
   const handleSignIn = async () => {
     await signIn();
+    router.replace('/');
   };
 
   return (
