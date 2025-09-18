@@ -11,8 +11,8 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import '../global.css';
 
+import { AuthProvider } from '@/contexts/AuthContext';
 import Toast from 'react-native-toast-message';
-import { SessionProvider } from '@/contexts/AuthContext';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -26,7 +26,7 @@ export default function RootLayout() {
   }
 
   return (
-    <SessionProvider>
+    <AuthProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack>
           <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
@@ -36,6 +36,6 @@ export default function RootLayout() {
         <StatusBar style='auto' />
         <Toast />
       </ThemeProvider>
-    </SessionProvider>
+    </AuthProvider>
   );
 }

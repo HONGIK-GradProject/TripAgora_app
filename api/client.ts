@@ -6,7 +6,7 @@
  * 응답 인터셉터는 401 오류 발생 시 토큰 재발급을 시도하고 원래 요청을 재시도합니다.
  */
 
-import { clearTokens, getTokens, reissueToken } from '@/services/auth';
+import { getTokens, reissueToken } from '@/services/auth';
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 
 /**
@@ -33,22 +33,6 @@ const apiClient: AxiosInstance = axios.create({
   },
 });
 
-/**
- * 전역 인증 에러 발생 시 호출될 콜백 함수입니다.
- * UI 계층(예: AuthContext)에서 로그아웃 및 리디렉션 로직을 처리하기 위해 사용됩니다.
- * @type {(() => void) | null}
- */
-let onAuthError: (() => void) | null = null;
-
-/**
- * 전역 인증 에러 핸들러를 등록하는 함수입니다.
- * 애플리케이션의 최상위(일반적으로 AuthProvider)에서 호출되어야 합니다.
- * @param callback - 토큰 갱신 실패와 같은 인증 에러 발생 시 호출될 함수.
- */
-export function setOnAuthError(callback: () => void) {
-  onAuthError = callback;
-}
-
 // 요청 인터셉터: 헤더에 액세스 토큰 추가
 apiClient.interceptors.request.use(
   async (config) => {
@@ -64,41 +48,39 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// 응답 인터셉터: 토큰 만료 및 재발급 처리
-apiClient.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config as CustomInternalAxiosRequestConfig;
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      console.warn('액세스 토큰 만료, 토큰 재발급 시도 중...');
-      try {
-        const newAccessToken = await reissueToken();
-        if (newAccessToken) {
-          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-          return apiClient(originalRequest);
-        } else {
-          throw new Error('토큰 재발급 실패');
+/**
+ * @description Axios 응답 인터셉터를 설정합니다. 401 오류 발생 시 토큰 재발급을 시도하고, 실패 시 로그아웃을 실행합니다.
+ * @param {() => Promise<void>} signOut - 토큰 재발급 실패 시 호출될 로그아웃 함수입니다.
+ */
+export const setupInterceptors = (signOut: () => Promise<void>) => {
+  apiClient.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+      const originalRequest = error.config as CustomInternalAxiosRequestConfig;
+      if (error.response?.status === 401 && !originalRequest._retry) {
+        originalRequest._retry = true;
+        console.warn('액세스 토큰 만료, 토큰 재발급 시도 중...');
+        try {
+          const newAccessToken = await reissueToken();
+          if (newAccessToken) {
+            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+            return apiClient(originalRequest);
+          } else {
+            throw new Error('토큰 재발급 실패');
+          }
+        } catch (refreshError) {
+          signOut();
+          return Promise.reject(refreshError);
         }
-      } catch (refreshError) {
-        await clearTokens();
-        console.error('토큰 재발급 실패, 로그인 화면으로 리디렉션합니다.');
-
-        // 등록된 전역 인증 에러 핸들러를 호출하여 UI 계층에서 로그아웃, 리디렉션 등의 후속 처리를 하도록 합니다.
-        if (onAuthError) {
-          onAuthError();
-        }
-        
-        return Promise.reject(refreshError);
       }
+      if (axios.isAxiosError(error)) {
+        console.error('API 오류:', error.toJSON());
+      } else {
+        console.error('예상치 못한 오류:', error);
+      }
+      return Promise.reject(error);
     }
-    if (axios.isAxiosError(error)) {
-      console.error('API 오류:', error.toJSON());
-    } else {
-      console.error('예상치 못한 오류:', error);
-    }
-    return Promise.reject(error);
-  }
-);
+  );
+};
 
 export default apiClient;

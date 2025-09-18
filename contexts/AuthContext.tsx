@@ -1,116 +1,106 @@
-import { useRouter, useSegments } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
-import React, { createContext, useContext, useEffect, useState } from 'react';
+/**
+ * @file AuthContext.tsx
+ * @description 인증 관련 컨텍스트와 프로바이더, 커스텀 훅을 제공하는 파일입니다.
+ */
+import { kakaoSignIn, signIn, signOut } from '@/api/auth';
+import { setupInterceptors } from '@/api/client';
+import { getTokens } from '@/services/auth';
+import { AuthContextType } from '@/types/auth';
+import { createContext, useEffect, useState } from 'react';
 
-import { signIn as apiSignIn, signOut as apiSignOut } from '@/api/auth';
-import { setOnAuthError } from '@/api/client';
+/**
+ * @description 인증 관련 상태 및 함수를 제공하는 Context입니다.
+ * @property {string | null} accessToken - 사용자의 액세스 토큰
+ * @property {boolean} isLoading - 로딩 상태
+ * @property {boolean} isNewUser - 새로운 사용자인지 여부
+ * @property {() => Promise<void>} signIn - 로그인 함수
+ * @property {() => Promise<void>} signOut - 로그아웃 함수
+ * @see AuthProvider
+ * @see useAuth
+ */
+const AuthContext = createContext<AuthContextType | null>(null);
 
-const AuthContext = createContext<{
-  signIn: (accessToken: string) => Promise<void>;
-  signOut: () => void;
-  session?: string | null;
-  isLoading: boolean;
-}>({
-  signIn: async () => {},
-  signOut: () => {},
-  session: null,
-  isLoading: false,
-});
+/**
+ * @description AuthContext를 제공하는 Provider 컴포넌트입니다.
+ * @param {object} props - 컴포넌트 프롭스
+ * @param {React.ReactNode} props.children - 자식 컴포넌트
+ * @returns {React.FC} AuthProvider
+ */
+const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isNewUser, setIsNewUser] = useState<boolean>(false);
 
-// This hook can be used to access the user info.
-export function useSession() {
-  const value = useContext(AuthContext);
-  if (process.env.NODE_ENV !== 'production') {
-    if (!value) {
-      throw new Error('useSession must be wrapped in a <SessionProvider />');
+  /**
+   * @description 카카오 소셜 로그인을 통해 사용자를 인증하고, 상태를 업데이트합니다.
+   */
+  const signInHandler = async () => {
+    try {
+      const socialAccessToken = await kakaoSignIn();
+      const response = await signIn(socialAccessToken);
+      setAccessToken(response?.data?.accessToken || null);
+      setIsNewUser(response?.data?.isNewUser || false);
+    } catch (error) {
+      console.error('Sign-in error:', error);
+    } finally {
+      setIsLoading(false);
     }
-  }
-  return value;
-}
-
-export function SessionProvider(props: React.PropsWithChildren) {
-  const [[isLoading, session], setSession] = useState<[boolean, string | null]>(
-    [true, null]
-  );
-  const router = useRouter();
-  const segments = useSegments();
-  useEffect(() => {
-    const restoreSession = async () => {
-      try {
-        const token = await SecureStore.getItemAsync('accessToken');
-        if (token) {
-          setSession([false, token]);
-        } else {
-          setSession([false, null]);
-        }
-      } catch (e: Error | any) {
-        console.error('Failed to restore session:', e.message);
-        setSession([false, null]);
-      }
-    };
-
-    restoreSession();
-  }, []);
-
-  useEffect(() => {
-    const inAuthGroup = segments[0] === 'login';
-    // 프로필 설정 화면인지 확인 (set-profile, set-interests)
-    const isProfileSetupScreen =
-      inAuthGroup &&
-      (segments[1] === 'set-profile' || segments[1] === 'set-interests');
-
-    if (!isLoading && !session && !inAuthGroup) {
-      // 로그인되지 않았고, 인증 관련 페이지에 있지 않다면 로그인 페이지로 이동
-      router.replace('/login');
-    } else if (session && inAuthGroup && !isProfileSetupScreen) {
-      // 로그인되었고, 인증 관련 페이지에 있지만 프로필 설정 중이 아니라면 홈으로 이동
-      router.replace('/(tabs)/home');
-    }
-  }, [session, segments, isLoading, router]);
-
-  const signIn = async (kakaoAccessToken: string) => {
-    const response = await apiSignIn(kakaoAccessToken);
-    if (response && response.data) {
-      const { accessToken, isNewUser } = response.data;
-      setSession([false, accessToken]);
-
-      if (isNewUser) {
-        router.replace('/login/set-profile');
-      } else {
-        router.replace('/(tabs)/home');
-      }
-    }
-  };
-
-  const signOut = async () => {
-    await apiSignOut();
-    setSession([false, null]);
-    router.replace('/login');
   };
 
   /**
-   * 전역 인증 에러 핸들러를 API 클라이언트에 등록합니다.
-   * 이 useEffect는 앱이 마운트될 때 한 번 실행되어, axios 인터셉터에서
-   * 토큰 갱신 실패와 같은 인증 에러가 발생했을 때 호출될 콜백 함수를 설정합니다.
-   * 콜백이 호출되면 사용자를 로그인 화면으로 리디렉션합니다.
+   * @description 사용자를 로그아웃하고, 상태를 초기화합니다.
+   */
+  const signOutHandler = async () => {
+    try {
+      await signOut();
+      setAccessToken(null);
+    } catch (error) {
+      console.error('Sign-out error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * @description 컴포넌트가 마운트될 때 API 클라이언트의 인터셉터를 설정합니다.
+   * 토큰 만료 시 signOutHandler를 호출하여 로그아웃 처리합니다.
    */
   useEffect(() => {
-    const handleOnAuthError = () => {
-      router.replace('/login');
-    };
-    setOnAuthError(handleOnAuthError);
-  }, [router]);
+    setupInterceptors(signOutHandler);
+  }, [signOutHandler]);
 
+  useEffect(() => {
+    const loadAccessToken = async() => {
+      try {
+        const token = (await getTokens()).accessToken;
+
+        if (token) {
+          setAccessToken(token);
+        }
+      } catch (error) {
+        console.error("토큰 로딩 중 에러 발생: ", error);
+      }
+      finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadAccessToken();
+  }, []);
+  
   return (
     <AuthContext.Provider
       value={{
-        signIn,
-        signOut,
-        session,
+        accessToken,
         isLoading,
+        isNewUser,
+        signIn: signInHandler,
+        signOut: signOutHandler,
       }}
     >
-      {props.children}
+      {children}
     </AuthContext.Provider>
   );
-}
+};
+
+export { AuthContext, AuthProvider };

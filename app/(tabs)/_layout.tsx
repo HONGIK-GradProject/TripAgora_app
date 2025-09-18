@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { Redirect, Tabs } from 'expo-router';
 import React from 'react';
 import { Platform, Pressable, View } from 'react-native';
 
@@ -8,11 +8,23 @@ import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 // symbols
+import { useAuth } from '@/hooks/useAuth';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+
+  const { accessToken, isLoading } = useAuth();
+
+  // TODO: 로딩 컴포넌트로 null을 대체
+  if (isLoading) {
+    return null;
+  }
+
+  if (!accessToken) {
+    return <Redirect href="/login" />;
+  }
 
   return (
     <Tabs
@@ -31,7 +43,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name='home/index'
+        name='home'
         options={{
           title: '홈',
           tabBarIcon: ({ focused, color }) =>
@@ -55,7 +67,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name='my-travel/index'
+        name='my-travel'
         options={{
           title: '여행',
           tabBarIcon: ({ focused, color }) => (
@@ -105,7 +117,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name='wishlist/index'
+        name='wishlist'
         options={{
           title: '찜',
           tabBarIcon: ({ focused, color }) =>
@@ -117,7 +129,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name='profile/index'
+        name='profile'
         options={{
           title: '프로필',
           tabBarIcon: ({ focused, color }) =>
