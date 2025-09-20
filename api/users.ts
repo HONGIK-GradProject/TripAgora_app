@@ -3,8 +3,13 @@
  * @module api/users
  */
 
-import { setNicknameRequest, setNicknameResponse, setTagsRequest, setTagsResponse } from "@/types/users";
-import apiClient from "./client";
+import {
+  SetNicknameRequest,
+  SetNicknameResponse,
+  SetTagsRequest,
+  SetTagsResponse,
+} from '@/types/users';
+import apiClient from './client';
 
 /**
  * 사용자의 닉네임을 설정합니다.
@@ -13,17 +18,17 @@ import apiClient from "./client";
  */
 const setNickname = async (
   nickname: string
-): Promise<setNicknameResponse | undefined> => {
+): Promise<SetNicknameResponse | undefined> => {
   try {
-    const requestData: setNicknameRequest = { nickname };
-    const response = await apiClient.patch<setNicknameResponse>(
-      "/users/me/nickname",
+    const requestData: SetNicknameRequest = { nickname };
+    const response = await apiClient.patch<SetNicknameResponse>(
+      '/users/me/nickname',
       requestData
     );
-    console.log("닉네임 설정 성공: ", response.data);
+    console.log('닉네임 설정 성공: ', response.data);
     return response.data;
   } catch (error) {
-    console.error("닉네임 설정 실패: ", error);
+    console.error('닉네임 설정 실패: ', error);
     return undefined;
   }
 };
@@ -35,20 +40,19 @@ const setNickname = async (
  */
 const setTags = async (
   tagIds: number[]
-): Promise<setTagsResponse | undefined> => {
+): Promise<SetTagsResponse | undefined> => {
   try {
-    const requestData: setTagsRequest = { tagIds };
-    const response = await apiClient.patch<setTagsResponse>(
-      "/users/me/tags",
+    const requestData: SetTagsRequest = { tagIds };
+    const response = await apiClient.patch<SetTagsResponse>(
+      '/users/me/tags',
       requestData
     );
-    console.log("관심사 태그 설정 성공: ", response.data);
+    console.log('관심사 태그 설정 성공: ', response.data);
     return response.data;
   } catch (error) {
-    console.error("관심사 태그 설정 실패: ", error);
+    console.error('관심사 태그 설정 실패: ', error);
     return undefined;
   }
 };
 
 export { setNickname, setTags };
-

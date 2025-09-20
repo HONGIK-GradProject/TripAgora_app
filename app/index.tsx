@@ -3,7 +3,7 @@ import { Redirect } from 'expo-router';
 import { View } from 'react-native';
 
 export default function Index() {
-  const { accessToken, isLoading, isNewUser } = useAuth();
+  const { accessToken, isLoading, isNewUser, userRole } = useAuth();
 
   // 인증 상태를 확인하는 동안에는 화면 깜빡임을 방지합니다.
   if (isLoading) {
@@ -20,7 +20,10 @@ export default function Index() {
     return <Redirect href="/login/set-profile" />;
   }
 
-  // 토큰이 있고, 기존 사용자이면 홈 화면으로 보냅니다.
-  return <Redirect href="/home" />;
-}
+  // 토큰이 있고, 기존 사용자이면 역할에 따라 홈 화면으로 보냅니다.
+  if (userRole === 'guide') {
+    return <Redirect href="/guide/home" />;
+  }
+
+  return <Redirect href="/traveler/home" />;}
 

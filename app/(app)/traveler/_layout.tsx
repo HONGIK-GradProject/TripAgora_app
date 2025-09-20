@@ -1,4 +1,4 @@
-import { Redirect, Tabs } from 'expo-router';
+import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform, Pressable, View } from 'react-native';
 
@@ -8,24 +8,12 @@ import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 // symbols
-import { useAuth } from '@/hooks/useAuth';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
-export default function TabLayout() {
+const TravelerTabLayout: React.FC = () => {
   const colorScheme = useColorScheme();
-
-  const { accessToken, isLoading } = useAuth();
-
-  // TODO: 로딩 컴포넌트로 null을 대체
-  if (isLoading) {
-    return null;
-  }
-
-  if (!accessToken) {
-    return <Redirect href="/login" />;
-  }
-
+  
   return (
     <Tabs
       screenOptions={{
@@ -67,7 +55,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name='my-travel'
+        name='trip'
         options={{
           title: '여행',
           tabBarIcon: ({ focused, color }) => (
@@ -87,26 +75,10 @@ export default function TabLayout() {
               <Pressable
                 {...filteredProps}
                 android_ripple={{ borderless: false, color: 'transparent' }}
-                style={{
-                  top: -20,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
+                className="-top-5 justify-center items-center"
               >
                 <View
-                  style={{
-                    width: 60,
-                    height: 60,
-                    borderRadius: 30,
-                    backgroundColor: '#6C4CE9',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 4 },
-                    shadowOpacity: 0.3,
-                    shadowRadius: 4,
-                    elevation: 5,
-                  }}
+                  className="w-16 h-16 rounded-full bg-[#6C4CE9] justify-center items-center shadow-lg"
                 >
                   {props.children}
                 </View>
@@ -129,7 +101,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name='profile'
+        name='my-page'
         options={{
           title: '프로필',
           tabBarIcon: ({ focused, color }) =>
@@ -143,3 +115,5 @@ export default function TabLayout() {
     </Tabs>
   );
 }
+
+export default TravelerTabLayout;

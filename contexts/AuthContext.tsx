@@ -6,11 +6,13 @@ import { kakaoSignIn, signIn, signOut } from '@/api/auth';
 import { setupInterceptors } from '@/api/client';
 import { getTokens } from '@/services/auth';
 import { AuthContextType } from '@/types/auth';
-import { createContext, useEffect, useState } from 'react';
+import { UserRole } from '@/types/users';
+import { createContext, useCallback, useEffect, useState } from 'react';
 
 /**
  * @description 인증 관련 상태 및 함수를 제공하는 Context입니다.
  * @property {string | null} accessToken - 사용자의 액세스 토큰
+ * @property {UserRole} userRole - 유저의 역할 (여행자 or 가이드)
  * @property {boolean} isLoading - 로딩 상태
  * @property {boolean} isNewUser - 새로운 사용자인지 여부
  * @property {() => Promise<void>} signIn - 로그인 함수
@@ -30,11 +32,12 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isNewUser, setIsNewUser] = useState<boolean>(false);
+  const [userRole, setUserRole] = useState<UserRole>('traveler');
 
   /**
    * @description 카카오 소셜 로그인을 통해 사용자를 인증하고, 상태를 업데이트합니다.
    */
-  const signInHandler = async () => {
+  const signInHandler = useCallback(async () => {
     try {
       const socialAccessToken = await kakaoSignIn();
       const response = await signIn(socialAccessToken);
@@ -45,12 +48,12 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   /**
    * @description 사용자를 로그아웃하고, 상태를 초기화합니다.
    */
-  const signOutHandler = async () => {
+  const signOutHandler = useCallback(async () => {
     try {
       await signOut();
       setAccessToken(null);
@@ -59,7 +62,17 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  const switchUserRoleHandler = useCallback(async (newUserRole: UserRole) => {
+    try {
+      setUserRole(newUserRole);
+    } catch (error) {
+      console.error('Role Switch error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   /**
    * @description 컴포넌트가 마운트될 때 API 클라이언트의 인터셉터를 설정합니다.
@@ -94,8 +107,10 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         accessToken,
         isLoading,
         isNewUser,
+        userRole,
         signIn: signInHandler,
         signOut: signOutHandler,
+        switchUserRole: switchUserRoleHandler,
       }}
     >
       {children}
@@ -104,3 +119,4 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 };
 
 export { AuthContext, AuthProvider };
+

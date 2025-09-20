@@ -37,7 +37,7 @@ const SetInterestsScreen: React.FC = () => {
     // 태그 변경 요청
     try {
       await setTags(selectedTags);
-      router.replace('/(tabs)/home');
+      router.replace('/(app)/traveler/home');
       return true;
     } catch (error) {
       console.error('태그 업데이트 실패:', error);
