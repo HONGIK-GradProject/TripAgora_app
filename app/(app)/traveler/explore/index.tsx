@@ -1,7 +1,7 @@
 import ProductList, { Product } from '@/components/explore/ProductList';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const ProductSearchScreen: React.FC = () => {
   const products: Product[] = [
@@ -11,32 +11,32 @@ const ProductSearchScreen: React.FC = () => {
     { id: '4', title: '모히또 관광', date: '2025.07.28 - 08.01', participants: '4/6명', location: '몰디브', guide: '투어리즘', rating: '-', imageUrl: 'https://via.placeholder.com/90' },
   ];
   return (
-    <View style={styles.container}>
-      <View style={styles.searchBar}>
+    <View className="flex-1 bg-white pt-12">
+      <View className="flex-row items-center border-b border-gray-400 mx-5 pb-2.5 mb-5">
         <TextInput
-          style={styles.searchInput}
+          className="flex-1 text-xl text-gray-400"
           placeholder="검색어 입력..."
         />
-        <Ionicons name="search" size={24} color="#999" style={styles.searchIcon} />
+        <Ionicons name="search" size={24} color="#999" className="ml-2.5" />
       </View>
 
-      <View style={styles.filterButtons}>
-        <TouchableOpacity style={styles.filterButton}>
+      <View className="flex-row justify-around mx-5 mb-5">
+        <TouchableOpacity className="flex-row items-center py-2.5 px-4 rounded-3xl border border-gray-400">
           <MaterialCommunityIcons name="calendar-month" size={24} color="#8130FF" />
-          <Text style={styles.filterButtonText}>일정 설정하기</Text>
+          <Text className="text-xl text-primary ml-1">일정 설정하기</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.filterButton}>
+        <TouchableOpacity className="flex-row items-center py-2.5 px-4 rounded-3xl border border-gray-400">
           <Ionicons name="location" size={24} color="#8130FF" />
-          <Text style={styles.filterButtonText}>지역 선택하기</Text>
+          <Text className="text-xl text-primary ml-1">지역 선택하기</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.filterTags}>
-        <TouchableOpacity style={styles.tagButtonActive}>
-          <Text style={styles.tagButtonTextActive}>관심사: 음식, 쇼핑</Text>
+      <View className="flex-row mx-5 mb-5">
+        <TouchableOpacity className="py-2.5 px-4 rounded-3xl bg-primary border border-primary mr-2.5">
+          <Text className="text-xl text-white">관심사: 음식, 쇼핑</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.tagButtonActive}>
-          <Text style={styles.tagButtonTextActive}>정렬: 날짜 순</Text>
+        <TouchableOpacity className="py-2.5 px-4 rounded-3xl bg-primary border border-primary mr-2.5">
+          <Text className="text-xl text-white">정렬: 날짜 순</Text>
         </TouchableOpacity>
       </View>
 
@@ -44,72 +44,5 @@ const ProductSearchScreen: React.FC = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    paddingTop: 50,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderColor: '#999',
-    borderBottomWidth: 1,
-    marginHorizontal: 20,
-    paddingBottom: 10,
-    marginBottom: 20,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 20,
-    color: '#999',
-  },
-  searchIcon: {
-    marginLeft: 10,
-  },
-  filterButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginHorizontal: 20,
-    marginBottom: 20,
-  },
-  filterButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 25,
-    borderColor: '#949494',
-    borderWidth: 1,
-  },
-  filterButtonText: {
-    fontSize: 20,
-    color: '#8130FF',
-    marginLeft: 5,
-  },
-  filterTags: {
-    flexDirection: 'row',
-    marginHorizontal: 20,
-    marginBottom: 20,
-  },
-  tagButtonActive: {
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 25,
-    backgroundColor: '#8130FF',
-    borderColor: '#8130FF',
-    borderWidth: 1,
-    marginRight: 10,
-  },
-  tagButtonTextActive: {
-    fontSize: 20,
-    color: '#fff',
-  },
-  scrollViewContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 100, // 하단 내비게이션 바 공간 확보
-  },
-});
 
 export default ProductSearchScreen;

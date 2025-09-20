@@ -1,139 +1,53 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Image, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 const GuideTripDetailScreen: React.FC = () => {
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton}>
+    <View className="flex-1 bg-white">
+      <View className="flex-row items-center justify-between px-5 pt-12 pb-2.5 border-b border-gray-200">
+        <TouchableOpacity className="mr-2.5">
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>홍대 1박2일 모임</Text>
-        <TouchableOpacity style={styles.notificationButton}>
+        <Text className="text-2xl font-bold">홍대 1박2일 모임</Text>
+        <TouchableOpacity className="ml-2.5">
           <Ionicons name="notifications-outline" size={24} color="#8130FF" />
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        <View style={styles.card}>
+      <ScrollView contentContainerClassName="px-5 pb-24">
+        <View className="flex-row bg-gray-200 rounded-2xl p-4 mt-5 items-center">
           <MaterialCommunityIcons name="calendar-clock" size={48} color="rgba(129, 48, 255, 0.59)" />
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTime}>17:00</Text>
-            <Text style={styles.cardDescription}>
+          <View className="ml-4">
+            <Text className="text-2xl font-bold mb-1">17:00</Text>
+            <Text className="text-xl text-black">
               자유시간 후 18:30까지 숙..
             </Text>
           </View>
         </View>
 
-        <View style={styles.mapContainer}>
-          <Image source={{ uri: 'https://via.placeholder.com/428x326' }} style={styles.mapImage} />
+        <View className="w-full h-80 bg-gray-300 justify-center items-center my-5">
+          <Image source={{ uri: 'https://via.placeholder.com/428x326' }} className="w-full h-full" />
           {/* 지도 위에 표시될 마커 등은 추후 구현 */}
         </View>
 
-        <View style={styles.actionButtons}>
-          <TouchableOpacity style={styles.actionButton}>
+        <View className="flex-row justify-around flex-wrap">
+          <TouchableOpacity className="flex-row items-center justify-center bg-white border border-gray-400 rounded-3xl py-2.5 px-4 mb-2.5">
             <MaterialCommunityIcons name="map-marker-radius" size={24} color="#8130FF" />
-            <Text style={styles.actionButtonText}>일행 위치 확인</Text>
+            <Text className="text-xl text-primary ml-2.5">일행 위치 확인</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity className="flex-row items-center justify-center bg-white border border-gray-400 rounded-3xl py-2.5 px-4 mb-2.5">
             <MaterialCommunityIcons name="bullhorn" size={24} color="#FF8330" />
-            <Text style={styles.actionButtonText}>공지하기</Text>
+            <Text className="text-xl text-primary ml-2.5">공지하기</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity className="flex-row items-center justify-center bg-white border border-gray-400 rounded-3xl py-2.5 px-4 mb-2.5">
             <MaterialCommunityIcons name="pencil" size={24} color="#8130FF" />
-            <Text style={styles.actionButtonText}>일정 편집하기</Text>
+            <Text className="text-xl text-primary ml-2.5">일정 편집하기</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E9E9E9',
-  },
-  backButton: {
-    marginRight: 10,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  notificationButton: {
-    marginLeft: 10,
-  },
-  scrollViewContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 100, // 하단 내비게이션 바 공간 확보
-  },
-  card: {
-    flexDirection: 'row',
-    backgroundColor: '#E9E9E9',
-    borderRadius: 20,
-    padding: 15,
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  cardContent: {
-    marginLeft: 15,
-  },
-  cardTime: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  cardDescription: {
-    fontSize: 20,
-    color: '#000',
-  },
-  mapContainer: {
-    width: '100%',
-    height: 326,
-    backgroundColor: '#D9D9D9',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  mapImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    flexWrap: 'wrap',
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-    borderColor: '#949494',
-    borderWidth: 1,
-    borderRadius: 25,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    marginBottom: 10,
-  },
-  actionButtonText: {
-    fontSize: 20,
-    color: '#8130FF',
-    marginLeft: 10,
-  },
-});
 
 export default GuideTripDetailScreen;

@@ -1,134 +1,55 @@
 import React from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 const TravelerTripListScreen: React.FC = () => {
+  const [activeTab, setActiveTab] = React.useState('ongoing');
+
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>나의 여행 목록</Text>
+    <View className="flex-1 bg-white pt-12">
+      <View className="flex-row items-center justify-center px-5 pb-2.5 mb-5">
+        <Text className="text-4xl font-bold">나의 여행 목록</Text>
       </View>
 
-      <View style={styles.tabContainer}>
-        <TouchableOpacity style={[styles.tabButton, styles.tabButtonActive]}>
-          <Text style={styles.tabButtonTextActive}>예정 / 진행 중</Text>
+      <View className="flex-row border-b border-gray-400 mx-5 mb-5">
+        <TouchableOpacity 
+          className={`flex-1 items-center py-2.5 border-b ${activeTab === 'ongoing' ? 'border-primary' : 'border-transparent'}`}
+          onPress={() => setActiveTab('ongoing')}
+        >
+          <Text className={`text-xl ${activeTab === 'ongoing' ? 'font-bold text-primary' : 'text-gray-400'}`}>예정 / 진행 중</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.tabButton}>
-          <Text style={styles.tabButtonText}>완료</Text>
+        <TouchableOpacity 
+          className={`flex-1 items-center py-2.5 border-b ${activeTab === 'completed' ? 'border-primary' : 'border-transparent'}`}
+          onPress={() => setActiveTab('completed')}
+        >
+          <Text className={`text-xl ${activeTab === 'completed' ? 'font-bold text-primary' : 'text-gray-400'}`}>완료</Text>
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        <View style={styles.tripList}>
+      <ScrollView contentContainerClassName="px-5 pb-24">
+        <View>
           {/* 예정 / 진행 중인 여행 리스트 (임시) */}
-          <View style={styles.tripItem}>
-            <Image source={{ uri: 'https://via.placeholder.com/90' }} style={styles.tripImage} />
-            <View style={styles.tripInfo}>
-              <Text style={styles.tripTitleText}>홍대 1박2일 모임</Text>
-              <Text style={styles.tripDetails}>2025.03.31 - 04.01</Text>
-              <Text style={styles.tripDetails}>4명          홍대</Text>
+          <View className="flex-row bg-white border border-gray-400 rounded-3xl p-4 mb-4 items-center">
+            <Image source={{ uri: 'https://via.placeholder.com/90' }} className="w-24 h-24 rounded-xl mr-4" />
+            <View className="flex-1">
+              <Text className="text-2xl font-bold mb-1">홍대 1박2일 모임</Text>
+              <Text className="text-xl text-black">2025.03.31 - 04.01</Text>
+              <Text className="text-xl text-black">4명          홍대</Text>
             </View>
           </View>
 
-          <View style={styles.tripItem}>
-            <Image source={{ uri: 'https://via.placeholder.com/90' }} style={styles.tripImage} />
-            <View style={styles.tripInfo}>
-              <Text style={styles.tripTitleText}>후쿠오카 놀러가실분</Text>
-              <Text style={styles.tripDetails}>2025.05.16 - 05.21</Text>
-              <Text style={styles.tripDetails}>4명          후쿠오카</Text>
+          <View className="flex-row bg-white border border-gray-400 rounded-3xl p-4 mb-4 items-center">
+            <Image source={{ uri: 'https://via.placeholder.com/90' }} className="w-24 h-24 rounded-xl mr-4" />
+            <View className="flex-1">
+              <Text className="text-2xl font-bold mb-1">후쿠오카 놀러가실분</Text>
+              <Text className="text-xl text-black">2025.05.16 - 05.21</Text>
+              <Text className="text-xl text-black">4명          후쿠오카</Text>
             </View>
-            <Text style={styles.statusText}>승인</Text>
+            <Text className="text-xl text-green-600 font-bold ml-2.5">승인</Text>
           </View>
         </View>
       </ScrollView>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    paddingTop: 50,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 10,
-    marginBottom: 20,
-  },
-  headerTitle: {
-    fontSize: 32,
-    fontWeight: 'bold',
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#999',
-    marginHorizontal: 20,
-    marginBottom: 20,
-  },
-  tabButton: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: 'transparent',
-  },
-  tabButtonActive: {
-    borderBottomColor: '#8130FF',
-  },
-  tabButtonText: {
-    fontSize: 20,
-    color: '#999',
-  },
-  tabButtonTextActive: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#8130FF',
-  },
-  scrollViewContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 100, // 하단 내비게이션 바 공간 확보
-  },
-  tripList: {
-    // 여행 리스트 스타일
-  },
-  tripItem: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderColor: '#949494',
-    borderWidth: 1,
-    borderRadius: 25,
-    padding: 15,
-    marginBottom: 15,
-    alignItems: 'center',
-  },
-  tripImage: {
-    width: 90,
-    height: 90,
-    borderRadius: 15,
-    marginRight: 15,
-  },
-  tripInfo: {
-    flex: 1,
-  },
-  tripTitleText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  tripDetails: {
-    fontSize: 20,
-    color: '#000',
-  },
-  statusText: {
-    fontSize: 20,
-    color: '#009700', // 승인 색상
-    fontWeight: 'bold',
-    marginLeft: 10,
-  },
-});
 
 export default TravelerTripListScreen;

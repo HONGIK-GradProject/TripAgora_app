@@ -1,211 +1,74 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
 import React from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 const ProductDetailScreen: React.FC = () => {
   const { id } = useLocalSearchParams<{id: string}>();
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton}>
+    <View className="flex-1 bg-white">
+      <View className="flex-row items-center px-5 pt-12 pb-2.5 border-b border-gray-200">
+        <TouchableOpacity className="mr-2.5">
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>상품 상세보기</Text>
+        <Text className="text-2xl font-bold">상품 상세보기</Text>
       </View>
 
       {/* id를 잘 받았는지 확인하기 위한 임시 코드 */}
-      <Text style={{ padding: 20, fontSize: 16 }}>Received Product ID: {id}</Text>
+      <Text className="p-5 text-base">Received Product ID: {id}</Text>
 
-      <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        <Image source={{ uri: 'https://via.placeholder.com/428x285' }} style={styles.mainImage} />
+      <ScrollView contentContainerClassName="pb-32">
+        <Image source={{ uri: 'https://via.placeholder.com/428x285' }} className="w-full h-72" />
 
-        <View style={styles.productInfoSection}>
-          <Text style={styles.productTitle}>후쿠오카 놀러가실분</Text>
-          <Text style={styles.productDetails}>
-            2025.05.16 - 05.21{'\n'}
+        <View className="px-5 py-5 border-b border-gray-200">
+          <Text className="text-4xl font-bold mb-2.5">후쿠오카 놀러가실분</Text>
+          <Text className="text-2xl text-black mb-2.5">
+            2025.05.16 - 05.21
             4/10명       일본, 후쿠오카
           </Text>
-          <Text style={styles.guideRating}>★★★★☆ 가이드 평점 4.0</Text>
-          <View style={styles.guideProfile}>
+          <Text className="text-xl text-black mb-2.5">★★★★☆ 가이드 평점 4.0</Text>
+          <View className="flex-row items-center">
             <Ionicons name="person-circle-outline" size={40} color="#999" />
-            <Text style={styles.guideName}>박 대기 가이드</Text>
+            <Text className="text-xl text-black ml-2.5">박 대기 가이드</Text>
           </View>
         </View>
 
-        <View style={styles.descriptionSection}>
-          <Text style={styles.sectionTitle}>여행 소개</Text>
-          <Text style={styles.descriptionText}>
-            후쿠오카에서 4박 5일간 함께 여행하실 분을{'\n'}
-            모집합니다!{'\n'}
-            가까워서 금방 다녀오기에도 좋아요!{'\n'}
-            하카타의 캐널 시티와 그 주변에서 주로{'\n'}
+        <View className="px-5 py-5">
+          <Text className="text-xl font-bold mb-2.5">여행 소개</Text>
+          <Text className="text-xl text-black mb-5">
+            후쿠오카에서 4박 5일간 함께 여행하실 분을
+            모집합니다!
+            가까워서 금방 다녀오기에도 좋아요!
+            하카타의 캐널 시티와 그 주변에서 주로
             활동할 것 같습니다.
           </Text>
-          <Text style={styles.sectionTitle}>태그</Text>
-          <Text style={styles.descriptionText}>
-            #쇼핑 #음식 #일본 #후쿠오카 #하카타{'\n'}
+          <Text className="text-xl font-bold mb-2.5">태그</Text>
+          <Text className="text-xl text-black mb-5">
+            #쇼핑 #음식 #일본 #후쿠오카 #하카타
             #해외여행
           </Text>
-          <TouchableOpacity style={styles.scheduleButton}>
+          <TouchableOpacity className="flex-row items-center justify-center bg-white border border-gray-400 rounded-3xl py-2.5 mt-5">
             <MaterialCommunityIcons name="calendar-month" size={24} color="#8130FF" />
-            <Text style={styles.scheduleButtonText}>일정 확인하기</Text>
+            <Text className="text-xl text-primary ml-2.5">일정 확인하기</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
 
-      <View style={styles.bottomActionContainer}>
-        <TouchableOpacity style={styles.applyButton}>
-          <Text style={styles.applyButtonText}>여행에 참여 신청하기</Text>
+      <View className="absolute bottom-0 w-full bg-white py-4 px-5 border-t border-gray-200">
+        <TouchableOpacity className="bg-primary rounded-md h-14 justify-center items-center">
+          <Text className="text-xl font-bold text-white">여행에 참여 신청하기</Text>
         </TouchableOpacity>
         {/* 신청됨 / 신청 취소하기 버튼은 조건부 렌더링 */}
-        {/* <TouchableOpacity style={styles.appliedButton}>
-          <Text style={styles.appliedButtonText}>신청됨</Text>
+        {/* <TouchableOpacity className="bg-gray-400 rounded-md h-14 justify-center items-center">
+          <Text className="text-xl font-bold text-white">신청됨</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.cancelApplyButton}>
-          <Text style={styles.cancelApplyButtonText}>신청 취소하기</Text>
+        <TouchableOpacity className="bg-red-500 rounded-md h-14 justify-center items-center">
+          <Text className="text-xl font-bold text-white">신청 취소하기</Text>
         </TouchableOpacity> */}
       </View>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E9E9E9',
-  },
-  backButton: {
-    marginRight: 10,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  scrollViewContent: {
-    paddingBottom: 120, // 하단 액션 버튼 공간 확보
-  },
-  mainImage: {
-    width: '100%',
-    height: 285,
-    resizeMode: 'cover',
-  },
-  productInfoSection: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E9E9E9',
-  },
-  productTitle: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  productDetails: {
-    fontSize: 24,
-    color: '#000',
-    marginBottom: 10,
-  },
-  guideRating: {
-    fontSize: 20,
-    color: '#000',
-    marginBottom: 10,
-  },
-  guideProfile: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  guideName: {
-    fontSize: 20,
-    color: '#000',
-    marginLeft: 10,
-  },
-  descriptionSection: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  descriptionText: {
-    fontSize: 20,
-    color: '#000',
-    marginBottom: 20,
-  },
-  scheduleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-    borderColor: '#949494',
-    borderWidth: 1,
-    borderRadius: 25,
-    paddingVertical: 10,
-    marginTop: 20,
-  },
-  scheduleButtonText: {
-    fontSize: 20,
-    color: '#8130FF',
-    marginLeft: 10,
-  },
-  bottomActionContainer: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    backgroundColor: '#fff',
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#E9E9E9',
-  },
-  applyButton: {
-    backgroundColor: '#8130FF',
-    borderRadius: 5,
-    height: 52,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  applyButtonText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  appliedButton: {
-    backgroundColor: '#999',
-    borderRadius: 5,
-    height: 52,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  appliedButtonText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  cancelApplyButton: {
-    backgroundColor: '#FF2525',
-    borderRadius: 5,
-    height: 52,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cancelApplyButtonText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-});
 
 export default ProductDetailScreen;

@@ -75,26 +75,10 @@ const GuideTabLayout: React.FC = () => {
               <Pressable
                 {...filteredProps}
                 android_ripple={{ borderless: false, color: 'transparent' }}
-                style={{
-                  top: -20,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
+                className="-top-5 justify-center items-center"
               >
                 <View
-                  style={{
-                    width: 60,
-                    height: 60,
-                    borderRadius: 30,
-                    backgroundColor: '#6C4CE9',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 4 },
-                    shadowOpacity: 0.3,
-                    shadowRadius: 4,
-                    elevation: 5,
-                  }}
+                  className="w-16 h-16 rounded-full bg-[#6C4CE9] justify-center items-center shadow-lg"
                 >
                   {props.children}
                 </View>
