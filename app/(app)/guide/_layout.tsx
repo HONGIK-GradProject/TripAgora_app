@@ -1,4 +1,4 @@
-import { Redirect, Tabs } from 'expo-router';
+import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform, Pressable, View } from 'react-native';
 
@@ -8,24 +8,12 @@ import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 // symbols
-import { useAuth } from '@/hooks/useAuth';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
-export default function TabLayout() {
+const GuideTabLayout: React.FC = () => {
   const colorScheme = useColorScheme();
-
-  const { accessToken, isLoading } = useAuth();
-
-  // TODO: 로딩 컴포넌트로 null을 대체
-  if (isLoading) {
-    return null;
-  }
-
-  if (!accessToken) {
-    return <Redirect href="/login" />;
-  }
-
+  
   return (
     <Tabs
       screenOptions={{
@@ -55,9 +43,9 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name='explore'
+        name='product'
         options={{
-          title: '검색',
+          title: '내 상품',
           tabBarIcon: ({ focused, color }) =>
             focused ? (
               <Ionicons name='search' size={28} color={color} />
@@ -67,7 +55,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name='my-travel'
+        name='trip'
         options={{
           title: '여행',
           tabBarIcon: ({ focused, color }) => (
@@ -117,9 +105,9 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name='wishlist'
+        name='profile'
         options={{
-          title: '찜',
+          title: '프로필',
           tabBarIcon: ({ focused, color }) =>
             focused ? (
               <MaterialIcons name='favorite' size={28} color={color} />
@@ -129,9 +117,9 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name='profile'
+        name='my-page'
         options={{
-          title: '프로필',
+          title: '마이',
           tabBarIcon: ({ focused, color }) =>
             focused ? (
               <MaterialIcons name='person' size={28} color={color} />
@@ -143,3 +131,5 @@ export default function TabLayout() {
     </Tabs>
   );
 }
+
+export default GuideTabLayout;

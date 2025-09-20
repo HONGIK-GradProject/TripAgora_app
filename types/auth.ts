@@ -1,4 +1,5 @@
 import APIResponse from "./apiResponse";
+import { UserRole } from "./users";
 
 interface LoginRequest {
   socialAccessToken: string;
@@ -34,10 +35,12 @@ interface AuthContextType {
   // 추후 /users/me API 연동 시 주석 해제
   // User: 유저 정보 타입
   // user: User | null;
+  userRole: UserRole;
   isLoading: boolean;
   isNewUser: boolean;
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
+  switchUserRole: (newUserRole: UserRole) => Promise<void>;
 }
 
 export { AuthContextType, LoginRequest, LoginResponse, LogoutRequest, LogoutResponse, ReissueRequest, ReissueResponse };

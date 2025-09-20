@@ -1,8 +1,15 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Image, StyleSheet } from 'react-native';
+import { useAuth } from '@/hooks/useAuth';
 import { Ionicons } from '@expo/vector-icons';
+import React from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-const GuideMyPageScreen: React.FC = () => {
+const TravelerMyPageScreen: React.FC = () => {
+  const { switchUserRole } = useAuth();
+
+  const handleSwitchUserRole = async () => {
+    await switchUserRole('guide');
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -13,7 +20,7 @@ const GuideMyPageScreen: React.FC = () => {
           <Text style={styles.profileName}>김 홍익</Text>
         </View>
         <Text style={styles.tripCount}>여행 0건, 가이드 0건</Text>
-        <TouchableOpacity style={styles.switchButton}>
+        <TouchableOpacity style={styles.switchButton} onPress={handleSwitchUserRole}>
           <Text style={styles.switchButtonText}>{'여행자 <-> 가이드 전환하기'}</Text>
         </TouchableOpacity>
       </View>
@@ -104,4 +111,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default GuideMyPageScreen;
+export default TravelerMyPageScreen;

@@ -1,23 +1,26 @@
 import APIResponse from "./apiResponse";
 
-interface setNicknameRequest {
+interface SetNicknameRequest {
   nickname: string;
 }
 
-interface setNicknameResponse extends APIResponse<setNicknameData> {}
+interface SetNicknameResponse extends APIResponse<SetNicknameData> {}
 
-interface setNicknameData {
+interface SetNicknameData {
   nickname: string;
 }
 
-interface setTagsRequest {
+interface SetTagsRequest {
   tagIds: number[];
 }
 
-interface setTagsData {
+interface SetTagsData {
   tagNames: string[];
 }
 
-interface setTagsResponse extends APIResponse<setTagsData> {}
+interface SetTagsResponse extends APIResponse<SetTagsData> {}
 
-export { setNicknameRequest, setNicknameResponse, setTagsRequest, setTagsResponse };
+type UserRole = 'traveler' | 'guide';
+
+export { SetNicknameRequest, SetNicknameResponse, SetTagsRequest, SetTagsResponse, UserRole };
+
