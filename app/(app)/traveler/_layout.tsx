@@ -2,7 +2,6 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform, Pressable, View } from 'react-native';
 
-import { HapticTab } from '@/components/HapticTab';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -11,22 +10,28 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 const TravelerTabLayout: React.FC = () => {
   const colorScheme = useColorScheme();
-  
+  const { bottom } = useSafeAreaInsets();
+
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
-        tabBarButton: HapticTab,
+        tabBarButton: undefined,
         tabBarBackground: TabBarBackground,
         tabBarStyle: Platform.select({
           ios: {
             // Use a transparent background on iOS to show the blur effect
             position: 'absolute',
           },
-          default: {},
+          default: {
+            height: 70 + bottom,
+            paddingTop: 5,
+          },
         }),
       }}
     >
@@ -36,9 +41,9 @@ const TravelerTabLayout: React.FC = () => {
           title: '홈',
           tabBarIcon: ({ focused, color }) =>
             focused ? (
-              <Ionicons name='home' size={28} color={color} />
+              <Ionicons name='home' size={26} color={color} />
             ) : (
-              <Ionicons name='home-outline' size={28} color={color} />
+              <Ionicons name='home-outline' size={26} color={color} />
             ),
         }}
       />
@@ -48,9 +53,9 @@ const TravelerTabLayout: React.FC = () => {
           title: '검색',
           tabBarIcon: ({ focused, color }) =>
             focused ? (
-              <Ionicons name='search' size={28} color={color} />
+              <Ionicons name='search' size={26} color={color} />
             ) : (
-              <Ionicons name='search-outline' size={28} color={color} />
+              <Ionicons name='search-outline' size={26} color={color} />
             ),
         }}
       />
@@ -61,7 +66,7 @@ const TravelerTabLayout: React.FC = () => {
           tabBarIcon: ({ focused, color }) => (
             <MaterialIcons
               name={focused ? 'flight' : 'flight-takeoff'}
-              size={28}
+              size={26}
               color={'#fff'}
             />
           ),
@@ -75,12 +80,12 @@ const TravelerTabLayout: React.FC = () => {
               <Pressable
                 {...filteredProps}
                 android_ripple={{ borderless: false, color: 'transparent' }}
-                className="-top-5 justify-center items-center"
+                className='-top-7 justify-center items-center'
               >
-                <View
-                  className="w-16 h-16 rounded-full bg-[#6C4CE9] justify-center items-center shadow-lg"
-                >
-                  {props.children}
+                <View className='w-20 h-20 rounded-full bg-[#a9c0ffa3] justify-center items-center shadow-lg'>
+                  <View className='w-16 h-16 rounded-full bg-[#6C4CE9] justify-center items-center shadow-lg'>
+                    {props.children}
+                  </View>
                 </View>
               </Pressable>
             );
@@ -94,9 +99,9 @@ const TravelerTabLayout: React.FC = () => {
           title: '찜',
           tabBarIcon: ({ focused, color }) =>
             focused ? (
-              <MaterialIcons name='favorite' size={28} color={color} />
+              <MaterialIcons name='favorite' size={26} color={color} />
             ) : (
-              <MaterialIcons name='favorite-border' size={28} color={color} />
+              <MaterialIcons name='favorite-border' size={26} color={color} />
             ),
         }}
       />
@@ -106,14 +111,14 @@ const TravelerTabLayout: React.FC = () => {
           title: '프로필',
           tabBarIcon: ({ focused, color }) =>
             focused ? (
-              <MaterialIcons name='person' size={28} color={color} />
+              <MaterialIcons name='person' size={26} color={color} />
             ) : (
-              <MaterialIcons name='person-outline' size={28} color={color} />
+              <MaterialIcons name='person-outline' size={26} color={color} />
             ),
         }}
       />
     </Tabs>
   );
-}
+};
 
 export default TravelerTabLayout;
