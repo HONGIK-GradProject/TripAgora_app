@@ -14,10 +14,15 @@ export const switchRoleToGuide = async () => {
   try {
     const response = await apiSwitchToGuide();
     if (response.data) {
-      const { accessToken, refreshToken } = response.data;
-      await saveTokens(accessToken, refreshToken);
-      console.log('가이드로 역할 전환 및 토큰 저장 성공');
-      return response;
+      if (response.code === 200) {
+        const { accessToken, refreshToken } = response.data;
+        await saveTokens(accessToken, refreshToken);
+        console.log('가이드로 역할 전환 및 토큰 저장 성공');
+        return response;
+      }
+      if (response.code === 400) {
+        throw new Error('이미 가이드입니다.');
+      }
     }
   } catch (error) {
     console.error('가이드로 역할 전환 실패: ', error);
@@ -33,10 +38,15 @@ export const switchRoleToTraveler = async () => {
   try {
     const response = await apiSwitchToTraveler();
     if (response.data) {
-      const { accessToken, refreshToken } = response.data;
-      await saveTokens(accessToken, refreshToken);
-      console.log('여행자로 역할 전환 및 토큰 저장 성공');
-      return response;
+      if (response.code === 200) {
+        const { accessToken, refreshToken } = response.data;
+        await saveTokens(accessToken, refreshToken);
+        console.log('여행자로 역할 전환 및 토큰 저장 성공');
+        return response;
+      }
+      if (response.code === 400) {
+        throw new Error('이미 여행자입니다.');
+      }
     }
   } catch (error) {
     console.error('여행자로 역할 전환 실패: ', error);
