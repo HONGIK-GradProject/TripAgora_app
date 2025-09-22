@@ -3,7 +3,7 @@
  * @module services/auth
  */
 
-import { ReissueRequest, ReissueResponse } from '@/types/auth';
+import { reissue } from '@/api/auth';
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
@@ -65,18 +65,13 @@ const reissueToken = async (): Promise<string | undefined> => {
       throw new Error('사용 가능한 리프레시 토큰이 없습니다.');
     }
 
-    const requestData: ReissueRequest = { refreshToken };
+    const response = await reissue(refreshToken);
 
-    const response = await axios.post<ReissueResponse>(
-      `${process.env.EXPO_PUBLIC_API_BASE_URL}/auth/reissue`,
-      requestData
-    );
-
-    if (!response.data.data) {
+    if (!response.data) {
       throw new Error('토큰 재발급 응답에 데이터가 없습니다.');
     }
 
-    const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data.data;
+    const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data;
     await saveTokens(newAccessToken, newRefreshToken);
     console.log('토큰 재발급 성공:', { newAccessToken, newRefreshToken });
     return newAccessToken;

@@ -4,7 +4,7 @@
  */
 import { kakaoSignIn, signIn, signOut } from '@/api/auth';
 import { setupInterceptors } from '@/api/client';
-import { getTokens } from '@/services/auth';
+import { clearTokens, getTokens, saveTokens } from '@/services/auth';
 import { AuthContextType } from '@/types/auth';
 import { UserRole } from '@/types/users';
 import { createContext, useCallback, useEffect, useState } from 'react';
@@ -41,8 +41,14 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     try {
       const socialAccessToken = await kakaoSignIn();
       const response = await signIn(socialAccessToken);
-      setAccessToken(response?.data?.accessToken || null);
-      setIsNewUser(response?.data?.isNewUser || false);
+
+      if (response.data) {
+        const { accessToken, refreshToken, isNewUser } = response.data;
+        await saveTokens(accessToken, refreshToken);
+        setAccessToken(accessToken);
+        setIsNewUser(isNewUser);
+        console.log('로그인 성공 및 토큰 저장 완료');
+      }
     } catch (error) {
       console.error('Sign-in error:', error);
     } finally {
@@ -56,7 +62,9 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   const signOutHandler = useCallback(async () => {
     try {
       await signOut();
+      await clearTokens();
       setAccessToken(null);
+      console.log('로그아웃 성공 및 토큰 삭제 완료');
     } catch (error) {
       console.error('Sign-out error:', error);
     } finally {
