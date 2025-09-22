@@ -4,8 +4,8 @@
  */
 import { kakaoSignIn, signIn, signOut } from '@/api/auth';
 import { setupInterceptors } from '@/api/client';
-import { switchToGuide, switchToTraveler } from '@/api/users';
 import { clearTokens, getTokens, reissueToken, saveTokens } from '@/services/auth';
+import { switchRoleToGuide, switchRoleToTraveler } from '@/services/users';
 import { AuthContextType } from '@/types/auth';
 import { UserRole } from '@/types/users';
 import { createContext, useCallback, useEffect, useState } from 'react';
@@ -76,19 +76,15 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   const switchUserRoleHandler = useCallback(async (newUserRole: UserRole) => {
     try {
       if (newUserRole === 'traveler') {
-        const tokens = await switchToTraveler();
-        if (tokens && tokens.data) {
-          await saveTokens(tokens.data.accessToken, tokens.data.refreshToken);
+        const response = await switchRoleToTraveler();
+        if (response) {
           setUserRole('traveler');
-          console.log('새 액세스 토큰: ', tokens.data.accessToken);
         }
       }
       else if (newUserRole === 'guide') {
-        const tokens = await switchToGuide();
-        if (tokens && tokens.data) {
-          await saveTokens(tokens.data.accessToken, tokens.data.refreshToken);
+        const response = await switchRoleToGuide();
+        if (response) {
           setUserRole('guide');
-          console.log('새 액세스 토큰: ', tokens.data.accessToken);
         }
       }
       else {
