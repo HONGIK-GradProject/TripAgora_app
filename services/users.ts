@@ -4,7 +4,7 @@
  */
 
 import { switchToGuide as apiSwitchToGuide, switchToTraveler as apiSwitchToTraveler } from '@/api/users';
-import { saveTokens } from './auth';
+import { saveTokens } from '@/lib/tokenStorage';
 
 /**
  * 가이드로 역할을 전환하고, 새로 발급된 토큰을 저장합니다.

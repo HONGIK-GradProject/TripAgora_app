@@ -6,7 +6,7 @@
  * 응답 인터셉터는 401 오류 발생 시 토큰 재발급을 시도하고 원래 요청을 재시도합니다.
  */
 
-import { getTokens } from '@/services/auth';
+import { getTokens } from '@/lib/tokenStorage';
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 
 /**

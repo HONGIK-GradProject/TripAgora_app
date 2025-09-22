@@ -4,7 +4,8 @@
  */
 import { kakaoSignIn, signIn, signOut } from '@/api/auth';
 import { setupInterceptors } from '@/api/client';
-import { clearTokens, getTokens, reissueToken, saveTokens } from '@/services/auth';
+import { clearTokens, getTokens, saveTokens } from '@/lib/tokenStorage';
+import { reissueToken } from '@/services/auth';
 import { switchRoleToGuide, switchRoleToTraveler } from '@/services/users';
 import { AuthContextType } from '@/types/auth';
 import { UserRole } from '@/types/users';
@@ -76,14 +77,15 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   const switchUserRoleHandler = useCallback(async (newUserRole: UserRole) => {
     try {
       if (newUserRole === 'traveler') {
+        console.log(123);
         const response = await switchRoleToTraveler();
-        if (response) {
+        if (response && response.code === 200) {
           setUserRole('traveler');
         }
       }
       else if (newUserRole === 'guide') {
         const response = await switchRoleToGuide();
-        if (response) {
+        if (response && response.code === 200) {
           setUserRole('guide');
         }
       }
