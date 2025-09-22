@@ -8,6 +8,10 @@ import {
   SetNicknameResponse,
   SetTagsRequest,
   SetTagsResponse,
+  SwitchToGuideRequest,
+  SwitchToGuideResponse,
+  SwitchToTravelerRequest,
+  SwitchToTravelerResponse
 } from '@/types/users';
 import apiClient from './client';
 
@@ -55,4 +59,35 @@ const setTags = async (
   }
 };
 
-export { setNickname, setTags };
+const switchToGuide = async (): Promise<SwitchToGuideResponse | undefined> => {
+  try {
+    const requestData: SwitchToGuideRequest = {};
+    const response = await apiClient.patch<SwitchToGuideResponse>(
+      '/users/me/switch-to-guide',
+      requestData
+    );
+    console.log('가이드로 역할 전환 성공: ', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('가이드로 역할 전환 실패: ', error);
+    return undefined;
+  }
+};
+
+const switchToTraveler = async (): Promise<SwitchToTravelerResponse | undefined> => {
+  try {
+    const requestData: SwitchToTravelerRequest = {};
+    const response = await apiClient.patch<SwitchToTravelerResponse>(
+      '/users/me/switch-to-traveler',
+      requestData
+    );
+    console.log('여행자로 역할 전환 성공: ', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('여행자로 역할 전환 실패: ', error);
+    return undefined;
+  }
+};
+
+export { setNickname, setTags, switchToGuide, switchToTraveler };
+

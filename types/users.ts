@@ -1,5 +1,7 @@
 import APIResponse from "./apiResponse";
 
+type UserRole = 'traveler' | 'guide';
+
 interface SetNicknameRequest {
   nickname: string;
 }
@@ -20,7 +22,27 @@ interface SetTagsData {
 
 interface SetTagsResponse extends APIResponse<SetTagsData> {}
 
-type UserRole = 'traveler' | 'guide';
+interface SwitchToGuideRequest {}
 
-export { SetNicknameRequest, SetNicknameResponse, SetTagsRequest, SetTagsResponse, UserRole };
+interface SwitchToGuideData {
+  accessToken: string;
+  refreshToken: string;
+}
+
+interface SwitchToGuideResponse extends APIResponse<SwitchToGuideData> {}
+
+type SwitchToTravelerRequest = SwitchToGuideRequest;
+type SwitchToTravelerResponse = SwitchToGuideResponse;
+
+export {
+  SetNicknameRequest,
+  SetNicknameResponse,
+  SetTagsRequest,
+  SetTagsResponse,
+  SwitchToGuideRequest,
+  SwitchToGuideResponse,
+  SwitchToTravelerRequest,
+  SwitchToTravelerResponse,
+  UserRole
+};
 
