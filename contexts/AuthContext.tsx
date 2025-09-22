@@ -4,7 +4,8 @@
  */
 import { kakaoSignIn, signIn, signOut } from '@/api/auth';
 import { setupInterceptors } from '@/api/client';
-import { clearTokens, getTokens, saveTokens } from '@/services/auth';
+import { switchToGuide, switchToTraveler } from '@/api/users';
+import { clearTokens, getTokens, reissueToken, saveTokens } from '@/services/auth';
 import { AuthContextType } from '@/types/auth';
 import { UserRole } from '@/types/users';
 import { createContext, useCallback, useEffect, useState } from 'react';
@@ -74,7 +75,25 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
   const switchUserRoleHandler = useCallback(async (newUserRole: UserRole) => {
     try {
-      setUserRole(newUserRole);
+      if (newUserRole === 'traveler') {
+        const tokens = await switchToTraveler();
+        if (tokens && tokens.data) {
+          await saveTokens(tokens.data.accessToken, tokens.data.refreshToken);
+          setUserRole('traveler');
+          console.log('새 액세스 토큰: ', tokens.data.accessToken);
+        }
+      }
+      else if (newUserRole === 'guide') {
+        const tokens = await switchToGuide();
+        if (tokens && tokens.data) {
+          await saveTokens(tokens.data.accessToken, tokens.data.refreshToken);
+          setUserRole('guide');
+          console.log('새 액세스 토큰: ', tokens.data.accessToken);
+        }
+      }
+      else {
+        throw new Error('역할 전환 오류');
+      }
     } catch (error) {
       console.error('Role Switch error:', error);
     } finally {
@@ -87,7 +106,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
    * 토큰 만료 시 signOutHandler를 호출하여 로그아웃 처리합니다.
    */
   useEffect(() => {
-    setupInterceptors(signOutHandler);
+    setupInterceptors(reissueToken, signOutHandler);
   }, [signOutHandler]);
 
   useEffect(() => {
