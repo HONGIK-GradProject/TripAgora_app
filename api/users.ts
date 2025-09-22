@@ -62,7 +62,7 @@ const setTags = async (
 const switchToGuide = async (): Promise<SwitchToGuideResponse | undefined> => {
   try {
     const requestData: SwitchToGuideRequest = {};
-    const response = await apiClient.patch<SwitchToGuideResponse>(
+    const response = await apiClient.post<SwitchToGuideResponse>(
       '/users/me/switch-to-guide',
       requestData
     );
@@ -77,7 +77,7 @@ const switchToGuide = async (): Promise<SwitchToGuideResponse | undefined> => {
 const switchToTraveler = async (): Promise<SwitchToTravelerResponse | undefined> => {
   try {
     const requestData: SwitchToTravelerRequest = {};
-    const response = await apiClient.patch<SwitchToTravelerResponse>(
+    const response = await apiClient.post<SwitchToTravelerResponse>(
       '/users/me/switch-to-traveler',
       requestData
     );
