@@ -2,14 +2,15 @@
  * @file AuthContext.tsx
  * @description 인증 관련 컨텍스트와 프로바이더, 커스텀 훅을 제공하는 파일입니다.
  */
-import { kakaoSignIn, signIn, signOut } from '@/api/auth';
+import { kakaoSignIn, kakaoSignOut, signIn, signOut } from '@/api/auth';
 import { setupInterceptors } from '@/api/client';
+import { switchToGuide, switchToTraveler } from '@/api/users';
 import { clearTokens, getTokens, saveTokens } from '@/lib/tokenStorage';
 import { reissueToken } from '@/services/auth';
-import { switchRoleToGuide, switchRoleToTraveler } from '@/services/users';
-import { AuthContextType } from '@/types/auth';
+import { AuthContextType, DecodedTokenType } from '@/types/auth';
 import { UserRole } from '@/types/users';
 import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 import { createContext, useCallback, useEffect, useState } from 'react';
 
 /**
@@ -37,41 +38,13 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   const [isNewUser, setIsNewUser] = useState<boolean>(false);
   const [userRole, setUserRole] = useState<UserRole>('traveler');
 
-  /**
-   * @description 카카오 소셜 로그인을 통해 사용자를 인증하고, 상태를 업데이트합니다.
-   */
-  const signInHandler = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const socialAccessToken = await kakaoSignIn();
-      const response = await signIn(socialAccessToken);
-
-      if (response.data) {
-        const { accessToken, refreshToken, isNewUser } = response.data;
-        await saveTokens(accessToken, refreshToken);
-        setAccessToken(accessToken);
-        setIsNewUser(isNewUser);
-        console.log('로그인 성공 및 토큰 저장 완료');
-      }
-    } catch (error) {
-      console.error('Sign-in error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  /**
-   * @description 사용자를 로그아웃하고, 상태를 초기화합니다.
-   */
   const signOutHandler = useCallback(async () => {
     setIsLoading(true);
     try {
       await signOut();
+      await kakaoSignOut();
     } catch (error) {
-      if (axios.isAxiosError(error) && error.status === 401) {
-        console.error('토큰 만료: ', error);
-      }
-      else {
+      if (!(axios.isAxiosError(error) && error.response?.status === 401)) {
         console.error('Sign-out error:', error);
       }
     } finally {
@@ -83,62 +56,92 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     }
   }, []);
 
-  const switchUserRoleHandler = useCallback(async (newUserRole: UserRole) => {
+  // 토큰을 받아 상태를 설정하는 로직을 중앙 관리하는 헬퍼 함수
+  const processAndSetAuth = useCallback(async (accessToken: string, refreshToken?: string) => {
+    // refreshToken이 주어진 경우에만 토큰을 저장 (로그인, 역할 전환 시)
+    if (refreshToken) {
+      await saveTokens(accessToken, refreshToken);
+    }
+
+    setAccessToken(accessToken);
+
     try {
-      if (newUserRole === 'traveler') {
-        const response = await switchRoleToTraveler();
-        if (response && response.code === 200) {
-          setUserRole('traveler');
-        }
+      const decodedToken = jwtDecode<DecodedTokenType>(accessToken);
+      if (decodedToken.role) {
+        const role = decodedToken.role.toLowerCase() as UserRole;
+        setUserRole(role);
       }
-      else if (newUserRole === 'guide') {
-        const response = await switchRoleToGuide();
-        if (response && response.code === 200) {
-          setUserRole('guide');
-        }
+    } catch (error) {
+      console.error('JWT 디코딩 또는 역할 설정 실패', error);
+      await signOutHandler(); // 유효하지 않은 토큰은 로그아웃 처리
+    }
+  }, [signOutHandler]);
+
+  const signInHandler = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const socialAccessToken = await kakaoSignIn();
+      const response = await signIn(socialAccessToken);
+
+      if (response.data) {
+        const { accessToken, refreshToken, isNewUser } = response.data;
+        await processAndSetAuth(accessToken, refreshToken);
+        setIsNewUser(isNewUser);
+        console.log('로그인 성공, 토큰 저장 및 역할 설정 완료');
+      } else {
+        throw new Error('서버로부터 토큰을 받지 못했습니다.');
       }
-      else {
-        throw new Error('역할 전환 오류');
+    } catch (error) {
+      console.error('Sign-in error:', error);
+      await signOutHandler(); // 로그인 실패 시 확실하게 로그아웃
+    } finally {
+      setIsLoading(false);
+    }
+  }, [processAndSetAuth, signOutHandler]);
+
+  const switchUserRoleHandler = useCallback(async (newUserRole: UserRole) => {
+    setIsLoading(true);
+    try {
+      const response = newUserRole === 'traveler'
+        ? await switchToTraveler()
+        : await switchToGuide();
+
+      if (response && response.code === 200 && response.data) {
+        const { accessToken, refreshToken } = response.data;
+        await processAndSetAuth(accessToken, refreshToken);
+      } else {
+        throw new Error('역할 전환에 실패했습니다.');
       }
     } catch (error) {
       console.error('Role Switch error:', error);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [processAndSetAuth]);
 
-  /**
-   * @description 컴포넌트가 마운트될 때 API 클라이언트의 인터셉터를 설정합니다.
-   * 토큰 만료 시 signOutHandler를 호출하여 로그아웃 처리합니다.
-   */
   useEffect(() => {
     setupInterceptors(reissueToken, signOutHandler);
   }, [signOutHandler]);
 
   useEffect(() => {
-    /**
-     * 1. 토큰 로딩
-     * 2. 토큰 validation
-     * 3. 토큰이 valid -> 유저 object fetch해서 전역 state에 저장
-     * 4. 토큰이 invalid -> 유저 object를 null로 
-     */
-    const loadAccessToken = async() => {
+    const loadInitialAuth = async () => {
+      setIsLoading(true);
       try {
         const token = (await getTokens()).accessToken;
-
         if (token) {
-          setAccessToken(token);
+          // 앱 시작 시에는 저장된 토큰으로 상태만 설정
+          await processAndSetAuth(token);
         }
       } catch (error) {
-        console.error("토큰 로딩 중 에러 발생: ", error);
-      }
-      finally {
+        console.error("초기 토큰 로딩 중 에러 발생: ", error);
+        await signOutHandler();
+      } finally {
         setIsLoading(false);
       }
     };
 
-    loadAccessToken();
-  }, []);
+    loadInitialAuth();
+  }, [processAndSetAuth, signOutHandler]);
   
   return (
     <AuthContext.Provider

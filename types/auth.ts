@@ -43,5 +43,13 @@ interface AuthContextType {
   switchUserRole: (newUserRole: UserRole) => Promise<void>;
 }
 
-export { AuthContextType, LoginRequest, LoginResponse, LogoutRequest, LogoutResponse, ReissueRequest, ReissueResponse };
+interface DecodedTokenType {
+  exp: string;
+  iat: string;
+  role: 'GUIDE' | 'TRAVELER';
+  type: string;
+  userId: number;
+}
+
+export { AuthContextType, DecodedTokenType, LoginRequest, LoginResponse, LogoutRequest, LogoutResponse, ReissueRequest, ReissueResponse };
 
