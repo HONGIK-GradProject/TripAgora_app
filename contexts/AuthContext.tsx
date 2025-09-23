@@ -4,7 +4,9 @@
  */
 import { kakaoSignIn, signIn, signOut } from '@/api/auth';
 import { setupInterceptors } from '@/api/client';
-import { getTokens } from '@/services/auth';
+import { clearTokens, getTokens, saveTokens } from '@/lib/tokenStorage';
+import { reissueToken } from '@/services/auth';
+import { switchRoleToGuide, switchRoleToTraveler } from '@/services/users';
 import { AuthContextType } from '@/types/auth';
 import { UserRole } from '@/types/users';
 import { createContext, useCallback, useEffect, useState } from 'react';
@@ -41,8 +43,14 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     try {
       const socialAccessToken = await kakaoSignIn();
       const response = await signIn(socialAccessToken);
-      setAccessToken(response?.data?.accessToken || null);
-      setIsNewUser(response?.data?.isNewUser || false);
+
+      if (response.data) {
+        const { accessToken, refreshToken, isNewUser } = response.data;
+        await saveTokens(accessToken, refreshToken);
+        setAccessToken(accessToken);
+        setIsNewUser(isNewUser);
+        console.log('로그인 성공 및 토큰 저장 완료');
+      }
     } catch (error) {
       console.error('Sign-in error:', error);
     } finally {
@@ -56,7 +64,9 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   const signOutHandler = useCallback(async () => {
     try {
       await signOut();
+      await clearTokens();
       setAccessToken(null);
+      console.log('로그아웃 성공 및 토큰 삭제 완료');
     } catch (error) {
       console.error('Sign-out error:', error);
     } finally {
@@ -66,7 +76,22 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
   const switchUserRoleHandler = useCallback(async (newUserRole: UserRole) => {
     try {
-      setUserRole(newUserRole);
+      if (newUserRole === 'traveler') {
+        console.log(123);
+        const response = await switchRoleToTraveler();
+        if (response && response.code === 200) {
+          setUserRole('traveler');
+        }
+      }
+      else if (newUserRole === 'guide') {
+        const response = await switchRoleToGuide();
+        if (response && response.code === 200) {
+          setUserRole('guide');
+        }
+      }
+      else {
+        throw new Error('역할 전환 오류');
+      }
     } catch (error) {
       console.error('Role Switch error:', error);
     } finally {
@@ -79,7 +104,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
    * 토큰 만료 시 signOutHandler를 호출하여 로그아웃 처리합니다.
    */
   useEffect(() => {
-    setupInterceptors(signOutHandler);
+    setupInterceptors(reissueToken, signOutHandler);
   }, [signOutHandler]);
 
   useEffect(() => {

@@ -5,14 +5,28 @@
 
 import { login as kakaoLogin, logout as kakaoLogout } from '@react-native-seoul/kakao-login';
 
-import { clearTokens, saveTokens } from '@/services/auth';
 import {
   LoginRequest,
   LoginResponse,
-  LogoutResponse
+  LogoutResponse,
+  ReissueRequest,
+  ReissueResponse
 } from '@/types/auth';
-import axios from 'axios';
 import apiClient from './client';
+
+/**
+ * 리프레시 토큰을 사용하여 새로운 액세스 토큰을 재발급합니다.
+ * @param {string} refreshToken - 재발급에 사용할 리프레시 토큰입니다.
+ * @returns {Promise<ReissueResponse>} 성공 시 ReissueResponse를 반환합니다.
+ */
+export const reissue = async (refreshToken: string): Promise<ReissueResponse> => {
+  const requestData: ReissueRequest = { refreshToken };
+  const response = await apiClient.post<ReissueResponse>(
+    '/auth/reissue',
+    requestData
+  );
+  return response.data;
+};
 
 /**
  * 소셜 로그인을 통해 서버에 로그인을 시도하고, 성공 시 토큰 정보를 저장합니다.
@@ -21,29 +35,13 @@ import apiClient from './client';
  */
 export const signIn = async (
   socialAccessToken: string
-): Promise<LoginResponse | undefined> => {
-  try {
-    const requestData: LoginRequest = { socialAccessToken };
-
-    const response = await apiClient.post<LoginResponse>(
-      '/auth/login/KAKAO',
-      requestData
-    );
-
-    if (response.data.data) {
-      const { accessToken, refreshToken, isNewUser } = response.data.data;
-      await saveTokens(accessToken, refreshToken);
-
-      console.log('로그인 성공:', { accessToken, refreshToken, isNewUser });
-      return response.data;
-    }
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error('로그인 실패:', error.toJSON());
-    } else {
-      console.error('예상치 못한 오류 발생:', error);
-    }
-  }
+): Promise<LoginResponse> => {
+  const requestData: LoginRequest = { socialAccessToken };
+  const response = await apiClient.post<LoginResponse>(
+    '/auth/login/KAKAO',
+    requestData
+  );
+  return response.data;
 };
 
 /**
@@ -51,23 +49,7 @@ export const signIn = async (
  * @returns {Promise<void>}
  */
 export const signOut = async (): Promise<void> => {
-  try {
-    const response = await apiClient.post<LogoutResponse>('/auth/logout');
-    const responseData = response.data;
-
-    if (responseData && responseData.code === 401) {
-      throw new Error(responseData.message || '인증되지 않음: 유효하지 않거나 만료된 토큰입니다.');
-    }
-
-    await clearTokens();
-    console.log('로그아웃 성공');
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error('로그아웃 실패:', error.toJSON());
-    } else {
-      console.error('예상치 못한 오류 발생:', error);
-    }
-  }
+  await apiClient.post<LogoutResponse>('/auth/logout');
 };
 
 /**

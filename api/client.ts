@@ -6,7 +6,7 @@
  * 응답 인터셉터는 401 오류 발생 시 토큰 재발급을 시도하고 원래 요청을 재시도합니다.
  */
 
-import { getTokens, reissueToken } from '@/services/auth';
+import { getTokens } from '@/lib/tokenStorage';
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 
 /**
@@ -52,7 +52,10 @@ apiClient.interceptors.request.use(
  * @description Axios 응답 인터셉터를 설정합니다. 401 오류 발생 시 토큰 재발급을 시도하고, 실패 시 로그아웃을 실행합니다.
  * @param {() => Promise<void>} signOut - 토큰 재발급 실패 시 호출될 로그아웃 함수입니다.
  */
-export const setupInterceptors = (signOut: () => Promise<void>) => {
+export const setupInterceptors = (
+  reissueToken: () => Promise<string | undefined>,
+  signOut: () => Promise<void>
+) => {
   apiClient.interceptors.response.use(
     (response) => response,
     async (error) => {
