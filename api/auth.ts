@@ -45,7 +45,7 @@ export const signIn = async (
 };
 
 /**
- * 서버에서 로그아웃을 처리하합니다.
+ * 서버에서 로그아웃을 처리합니다.
  * @returns {Promise<void>}
  */
 export const signOut = async (): Promise<void> => {
