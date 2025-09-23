@@ -9,6 +9,7 @@ import { reissueToken } from '@/services/auth';
 import { switchRoleToGuide, switchRoleToTraveler } from '@/services/users';
 import { AuthContextType } from '@/types/auth';
 import { UserRole } from '@/types/users';
+import axios from 'axios';
 import { createContext, useCallback, useEffect, useState } from 'react';
 
 /**
@@ -66,12 +67,18 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     setIsLoading(true);
     try {
       await signOut();
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.status === 401) {
+        console.error('토큰 만료: ', error);
+      }
+      else {
+        console.error('Sign-out error:', error);
+      }
+    } finally {
       await clearTokens();
       setAccessToken(null);
-      console.log('로그아웃 성공 및 토큰 삭제 완료');
-    } catch (error) {
-      console.error('Sign-out error:', error);
-    } finally {
+      setIsNewUser(false);
+      setUserRole('traveler');
       setIsLoading(false);
     }
   }, []);
@@ -79,7 +86,6 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   const switchUserRoleHandler = useCallback(async (newUserRole: UserRole) => {
     try {
       if (newUserRole === 'traveler') {
-        console.log(123);
         const response = await switchRoleToTraveler();
         if (response && response.code === 200) {
           setUserRole('traveler');
