@@ -38,6 +38,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
    * @description 카카오 소셜 로그인을 통해 사용자를 인증하고, 상태를 업데이트합니다.
    */
   const signInHandler = useCallback(async () => {
+    setIsLoading(true);
     try {
       const socialAccessToken = await kakaoSignIn();
       const response = await signIn(socialAccessToken);
@@ -54,9 +55,12 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
    * @description 사용자를 로그아웃하고, 상태를 초기화합니다.
    */
   const signOutHandler = useCallback(async () => {
+    setIsLoading(true);
     try {
       await signOut();
       setAccessToken(null);
+      setIsNewUser(false);
+      setUserRole('traveler');
     } catch (error) {
       console.error('Sign-out error:', error);
     } finally {
@@ -83,6 +87,12 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   }, [signOutHandler]);
 
   useEffect(() => {
+    /**
+     * 1. 토큰 로딩
+     * 2. 토큰 validation
+     * 3. 토큰이 valid -> 유저 object fetch해서 전역 state에 저장
+     * 4. 토큰이 invalid -> 유저 object를 null로 
+     */
     const loadAccessToken = async() => {
       try {
         const token = (await getTokens()).accessToken;

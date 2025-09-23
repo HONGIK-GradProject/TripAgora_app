@@ -4,10 +4,14 @@ import React from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 const TravelerMyPageScreen: React.FC = () => {
-  const { switchUserRole } = useAuth();
+  const { switchUserRole, signOut } = useAuth();
 
   const handleSwitchUserRole = async () => {
     await switchUserRole('guide');
+  }
+
+  const handleSignOut = async () => {
+    await signOut();
   }
 
   return (
@@ -33,7 +37,7 @@ const TravelerMyPageScreen: React.FC = () => {
           <TouchableOpacity className="border-b border-gray-400 py-4">
             <Text className="text-2xl text-black">문의하기</Text>
           </TouchableOpacity>
-          <TouchableOpacity className="border-b border-gray-400 py-4">
+          <TouchableOpacity className="border-b border-gray-400 py-4" onPress={handleSignOut}>
             <Text className="text-2xl text-black">로그아웃</Text>
           </TouchableOpacity>
           <TouchableOpacity className="border-b border-gray-400 py-4">

@@ -8,8 +8,7 @@ import { login as kakaoLogin, logout as kakaoLogout } from '@react-native-seoul/
 import { clearTokens, saveTokens } from '@/services/auth';
 import {
   LoginRequest,
-  LoginResponse,
-  LogoutResponse
+  LoginResponse
 } from '@/types/auth';
 import axios from 'axios';
 import apiClient from './client';
@@ -52,21 +51,27 @@ export const signIn = async (
  */
 export const signOut = async (): Promise<void> => {
   try {
-    const response = await apiClient.post<LogoutResponse>('/auth/logout');
-    const responseData = response.data;
-
-    if (responseData && responseData.code === 401) {
-      throw new Error(responseData.message || '인증되지 않음: 유효하지 않거나 만료된 토큰입니다.');
-    }
-
-    await clearTokens();
-    console.log('로그아웃 성공');
+    // 처음부터 _retry 플래그를 true로 설정
+    await apiClient.post('/auth/logout', undefined, { _retry: true } as any);
+    console.log('서버 로그아웃 성공');
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error('로그아웃 실패:', error.toJSON());
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      // 에러가 아닌 단순 토큰 만료일 가능성 매우 높음
+      console.log('로그아웃 요청 시 401 응답 (예상된 동작일 수 있음)');
+    } else if (axios.isAxiosError(error)) {
+      console.error('서버 로그아웃 실패:', error.toJSON());
     } else {
-      console.error('예상치 못한 오류 발생:', error);
+      console.error('서버 로그아웃 중 예상치 못한 오류 발생:', error);
     }
+  } finally {
+    try {
+      await kakaoSignOut();
+      console.log('카카오 로그아웃 성공');
+    } catch (error) {
+      console.error('카카오 로그아웃 실패:', error);
+    }
+    await clearTokens();
+    console.log('토큰 삭제 완료');
   }
 };
 
