@@ -1,11 +1,12 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Image,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -76,6 +77,13 @@ const ProductDetailScreen: React.FC = () => {
   // In the future, use `id` to fetch detail via API. For now, show sample.
   const product = useMemo(() => sampleProduct, []);
 
+  // Editable states
+  const [title, setTitle] = useState<string>(product.title);
+  const [description, setDescription] = useState<string>(product.description);
+  const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
+  const [isEditingDescription, setIsEditingDescription] =
+    useState<boolean>(false);
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
@@ -90,7 +98,28 @@ const ProductDetailScreen: React.FC = () => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.title}>{product.title}</Text>
+          <View style={styles.rowBetween}>
+            {isEditingTitle ? (
+              <TextInput
+                value={title}
+                onChangeText={setTitle}
+                style={styles.titleInput}
+                placeholder='제목을 입력하세요'
+              />
+            ) : (
+              <Text style={[styles.title, { flex: 1, marginBottom: 0 }]}>
+                {title}
+              </Text>
+            )}
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() => setIsEditingTitle((prev) => !prev)}
+            >
+              <Text style={styles.editButtonText}>
+                {isEditingTitle ? '완료' : '편집'}
+              </Text>
+            </TouchableOpacity>
+          </View>
           <View style={styles.metaRow}>
             <MaterialCommunityIcons
               name='calendar-month'
@@ -126,8 +155,31 @@ const ProductDetailScreen: React.FC = () => {
         <View style={styles.divider} />
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>여행 소개</Text>
-          <Text style={styles.description}>{product.description}</Text>
+          <View style={styles.rowBetween}>
+            <Text style={[styles.sectionTitle, { flex: 1, marginBottom: 0 }]}>
+              여행 소개
+            </Text>
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() => setIsEditingDescription((prev) => !prev)}
+            >
+              <Text style={styles.editButtonText}>
+                {isEditingDescription ? '완료' : '편집'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          {isEditingDescription ? (
+            <TextInput
+              value={description}
+              onChangeText={setDescription}
+              style={styles.multilineInput}
+              multiline
+              textAlignVertical='top'
+              placeholder='여행 소개를 입력하세요'
+            />
+          ) : (
+            <Text style={styles.description}>{description}</Text>
+          )}
         </View>
 
         <View style={styles.divider} />
@@ -297,6 +349,48 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 16,
     lineHeight: 22,
+    color: '#000',
+    marginTop: 10,
+  },
+  rowBetween: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  editButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+    backgroundColor: '#F3ECFF',
+    borderWidth: 1,
+    borderColor: '#D9C7FF',
+  },
+  editButtonText: {
+    color: '#8130FF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  titleInput: {
+    flex: 1,
+    fontSize: 22,
+    fontWeight: '700',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    color: '#000000',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    borderRadius: 8,
+    backgroundColor: '#FFF',
+    marginRight: 10,
+  },
+  multilineInput: {
+    marginTop: 6,
+    minHeight: 100,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
     color: '#000',
   },
   itineraryItem: {
