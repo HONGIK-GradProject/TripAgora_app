@@ -7,7 +7,7 @@ import { setupInterceptors } from '@/api/client';
 import { switchToGuide, switchToTraveler } from '@/api/users';
 import { clearTokens, getTokens, saveTokens } from '@/lib/tokenStorage';
 import { reissueToken } from '@/services/auth';
-import { AuthContextType, DecodedTokenType } from '@/types/auth';
+import { AuthContextType, AuthDecodedToken } from '@/types/auth';
 import { UserRole } from '@/types/users';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
@@ -75,7 +75,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     setAccessToken(accessToken);
 
     try {
-      const decodedToken = jwtDecode<DecodedTokenType>(accessToken);
+      const decodedToken = jwtDecode<AuthDecodedToken>(accessToken);
       if (decodedToken.role) {
         const role = decodedToken.role.toLowerCase() as UserRole;
         setUserRole(role);

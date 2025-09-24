@@ -5,11 +5,11 @@
 
 import { switchToGuide as apiSwitchToGuide, switchToTraveler as apiSwitchToTraveler } from '@/api/users';
 import { saveTokens } from '@/lib/tokenStorage';
-import { SwitchToGuideResponse, SwitchToTravelerResponse } from '@/types/users';
+import { UserSwitchToGuideResponse, UserSwitchToTravelerResponse } from '@/types/users';
 import axios from 'axios';
 
 // API 응답 타입의 공통 부분을 포함하는 유니온 타입 정의
-type RoleSwitchApiResponse = SwitchToGuideResponse | SwitchToTravelerResponse;
+type RoleSwitchApiResponse = UserSwitchToGuideResponse | UserSwitchToTravelerResponse;
 
 /**
  * 역할 전환의 공통 로직을 처리하는 헬퍼 함수입니다.

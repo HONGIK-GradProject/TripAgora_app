@@ -1,6 +1,9 @@
 import APIResponse from "./apiResponse";
 
-interface Itinerary {
+/**
+ * 템플릿의 여행 일정 정보를 나타냅니다.
+ */
+interface TemplateItinerary {
   day: number;
   title: string;
   content: string;
@@ -9,87 +12,110 @@ interface Itinerary {
   longitude: number;
 }
 
-interface GetTemplateRequest {}
-interface GetTemplateData {
+interface TemplateGetRequest {}
+interface TemplateGetData {
   title: string;
   content: string;
   regionNames: string[];
   tagNames: string[];
   imageUrls: string[];
 }
-interface GetTemplateResponse extends APIResponse<GetTemplateData> {}
+interface TemplateGetResponse extends APIResponse<TemplateGetData> {}
 
-interface CreateTemplateRequest {}
-interface CreateTemplateData {
+interface TemplateCreateRequest {}
+interface TemplateCreateData {
   templateId: number;
 }
-interface CreateTemplateResponse extends APIResponse<CreateTemplateData> {}
+interface TemplateCreateResponse extends APIResponse<TemplateCreateData> {}
 
-interface SetTemplateRequest {
+/**
+ * 템플릿의 여러 정보를 한 번에 수정합니다.
+ */
+interface TemplateUpdateRequest {
   title: string;
   content: string;
   imageUrls: string[];
 }
-interface SetTemplateData {}
-interface SetTemplateResponse extends APIResponse<SetTemplateData> {}
+interface TemplateUpdateData {}
+interface TemplateUpdateResponse extends APIResponse<TemplateUpdateData> {}
 
-interface SetTitleRequest {
+interface TemplateSetTitleRequest {
   title: string;
 }
-interface SetTitleData {
+interface TemplateSetTitleData {
   title: string;
 }
-interface SetTitleResponse extends APIResponse<SetTitleData> {}
+interface TemplateSetTitleResponse extends APIResponse<TemplateSetTitleData> {}
 
-interface SetContentRequest {
+interface TemplateSetContentRequest {
   content: string;
 }
-interface SetContentData {
+interface TemplateSetContentData {
   content: string;
 }
-interface SetContentResponse extends APIResponse<SetContentData> {}
+interface TemplateSetContentResponse extends APIResponse<TemplateSetContentData> {}
 
-interface SetImageUrlsRequest {
+interface TemplateSetImageUrlsRequest {
   imageUrls: string[];
 }
-interface SetImageUrlsData {
+interface TemplateSetImageUrlsData {
   imageUrls: string[];
 }
-interface SetImageUrlsResponse extends APIResponse<SetImageUrlsData> {}
+interface TemplateSetImageUrlsResponse extends APIResponse<TemplateSetImageUrlsData> {}
 
-interface TemplateSetTagsResponse {
+/**
+ * 템플릿의 태그를 설정합니다.
+ */
+interface TemplateSetTagsRequest {
   tagIds: number[];
 }
 interface TemplateSetTagsData {
   tagNames: string[];
 }
-interface TemplateSetTagsRequest extends APIResponse<TemplateSetTagsData> {}
+interface TemplateSetTagsResponse extends APIResponse<TemplateSetTagsData> {}
 
-interface SetRegionsRequest {
+interface TemplateSetRegionsRequest {
   regionIds: number[];
 }
-interface SetRegionsData {
+interface TemplateSetRegionsData {
   regionNames: string[];
 }
-interface SetRegionsResponse extends APIResponse<SetRegionsData> {}
+interface TemplateSetRegionsResponse extends APIResponse<TemplateSetRegionsData> {}
 
-interface SetItinerariesRequest {
-  itineraries: Itinerary[];
+interface TemplateSetItinerariesRequest {
+  itineraries: TemplateItinerary[];
 }
-interface SetItinerariesData {}
-interface SetItinerariesResponse extends APIResponse<SetItinerariesData> {}
+interface TemplateSetItinerariesData {}
+interface TemplateSetItinerariesResponse extends APIResponse<TemplateSetItinerariesData> {}
 
 export {
-  CreateTemplateRequest,
-  CreateTemplateResponse, GetTemplateRequest,
-  GetTemplateResponse, Itinerary, SetContentRequest,
-  SetContentResponse,
-  SetImageUrlsRequest,
-  SetImageUrlsResponse, SetItinerariesRequest,
-  SetItinerariesResponse, SetRegionsRequest,
-  SetRegionsResponse, SetTemplateRequest,
-  SetTemplateResponse,
-  SetTitleRequest,
-  SetTitleResponse, TemplateSetTagsRequest,
-  TemplateSetTagsResponse
+  TemplateCreateData,
+  TemplateCreateRequest,
+  TemplateCreateResponse,
+  TemplateGetData,
+  TemplateGetRequest,
+  TemplateGetResponse,
+  TemplateItinerary,
+  TemplateSetContentData,
+  TemplateSetContentRequest,
+  TemplateSetContentResponse,
+  TemplateSetImageUrlsData,
+  TemplateSetImageUrlsRequest,
+  TemplateSetImageUrlsResponse,
+  TemplateSetItinerariesData,
+  TemplateSetItinerariesRequest,
+  TemplateSetItinerariesResponse,
+  TemplateSetRegionsData,
+  TemplateSetRegionsRequest,
+  TemplateSetRegionsResponse,
+  TemplateSetTagsData,
+  TemplateSetTagsRequest,
+  TemplateSetTagsResponse,
+  TemplateSetTitleData,
+  TemplateSetTitleRequest,
+  TemplateSetTitleResponse,
+  TemplateUpdateData,
+  TemplateUpdateRequest,
+  TemplateUpdateResponse
 };
+
