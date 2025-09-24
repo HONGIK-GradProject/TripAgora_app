@@ -2,12 +2,14 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useMemo } from 'react';
 import {
+  Image,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type ItineraryItem = {
   time: string;
@@ -33,8 +35,8 @@ const sampleProduct: ProductDetail = {
   coverImageUrl:
     'https://images.unsplash.com/photo-1549693578-d683be217e58?q=80&w=1640&auto=format&fit=crop',
   dateRange: '2025.10.02 - 10.06',
-  participantSummary: '모집 3명 (본인 제외)',
-  locationSummary: '하카타 · 캐널시티 중심',
+  participantSummary: '3명',
+  locationSummary: '후쿠오카',
   guideName: '가이드 아라',
   ratingSummary: '4.9 (128)',
   tags: ['# 일본', '# 먹방', '# 쇼핑', '# 야경'],
@@ -67,6 +69,7 @@ const sampleProduct: ProductDetail = {
 
 const ProductDetailScreen: React.FC = () => {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { id } = useLocalSearchParams<{ id?: string }>();
 
@@ -77,23 +80,13 @@ const ProductDetailScreen: React.FC = () => {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
         <View style={styles.coverContainer}>
-          <View style={styles.coverPlaceholder} />
-          <View style={styles.topBar}>
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={() => router.back()}
-            >
-              <Ionicons name='arrow-back' size={24} color='#000' />
-            </TouchableOpacity>
-            <View style={styles.rightIcons}>
-              <TouchableOpacity style={styles.iconCircle}>
-                <Ionicons name='share-outline' size={20} color='#000' />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.iconCircle}>
-                <Ionicons name='heart-outline' size={20} color='#000' />
-              </TouchableOpacity>
-            </View>
-          </View>
+          {/* 배경 이미지 예시 */}
+          <Image
+            source={{ uri: product.coverImageUrl }}
+            style={styles.coverImage}
+          />
+          {/* 배경 이미지 없는 예시 (주석) */}
+          {/** <View style={styles.coverPlaceholder} /> */}
         </View>
 
         <View style={styles.section}>
@@ -158,6 +151,27 @@ const ProductDetailScreen: React.FC = () => {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      {/* Fixed top action bar */}
+      <View style={[styles.topBar, { top: insets.top + 10 }]}>
+        <TouchableOpacity
+          style={styles.iconButton}
+          onPress={() => router.back()}
+        >
+          <Ionicons name='arrow-back' size={24} color='#000' />
+        </TouchableOpacity>
+        {/** 공유 및 찜 버튼은 여행자 쪽에서 세션을 볼 때 있어야 하는 아이콘입니다.
+         * 여행자 쪽에서 보는 양식을 참고하기 위해 추가해 둔 것으로, 이후 삭제해야 합니다.
+         */}
+        <View style={styles.rightIcons}>
+          <TouchableOpacity style={styles.iconCircle}>
+            <Ionicons name='share-outline' size={20} color='#000' />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconCircle}>
+            <Ionicons name='heart-outline' size={20} color='#000' />
+          </TouchableOpacity>
+        </View>
+      </View>
 
       <View style={styles.bottomActionContainer}>
         <TouchableOpacity style={[styles.ctaButton, styles.secondaryButton]}>
