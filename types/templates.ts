@@ -1,5 +1,15 @@
 // import APIResponse from "./apiResponse";
 
-interface CreateTemplateRequest {}
+import APIResponse from './apiResponse';
 
-export { CreateTemplateRequest };
+interface CreateTemplateRequest {
+  accessToken: string;
+}
+
+interface CreateTemplateResponse extends APIResponse<CreateTemplateData> {}
+
+interface CreateTemplateData {
+  templateId: number;
+}
+
+export { CreateTemplateData, CreateTemplateRequest, CreateTemplateResponse };
