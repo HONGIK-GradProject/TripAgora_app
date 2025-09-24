@@ -1,0 +1,349 @@
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import React from 'react';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+
+type ItineraryItem = {
+  time: string;
+  title: string;
+  description?: string;
+};
+
+type ProductDetail = {
+  title: string;
+  coverImageUrl: string;
+  dateRange: string;
+  participantSummary: string;
+  locationSummary: string;
+  guideName: string;
+  ratingSummary: string;
+  tags: string[];
+  description: string;
+  itinerary: ItineraryItem[];
+};
+
+const sampleProduct: ProductDetail = {
+  title: '후쿠오카 4박 5일 함께해요',
+  coverImageUrl:
+    'https://images.unsplash.com/photo-1549693578-d683be217e58?q=80&w=1640&auto=format&fit=crop',
+  dateRange: '2025.10.02 - 10.06',
+  participantSummary: '모집 3명 (본인 제외)',
+  locationSummary: '하카타 · 캐널시티 중심',
+  guideName: '가이드 아라',
+  ratingSummary: '4.9 (128)',
+  tags: ['# 일본', '# 먹방', '# 쇼핑', '# 야경'],
+  description:
+    '후쿠오카에서 4박 5일간 함께 여행하실 분을 모집합니다! 가까워서 금방 다녀오기에도 좋아요. 하카타의 캐널시티와 그 주변에서 주로 활동할 예정이에요. 일정은 유동적으로 조율할 수 있습니다.',
+  itinerary: [
+    {
+      time: 'Day 1',
+      title: '하카타 도착 · 체크인',
+      description: '캐널시티 산책, 저녁 라멘 투어',
+    },
+    {
+      time: 'Day 2',
+      title: '텐진 · 다자이후',
+      description: '쇼핑과 카페 투어, 저녁 이자카야',
+    },
+    {
+      time: 'Day 3',
+      title: '모지코 · 고쿠라',
+      description: '현지 시장 탐방, 야경 스팟',
+    },
+    {
+      time: 'Day 4',
+      title: '후쿠오카 타워',
+      description: '바다 전망, 자유 일정',
+    },
+    { time: 'Day 5', title: '체크아웃 · 귀국', description: '기념품 쇼핑' },
+  ],
+};
+
+const ProductDetailScreen: React.FC = () => {
+  const product = sampleProduct;
+
+  return (
+    <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollViewContent}>
+        <View style={styles.coverContainer}>
+          <View style={styles.coverPlaceholder} />
+          <View style={styles.topBar}>
+            <TouchableOpacity style={styles.iconButton}>
+              <Ionicons name='arrow-back' size={24} color='#000' />
+            </TouchableOpacity>
+            <View style={styles.rightIcons}>
+              <TouchableOpacity style={styles.iconCircle}>
+                <Ionicons name='share-outline' size={20} color='#000' />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.iconCircle}>
+                <Ionicons name='heart-outline' size={20} color='#000' />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.title}>{product.title}</Text>
+          <View style={styles.metaRow}>
+            <MaterialCommunityIcons
+              name='calendar-month'
+              size={20}
+              color='#8130FF'
+            />
+            <Text style={styles.metaText}>{product.dateRange}</Text>
+          </View>
+          <View style={styles.metaRow}>
+            <Ionicons name='people-outline' size={20} color='#8130FF' />
+            <Text style={styles.metaText}>{product.participantSummary}</Text>
+          </View>
+          <View style={styles.metaRow}>
+            <Ionicons name='location-outline' size={20} color='#8130FF' />
+            <Text style={styles.metaText}>{product.locationSummary}</Text>
+          </View>
+          <View style={styles.metaRow}>
+            <Ionicons name='person-circle-outline' size={20} color='#8130FF' />
+            <Text style={styles.metaText}>
+              {product.guideName} · {product.ratingSummary}
+            </Text>
+          </View>
+
+          <View style={styles.tagsRow}>
+            {product.tags.map((tag) => (
+              <View key={tag} style={styles.tagChip}>
+                <Text style={styles.tagText}>{tag}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.divider} />
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>여행 소개</Text>
+          <Text style={styles.description}>{product.description}</Text>
+        </View>
+
+        <View style={styles.divider} />
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>일정</Text>
+          {product.itinerary.map((item) => (
+            <View key={item.time} style={styles.itineraryItem}>
+              <View style={styles.itineraryTime}>
+                <Text style={styles.itineraryTimeText}>{item.time}</Text>
+              </View>
+              <View style={styles.itineraryContent}>
+                <Text style={styles.itineraryTitle}>{item.title}</Text>
+                {item.description ? (
+                  <Text style={styles.itineraryDesc}>{item.description}</Text>
+                ) : null}
+              </View>
+            </View>
+          ))}
+        </View>
+
+        <View style={{ height: 40 }} />
+      </ScrollView>
+
+      <View style={styles.bottomActionContainer}>
+        <TouchableOpacity style={[styles.ctaButton, styles.secondaryButton]}>
+          <Ionicons
+            name='chatbubble-ellipses-outline'
+            size={20}
+            color='#8130FF'
+          />
+          <Text style={styles.secondaryButtonText}>가이드에게 문의</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.ctaButton, styles.primaryButton]}>
+          <Text style={styles.primaryButtonText}>예약하기</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  scrollViewContent: {
+    paddingBottom: 120,
+  },
+  coverContainer: {
+    width: '100%',
+    height: 280,
+    backgroundColor: '#D9D9D9',
+  },
+  coverImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  coverPlaceholder: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#D9D9D9',
+  },
+  topBar: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    right: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  iconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rightIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  iconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+  },
+  section: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+  },
+  metaText: {
+    fontSize: 16,
+    marginLeft: 8,
+    color: '#000',
+  },
+  tagsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 12,
+  },
+  tagChip: {
+    borderColor: '#949494',
+    borderWidth: 1,
+    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  tagText: {
+    fontSize: 14,
+    color: '#000',
+  },
+  divider: {
+    height: 8,
+    backgroundColor: '#F4F4F4',
+    marginTop: 20,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  description: {
+    fontSize: 16,
+    lineHeight: 22,
+    color: '#000',
+  },
+  itineraryItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingVertical: 12,
+  },
+  itineraryTime: {
+    width: 70,
+  },
+  itineraryTimeText: {
+    fontSize: 14,
+    color: '#8130FF',
+    fontWeight: 'bold',
+  },
+  itineraryContent: {
+    flex: 1,
+  },
+  itineraryTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  itineraryDesc: {
+    fontSize: 14,
+    color: '#444',
+    lineHeight: 20,
+  },
+  bottomActionContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 20,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#E9E9E9',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  ctaButton: {
+    height: 52,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    flex: 1,
+  },
+  primaryButton: {
+    backgroundColor: '#8130FF',
+  },
+  primaryButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  secondaryButton: {
+    backgroundColor: '#F3ECFF',
+    borderWidth: 1,
+    borderColor: '#D9C7FF',
+  },
+  secondaryButtonText: {
+    color: '#8130FF',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+});
+
+export default ProductDetailScreen;
