@@ -1,21 +1,18 @@
-import { signOut } from '@/api/auth';
 import { useAuth } from '@/hooks/useAuth';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import React from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 const TravelerMyPageScreen: React.FC = () => {
-  const { switchUserRole } = useAuth();
+  const { switchUserRole, signOut } = useAuth();
 
   const handleSwitchUserRole = async () => {
     await switchUserRole('guide');
-  };
+  }
 
   const handleSignOut = async () => {
     await signOut();
-    router.replace('/login');
-  };
+  }
 
   return (
     <View className='flex-1 bg-white'>
