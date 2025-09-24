@@ -12,8 +12,8 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import '../global.css';
 
 import { AuthProvider } from '@/contexts/AuthContext';
-import Toast from 'react-native-toast-message';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -29,10 +29,12 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <Stack>
-            <Stack.Screen name='(app)' options={{ headerShown: false }} />
-            <Stack.Screen name='login' options={{ headerShown: false }} />
+        <ThemeProvider
+          value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
+        >
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name='(app)' />
+            <Stack.Screen name='login' />
             <Stack.Screen name='+not-found' />
           </Stack>
           <StatusBar style='auto' />
