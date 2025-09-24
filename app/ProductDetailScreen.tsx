@@ -1,5 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import React from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useMemo } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -65,7 +66,12 @@ const sampleProduct: ProductDetail = {
 };
 
 const ProductDetailScreen: React.FC = () => {
-  const product = sampleProduct;
+  const router = useRouter();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { id } = useLocalSearchParams<{ id?: string }>();
+
+  // In the future, use `id` to fetch detail via API. For now, show sample.
+  const product = useMemo(() => sampleProduct, []);
 
   return (
     <View style={styles.container}>
@@ -73,7 +79,10 @@ const ProductDetailScreen: React.FC = () => {
         <View style={styles.coverContainer}>
           <View style={styles.coverPlaceholder} />
           <View style={styles.topBar}>
-            <TouchableOpacity style={styles.iconButton}>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => router.back()}
+            >
               <Ionicons name='arrow-back' size={24} color='#000' />
             </TouchableOpacity>
             <View style={styles.rightIcons}>
