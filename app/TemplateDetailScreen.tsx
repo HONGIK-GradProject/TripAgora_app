@@ -185,7 +185,17 @@ const ProductDetailScreen: React.FC = () => {
         <View style={styles.divider} />
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>일정</Text>
+          <View style={styles.rowBetween}>
+            <Text style={[styles.sectionTitle, { flex: 1, marginBottom: 0 }]}>
+              일정
+            </Text>
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() => router.push('/EditTripScheduleScreen')}
+            >
+              <Text style={styles.editButtonText}>편집</Text>
+            </TouchableOpacity>
+          </View>
           {product.itinerary.map((item) => (
             <View key={item.time} style={styles.itineraryItem}>
               <View style={styles.itineraryTime}>

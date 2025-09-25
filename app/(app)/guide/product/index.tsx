@@ -32,7 +32,7 @@ const MyProductsScreen: React.FC = () => {
             className='flex-row bg-white border border-gray-200 rounded-3xl p-4 mb-4 items-center shadow-sm'
             onPress={() =>
               router.push({
-                pathname: '/ProductDetailScreen',
+                pathname: '/TemplateDetailScreen',
                 params: { id: '1' },
               })
             }
@@ -51,7 +51,7 @@ const MyProductsScreen: React.FC = () => {
             className='flex-row bg-white border border-gray-200 rounded-3xl p-4 mb-4 items-center shadow-sm'
             onPress={() =>
               router.push({
-                pathname: '/ProductDetailScreen',
+                pathname: '/TemplateDetailScreen',
                 params: { id: '2' },
               })
             }
@@ -72,7 +72,7 @@ const MyProductsScreen: React.FC = () => {
             className='flex-row bg-white border border-gray-200 rounded-3xl p-4 mb-4 items-center shadow-sm'
             onPress={() =>
               router.push({
-                pathname: '/ProductDetailScreen',
+                pathname: '/TemplateDetailScreen',
                 params: { id: '3' },
               })
             }
@@ -91,7 +91,7 @@ const MyProductsScreen: React.FC = () => {
             className='flex-row bg-white border border-gray-200 rounded-3xl p-4 mb-4 items-center shadow-sm'
             onPress={() =>
               router.push({
-                pathname: '/ProductDetailScreen',
+                pathname: '/TemplateDetailScreen',
                 params: { id: '4' },
               })
             }
@@ -110,7 +110,7 @@ const MyProductsScreen: React.FC = () => {
             className='flex-row bg-white border border-gray-200 rounded-3xl p-4 mb-4 items-center shadow-sm'
             onPress={() =>
               router.push({
-                pathname: '/ProductDetailScreen',
+                pathname: '/TemplateDetailScreen',
                 params: { id: '5' },
               })
             }
@@ -129,7 +129,7 @@ const MyProductsScreen: React.FC = () => {
             className='flex-row bg-white border border-gray-200 rounded-3xl p-4 mb-4 items-center shadow-sm'
             onPress={() =>
               router.push({
-                pathname: '/ProductDetailScreen',
+                pathname: '/TemplateDetailScreen',
                 params: { id: '6' },
               })
             }
@@ -152,7 +152,7 @@ const MyProductsScreen: React.FC = () => {
         style={{ elevation: 8, bottom: insets.bottom + 20 }}
         onPress={() =>
           router.push({
-            pathname: '/ProductDetailScreen',
+            pathname: '/TemplateDetailScreen',
             params: { id: '0' },
           })
         }

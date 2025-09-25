@@ -1,13 +1,24 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 const EditTripScheduleScreen: React.FC = () => {
+  const router = useRouter();
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#000" />
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Ionicons name='arrow-back' size={24} color='#000' />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>여행 일정 편집하기</Text>
         <TouchableOpacity style={styles.saveButton}>
@@ -17,8 +28,12 @@ const EditTripScheduleScreen: React.FC = () => {
 
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
         <View style={styles.mapContainer}>
-          <Image source={{ uri: 'https://via.placeholder.com/428x442' }} style={styles.mapImage} />
-          {/* 지도 위에 표시될 마커 등은 추후 구현 */}
+          <View style={styles.mapPlaceholder}>
+            <Ionicons name='map' size={40} color='#949494' />
+            <Text style={styles.mapPlaceholderText}>
+              지도가 들어갈 영역 (추후 구현)
+            </Text>
+          </View>
         </View>
 
         <View style={styles.daySelection}>
@@ -32,37 +47,55 @@ const EditTripScheduleScreen: React.FC = () => {
 
         <View style={styles.scheduleList}>
           <View style={styles.scheduleItem}>
-            <Ionicons name="location" size={30} color="#FF0000" style={styles.scheduleIcon} />
+            <Ionicons
+              name='location'
+              size={30}
+              color='#FF0000'
+              style={styles.scheduleIcon}
+            />
             <Text style={styles.scheduleText}>
               (장소){'\n'}
               (내용(선택))
             </Text>
             <TouchableOpacity style={styles.deleteButton}>
-              <Ionicons name="close-circle" size={24} color="#FF2525" />
+              <Ionicons name='close-circle' size={24} color='#FF2525' />
             </TouchableOpacity>
           </View>
           <View style={styles.scheduleItem}>
-            <Ionicons name="location" size={30} color="#FF9500" style={styles.scheduleIcon} />
+            <Ionicons
+              name='location'
+              size={30}
+              color='#FF9500'
+              style={styles.scheduleIcon}
+            />
             <Text style={styles.scheduleText}>
               (장소){'\n'}
               (내용(선택))
             </Text>
             <TouchableOpacity style={styles.deleteButton}>
-              <Ionicons name="close-circle" size={24} color="#FF2525" />
+              <Ionicons name='close-circle' size={24} color='#FF2525' />
             </TouchableOpacity>
           </View>
           <View style={styles.scheduleItem}>
-            <Ionicons name="location" size={30} color="#00FFFF" style={styles.scheduleIcon} />
+            <Ionicons
+              name='location'
+              size={30}
+              color='#00FFFF'
+              style={styles.scheduleIcon}
+            />
             <Text style={styles.scheduleText}>
               (장소){'\n'}
               (내용(선택))
             </Text>
             <TouchableOpacity style={styles.deleteButton}>
-              <Ionicons name="close-circle" size={24} color="#FF2525" />
+              <Ionicons name='close-circle' size={24} color='#FF2525' />
             </TouchableOpacity>
           </View>
-          <TouchableOpacity style={styles.addScheduleButton}>
-            <Ionicons name="add-circle" size={30} color="#8130FF" />
+          <TouchableOpacity
+            style={styles.addScheduleButton}
+            onPress={() => router.push('/AddScheduleItemScreen')}
+          >
+            <Ionicons name='add-circle' size={30} color='#8130FF' />
             <Text style={styles.addScheduleButtonText}>일정 추가</Text>
           </TouchableOpacity>
         </View>
@@ -119,10 +152,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  mapImage: {
+  mapPlaceholder: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  mapPlaceholderText: {
+    marginTop: 8,
+    color: '#6B6B6B',
   },
   daySelection: {
     flexDirection: 'row',
