@@ -7,6 +7,7 @@ import { setupInterceptors } from '@/api/client';
 import { usersApi } from '@/api/users';
 import { clearTokens, getTokens, saveTokens } from '@/lib/tokenStorage';
 import { reissueToken } from '@/services/auth';
+import { kakaoSignIn, kakaoSignOut } from '@/services/kakaoAuth';
 import { AuthContextType, AuthDecodedToken } from '@/types/auth';
 import { UserRole } from '@/types/users';
 import axios from 'axios';
@@ -46,7 +47,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     setIsLoading(true);
     try {
       await authApi.signOut();
-      await authApi.kakaoSignOut();
+      await kakaoSignOut();
     } catch (error) {
       if (!(axios.isAxiosError(error) && error.response?.status === 401)) {
         console.error('Sign-out error:', error);
@@ -93,7 +94,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   const signInHandler = useCallback(async () => {
     setIsLoading(true);
     try {
-      const socialAccessToken = await authApi.kakaoSignIn();
+      const socialAccessToken = await kakaoSignIn();
       const response = await authApi.signIn(socialAccessToken);
 
       if (response.data) {
