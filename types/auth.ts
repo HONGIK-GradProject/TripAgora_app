@@ -1,34 +1,29 @@
 import APIResponse from "./apiResponse";
 import { UserRole } from "./users";
 
-interface LoginRequest {
+interface AuthLoginRequest {
   socialAccessToken: string;
 }
-
-interface LoginResponse extends APIResponse<LoginData> {}
-
-interface LogoutRequest {
-  accessToken: string;
-}
-
-interface LogoutResponse extends APIResponse<null> {}
-
-interface LoginData {
+interface AuthLoginData {
   accessToken: string;
   refreshToken: string;
   isNewUser: boolean;
 }
+interface AuthLoginResponse extends APIResponse<AuthLoginData> {}
 
-interface ReissueRequest {
+interface AuthLogoutRequest {
+  accessToken: string;
+}
+interface AuthLogoutResponse extends APIResponse<null> {}
+
+interface AuthReissueRequest {
   refreshToken: string;
 }
-
-interface ReissueResponse extends APIResponse<ReissueData> {}
-
-interface ReissueData {
+interface AuthReissueData {
   accessToken: string;
   refreshToken: string;
 }
+interface AuthReissueResponse extends APIResponse<AuthReissueData> {}
 
 interface AuthContextType {
   accessToken: string | null;
@@ -43,7 +38,7 @@ interface AuthContextType {
   switchUserRole: (newUserRole: UserRole) => Promise<void>;
 }
 
-interface DecodedTokenType {
+interface AuthDecodedToken {
   exp: string;
   iat: string;
   role: 'GUIDE' | 'TRAVELER';
@@ -51,5 +46,16 @@ interface DecodedTokenType {
   userId: number;
 }
 
-export { AuthContextType, DecodedTokenType, LoginRequest, LoginResponse, LogoutRequest, LogoutResponse, ReissueRequest, ReissueResponse };
+export {
+  AuthContextType,
+  AuthDecodedToken,
+  AuthLoginData,
+  AuthLoginRequest,
+  AuthLoginResponse,
+  AuthLogoutRequest,
+  AuthLogoutResponse,
+  AuthReissueData,
+  AuthReissueRequest,
+  AuthReissueResponse,
+};
 

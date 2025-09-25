@@ -2,12 +2,13 @@
  * @file AuthContext.tsx
  * @description 인증 관련 컨텍스트와 프로바이더, 커스텀 훅을 제공하는 파일입니다.
  */
-import { kakaoSignIn, kakaoSignOut, signIn, signOut } from '@/api/auth';
+import { authApi } from '@/api/auth';
 import { setupInterceptors } from '@/api/client';
-import { switchToGuide, switchToTraveler } from '@/api/users';
+import { usersApi } from '@/api/users';
 import { clearTokens, getTokens, saveTokens } from '@/lib/tokenStorage';
 import { reissueToken } from '@/services/auth';
-import { AuthContextType, DecodedTokenType } from '@/types/auth';
+import { kakaoSignIn, kakaoSignOut } from '@/services/kakaoAuth';
+import { AuthContextType, AuthDecodedToken } from '@/types/auth';
 import { UserRole } from '@/types/users';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
@@ -45,7 +46,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   const signOutHandler = useCallback(async () => {
     setIsLoading(true);
     try {
-      await signOut();
+      await authApi.signOut();
       await kakaoSignOut();
     } catch (error) {
       if (!(axios.isAxiosError(error) && error.response?.status === 401)) {
@@ -75,7 +76,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     setAccessToken(accessToken);
 
     try {
-      const decodedToken = jwtDecode<DecodedTokenType>(accessToken);
+      const decodedToken = jwtDecode<AuthDecodedToken>(accessToken);
       if (decodedToken.role) {
         const role = decodedToken.role.toLowerCase() as UserRole;
         setUserRole(role);
@@ -94,7 +95,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     setIsLoading(true);
     try {
       const socialAccessToken = await kakaoSignIn();
-      const response = await signIn(socialAccessToken);
+      const response = await authApi.signIn(socialAccessToken);
 
       if (response.data) {
         const { accessToken, refreshToken, isNewUser } = response.data;
@@ -121,8 +122,8 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     setIsLoading(true);
     try {
       const response = newUserRole === 'traveler'
-        ? await switchToTraveler()
-        : await switchToGuide();
+        ? await usersApi.switchToTraveler()
+        : await usersApi.switchToGuide();
 
       if (response && response.code === 200 && response.data) {
         const { accessToken, refreshToken } = response.data;

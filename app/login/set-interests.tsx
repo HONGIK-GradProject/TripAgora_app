@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 
-import { setTags } from '@/api/users';
+import { usersApi } from '@/api/users';
 import InterestTag from '@/components/InterestTag';
 import { INTEREST_TAGS } from '@/constants/Tags';
 import { router } from 'expo-router';
@@ -36,7 +36,7 @@ const SetInterestsScreen: React.FC = () => {
     }
     // 태그 변경 요청
     try {
-      await setTags(selectedTags);
+      await usersApi.setTags(selectedTags);
       router.replace('/(app)/traveler/home');
       return true;
     } catch (error) {

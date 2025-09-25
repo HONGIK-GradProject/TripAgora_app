@@ -2,47 +2,44 @@ import APIResponse from "./apiResponse";
 
 type UserRole = 'traveler' | 'guide';
 
-interface SetNicknameRequest {
+interface UserSetNicknameRequest {
   nickname: string;
 }
-
-interface SetNicknameResponse extends APIResponse<SetNicknameData> {}
-
-interface SetNicknameData {
+interface UserSetNicknameData {
   nickname: string;
 }
+interface UserSetNicknameResponse extends APIResponse<UserSetNicknameData> {}
 
-interface SetTagsRequest {
+interface UserSetTagsRequest {
   tagIds: number[];
 }
-
-interface SetTagsData {
+interface UserSetTagsData {
   tagNames: string[];
 }
+interface UserSetTagsResponse extends APIResponse<UserSetTagsData> {}
 
-interface SetTagsResponse extends APIResponse<SetTagsData> {}
-
-interface SwitchToGuideRequest {}
-
-interface SwitchToGuideData {
+interface UserSwitchToGuideRequest {}
+interface UserSwitchToGuideData {
   accessToken: string;
   refreshToken: string;
 }
+interface UserSwitchToGuideResponse extends APIResponse<UserSwitchToGuideData> {}
 
-interface SwitchToGuideResponse extends APIResponse<SwitchToGuideData> {}
-
-type SwitchToTravelerRequest = SwitchToGuideRequest;
-type SwitchToTravelerResponse = SwitchToGuideResponse;
+type UserSwitchToTravelerRequest = UserSwitchToGuideRequest;
+type UserSwitchToTravelerResponse = UserSwitchToGuideResponse;
 
 export {
-  SetNicknameRequest,
-  SetNicknameResponse,
-  SetTagsRequest,
-  SetTagsResponse,
-  SwitchToGuideRequest,
-  SwitchToGuideResponse,
-  SwitchToTravelerRequest,
-  SwitchToTravelerResponse,
-  UserRole
+  UserRole,
+  UserSetNicknameData,
+  UserSetNicknameRequest,
+  UserSetNicknameResponse,
+  UserSetTagsData,
+  UserSetTagsRequest,
+  UserSetTagsResponse,
+  UserSwitchToGuideData,
+  UserSwitchToGuideRequest,
+  UserSwitchToGuideResponse,
+  UserSwitchToTravelerRequest,
+  UserSwitchToTravelerResponse,
 };
 

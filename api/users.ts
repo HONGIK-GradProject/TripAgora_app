@@ -4,12 +4,12 @@
  */
 
 import {
-  SetNicknameRequest,
-  SetNicknameResponse,
-  SetTagsRequest,
-  SetTagsResponse,
-  SwitchToGuideResponse,
-  SwitchToTravelerResponse
+  UserSetNicknameRequest,
+  UserSetNicknameResponse,
+  UserSetTagsRequest,
+  UserSetTagsResponse,
+  UserSwitchToGuideResponse,
+  UserSwitchToTravelerResponse
 } from '@/types/users';
 import apiClient from './client';
 
@@ -18,11 +18,11 @@ import apiClient from './client';
  * @param nickname - 설정할 새로운 닉네임
  * @returns 닉네임 설정 성공 시 응답 데이터를 반환합니다.
  */
-export const setNickname = async (
+const setNickname = async (
   nickname: string
-): Promise<SetNicknameResponse> => {
-  const requestData: SetNicknameRequest = { nickname };
-  const response = await apiClient.patch<SetNicknameResponse>(
+): Promise<UserSetNicknameResponse> => {
+  const requestData: UserSetNicknameRequest = { nickname };
+  const response = await apiClient.patch<UserSetNicknameResponse>(
     '/users/me/nickname',
     requestData
   );
@@ -34,26 +34,33 @@ export const setNickname = async (
  * @param tagIds - 설정할 태그 ID의 배열
  * @returns 태그 설정 성공 시 응답 데이터를 반환합니다.
  */
-export const setTags = async (tagIds: number[]): Promise<SetTagsResponse> => {
-  const requestData: SetTagsRequest = { tagIds };
-  const response = await apiClient.patch<SetTagsResponse>(
+const setTags = async (tagIds: number[]): Promise<UserSetTagsResponse> => {
+  const requestData: UserSetTagsRequest = { tagIds };
+  const response = await apiClient.patch<UserSetTagsResponse>(
     '/users/me/tags',
     requestData
   );
   return response.data;
 };
 
-export const switchToGuide = async (): Promise<SwitchToGuideResponse> => {
-  const response = await apiClient.post<SwitchToGuideResponse>(
+const switchToGuide = async (): Promise<UserSwitchToGuideResponse> => {
+  const response = await apiClient.post<UserSwitchToGuideResponse>(
     '/users/me/switch-to-guide'
   );
   return response.data;
 };
 
-export const switchToTraveler = async (): Promise<SwitchToTravelerResponse> => {
-  const response = await apiClient.post<SwitchToTravelerResponse>(
+const switchToTraveler = async (): Promise<UserSwitchToTravelerResponse> => {
+  const response = await apiClient.post<UserSwitchToTravelerResponse>(
     '/users/me/switch-to-traveler'
   );
   return response.data;
+};
+
+export const usersApi = {
+  setNickname,
+  setTags,
+  switchToGuide,
+  switchToTraveler,
 };
 

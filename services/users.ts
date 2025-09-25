@@ -3,13 +3,13 @@
  * @module services/users
  */
 
-import { switchToGuide as apiSwitchToGuide, switchToTraveler as apiSwitchToTraveler } from '@/api/users';
+import { usersApi } from '@/api/users';
 import { saveTokens } from '@/lib/tokenStorage';
-import { SwitchToGuideResponse, SwitchToTravelerResponse } from '@/types/users';
+import { UserSwitchToGuideResponse, UserSwitchToTravelerResponse } from '@/types/users';
 import axios from 'axios';
 
 // API 응답 타입의 공통 부분을 포함하는 유니온 타입 정의
-type RoleSwitchApiResponse = SwitchToGuideResponse | SwitchToTravelerResponse;
+type RoleSwitchApiResponse = UserSwitchToGuideResponse | UserSwitchToTravelerResponse;
 
 /**
  * 역할 전환의 공통 로직을 처리하는 헬퍼 함수입니다.
@@ -50,7 +50,7 @@ const handleRoleSwitch = async (
  * @returns 성공 시 API 응답 데이터를, 실패 시 undefined를 반환합니다.
  */
 export const switchRoleToGuide = async () => {
-  return handleRoleSwitch(apiSwitchToGuide, '가이드');
+  return handleRoleSwitch(usersApi.switchToGuide, '가이드');
 };
 
 /**
@@ -58,5 +58,5 @@ export const switchRoleToGuide = async () => {
  * @returns 성공 시 API 응답 데이터를, 실패 시 undefined를 반환합니다.
  */
 export const switchRoleToTraveler = async () => {
-  return handleRoleSwitch(apiSwitchToTraveler, '여행자');
+  return handleRoleSwitch(usersApi.switchToTraveler, '여행자');
 };
