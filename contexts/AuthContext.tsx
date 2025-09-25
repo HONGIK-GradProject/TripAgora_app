@@ -2,9 +2,9 @@
  * @file AuthContext.tsx
  * @description 인증 관련 컨텍스트와 프로바이더, 커스텀 훅을 제공하는 파일입니다.
  */
-import { kakaoSignIn, kakaoSignOut, signIn, signOut } from '@/api/auth';
+import { authApi } from '@/api/auth';
 import { setupInterceptors } from '@/api/client';
-import { switchToGuide, switchToTraveler } from '@/api/users';
+import { usersApi } from '@/api/users';
 import { clearTokens, getTokens, saveTokens } from '@/lib/tokenStorage';
 import { reissueToken } from '@/services/auth';
 import { AuthContextType, AuthDecodedToken } from '@/types/auth';
@@ -45,8 +45,8 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   const signOutHandler = useCallback(async () => {
     setIsLoading(true);
     try {
-      await signOut();
-      await kakaoSignOut();
+      await authApi.signOut();
+      await authApi.kakaoSignOut();
     } catch (error) {
       if (!(axios.isAxiosError(error) && error.response?.status === 401)) {
         console.error('Sign-out error:', error);
@@ -93,8 +93,8 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   const signInHandler = useCallback(async () => {
     setIsLoading(true);
     try {
-      const socialAccessToken = await kakaoSignIn();
-      const response = await signIn(socialAccessToken);
+      const socialAccessToken = await authApi.kakaoSignIn();
+      const response = await authApi.signIn(socialAccessToken);
 
       if (response.data) {
         const { accessToken, refreshToken, isNewUser } = response.data;
@@ -121,8 +121,8 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     setIsLoading(true);
     try {
       const response = newUserRole === 'traveler'
-        ? await switchToTraveler()
-        : await switchToGuide();
+        ? await usersApi.switchToTraveler()
+        : await usersApi.switchToGuide();
 
       if (response && response.code === 200 && response.data) {
         const { accessToken, refreshToken } = response.data;

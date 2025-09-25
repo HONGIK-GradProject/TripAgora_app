@@ -3,7 +3,7 @@
  * @module services/users
  */
 
-import { switchToGuide as apiSwitchToGuide, switchToTraveler as apiSwitchToTraveler } from '@/api/users';
+import { usersApi } from '@/api/users';
 import { saveTokens } from '@/lib/tokenStorage';
 import { UserSwitchToGuideResponse, UserSwitchToTravelerResponse } from '@/types/users';
 import axios from 'axios';
@@ -50,7 +50,7 @@ const handleRoleSwitch = async (
  * @returns 성공 시 API 응답 데이터를, 실패 시 undefined를 반환합니다.
  */
 export const switchRoleToGuide = async () => {
-  return handleRoleSwitch(apiSwitchToGuide, '가이드');
+  return handleRoleSwitch(usersApi.switchToGuide, '가이드');
 };
 
 /**
@@ -58,5 +58,5 @@ export const switchRoleToGuide = async () => {
  * @returns 성공 시 API 응답 데이터를, 실패 시 undefined를 반환합니다.
  */
 export const switchRoleToTraveler = async () => {
-  return handleRoleSwitch(apiSwitchToTraveler, '여행자');
+  return handleRoleSwitch(usersApi.switchToTraveler, '여행자');
 };

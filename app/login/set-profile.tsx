@@ -1,4 +1,4 @@
-import { setNickname } from '@/api/users';
+import { usersApi } from '@/api/users';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -32,7 +32,7 @@ const SetProfileScreen: React.FC = () => {
     }
     // 닉네임 변경 요청
     try {
-      await setNickname(name);
+      await usersApi.setNickname(name);
       router.push('/login/set-interests');
       return true;
     } catch (error) {

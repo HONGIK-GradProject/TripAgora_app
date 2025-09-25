@@ -19,7 +19,7 @@ import apiClient from './client';
  * @param {string} refreshToken - 재발급에 사용할 리프레시 토큰입니다.
  * @returns {Promise<AuthReissueResponse>} 성공 시 AuthReissueResponse를 반환합니다.
  */
-export const reissue = async (refreshToken: string): Promise<AuthReissueResponse> => {
+const reissue = async (refreshToken: string): Promise<AuthReissueResponse> => {
   const requestData: AuthReissueRequest = { refreshToken };
   const response = await apiClient.post<AuthReissueResponse>(
     '/auth/reissue',
@@ -33,7 +33,7 @@ export const reissue = async (refreshToken: string): Promise<AuthReissueResponse
  * @param {string} socialAccessToken - 소셜 로그인(카카오)을 통해 받은 액세스 토큰입니다.
  * @returns {Promise<AuthLoginResponse | undefined>} 성공 시 AuthLoginResponse를, 실패 시 undefined를 반환합니다.
  */
-export const signIn = async (
+const signIn = async (
   socialAccessToken: string
 ): Promise<AuthLoginResponse> => {
   const requestData: AuthLoginRequest = { socialAccessToken };
@@ -48,7 +48,7 @@ export const signIn = async (
  * 서버에서 로그아웃을 처리합니다.
  * @returns {Promise<void>}
  */
-export const signOut = async (): Promise<void> => {
+const signOut = async (): Promise<void> => {
   await apiClient.post<AuthLogoutResponse>('/auth/logout', undefined, { _retry: true } as any);
 };
 
@@ -83,5 +83,11 @@ const kakaoSignOut = async (): Promise<void> => {
   }
 };
 
-export { kakaoSignIn, kakaoSignOut };
+export const authApi = {
+  reissue,
+  signIn,
+  signOut,
+  kakaoSignIn,
+  kakaoSignOut,
+};
 

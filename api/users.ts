@@ -18,7 +18,7 @@ import apiClient from './client';
  * @param nickname - 설정할 새로운 닉네임
  * @returns 닉네임 설정 성공 시 응답 데이터를 반환합니다.
  */
-export const setNickname = async (
+const setNickname = async (
   nickname: string
 ): Promise<UserSetNicknameResponse> => {
   const requestData: UserSetNicknameRequest = { nickname };
@@ -34,7 +34,7 @@ export const setNickname = async (
  * @param tagIds - 설정할 태그 ID의 배열
  * @returns 태그 설정 성공 시 응답 데이터를 반환합니다.
  */
-export const setTags = async (tagIds: number[]): Promise<UserSetTagsResponse> => {
+const setTags = async (tagIds: number[]): Promise<UserSetTagsResponse> => {
   const requestData: UserSetTagsRequest = { tagIds };
   const response = await apiClient.patch<UserSetTagsResponse>(
     '/users/me/tags',
@@ -43,17 +43,24 @@ export const setTags = async (tagIds: number[]): Promise<UserSetTagsResponse> =>
   return response.data;
 };
 
-export const switchToGuide = async (): Promise<UserSwitchToGuideResponse> => {
+const switchToGuide = async (): Promise<UserSwitchToGuideResponse> => {
   const response = await apiClient.post<UserSwitchToGuideResponse>(
     '/users/me/switch-to-guide'
   );
   return response.data;
 };
 
-export const switchToTraveler = async (): Promise<UserSwitchToTravelerResponse> => {
+const switchToTraveler = async (): Promise<UserSwitchToTravelerResponse> => {
   const response = await apiClient.post<UserSwitchToTravelerResponse>(
     '/users/me/switch-to-traveler'
   );
   return response.data;
+};
+
+export const usersApi = {
+  setNickname,
+  setTags,
+  switchToGuide,
+  switchToTraveler,
 };
 

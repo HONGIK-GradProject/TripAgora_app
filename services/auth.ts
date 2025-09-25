@@ -3,7 +3,7 @@
  * @module services/auth
  */
 
-import { reissue } from '@/api/auth';
+import { authApi } from '@/api/auth';
 import { clearTokens, getTokens, saveTokens } from '@/lib/tokenStorage';
 import axios from 'axios';
 
@@ -21,7 +21,7 @@ export const reissueToken = async (): Promise<string | undefined> => {
       throw new Error('사용 가능한 리프레시 토큰이 없습니다.');
     }
 
-    const response = await reissue(refreshToken);
+    const response = await authApi.reissue(refreshToken);
 
     if (!response.data) {
       throw new Error('토큰 재발급 응답에 데이터가 없습니다.');

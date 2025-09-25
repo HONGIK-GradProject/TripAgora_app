@@ -1,7 +1,7 @@
 import { TemplateCreateRequest, TemplateCreateResponse, TemplateGetRequest, TemplateGetResponse, TemplateItinerary, TemplateSetContentRequest, TemplateSetContentResponse, TemplateSetImageUrlsRequest, TemplateSetImageUrlsResponse, TemplateSetItinerariesRequest, TemplateSetItinerariesResponse, TemplateSetRegionsRequest, TemplateSetRegionsResponse, TemplateSetTagsRequest, TemplateSetTagsResponse, TemplateSetTitleRequest, TemplateSetTitleResponse, TemplateUpdateRequest, TemplateUpdateResponse } from "@/types/templates";
 import apiClient from "./client";
 
-export const getTemplate = async (
+const getTemplate = async (
   id: number
 ): Promise<TemplateGetResponse> => {
   const requestData: TemplateGetRequest = {};
@@ -12,7 +12,7 @@ export const getTemplate = async (
   return response.data;
 };
 
-export const createTemplate = async (): Promise<TemplateCreateResponse> => {
+const createTemplate = async (): Promise<TemplateCreateResponse> => {
   const requestData: TemplateCreateRequest = {};
   const response = await apiClient.post<TemplateCreateResponse>(
     `/templates`,
@@ -21,7 +21,7 @@ export const createTemplate = async (): Promise<TemplateCreateResponse> => {
   return response.data;
 };
 
-export const updateTemplate = async (
+const updateTemplate = async (
   id: number,
   title: string,
   content: string,
@@ -35,7 +35,7 @@ export const updateTemplate = async (
   return response.data;
 };
 
-export const setTitle = async (
+const setTitle = async (
   id: number,
   title: string,
 ): Promise<TemplateSetTitleResponse> => {
@@ -47,7 +47,7 @@ export const setTitle = async (
   return response.data;
 };
 
-export const setContent = async (
+const setContent = async (
   id: number,
   content: string,
 ): Promise<TemplateSetContentResponse> => {
@@ -59,7 +59,7 @@ export const setContent = async (
   return response.data;
 };
 
-export const setImageUrls = async (
+const setImageUrls = async (
   id: number,
   imageUrls: string[],
 ): Promise<TemplateSetImageUrlsResponse> => {
@@ -71,7 +71,7 @@ export const setImageUrls = async (
   return response.data;
 };
 
-export const setTags = async (
+const setTags = async (
   id: number,
   tagIds: number[]
 ): Promise<TemplateSetTagsResponse> => {
@@ -83,7 +83,7 @@ export const setTags = async (
   return response.data;
 };
 
-export const setRegions = async (
+const setRegions = async (
   id: number,
   regionIds: number[]
 ): Promise<TemplateSetRegionsResponse> => {
@@ -95,7 +95,7 @@ export const setRegions = async (
   return response.data;
 };
 
-export const setItineraries = async (
+const setItineraries = async (
   id: number,
   itineraries: TemplateItinerary[]
 ): Promise<TemplateSetItinerariesResponse> => {
@@ -105,4 +105,16 @@ export const setItineraries = async (
     requestData
   );
   return response.data;
+};
+
+export const templatesApi = {
+  getTemplate,
+  createTemplate,
+  updateTemplate,
+  setTitle,
+  setContent,
+  setImageUrls,
+  setTags,
+  setRegions,
+  setItineraries,
 };
