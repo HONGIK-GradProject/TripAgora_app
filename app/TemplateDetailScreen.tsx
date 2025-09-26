@@ -40,7 +40,7 @@ const sampleProduct: ProductDetail = {
   locationSummary: '후쿠오카',
   guideName: '가이드 아라',
   ratingSummary: '4.9 (128)',
-  tags: ['# 일본', '# 먹방', '# 쇼핑', '# 야경'],
+  tags: ['# 휴양·힐링', '# 쇼핑', '# 즉흥형', '# 핫플'],
   description:
     '후쿠오카에서 4박 5일간 함께 여행하실 분을 모집합니다! 가까워서 금방 다녀오기에도 좋아요. 하카타의 캐널시티와 그 주변에서 주로 활동할 예정이에요. 일정은 유동적으로 조율할 수 있습니다.',
   itinerary: [
@@ -154,7 +154,10 @@ const ProductDetailScreen: React.FC = () => {
             <TouchableOpacity style={styles.editActionButton}>
               <Text style={styles.editActionText}>지역 편집</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.editActionButton}>
+            <TouchableOpacity
+              style={styles.editActionButton}
+              onPress={() => router.push('/EditTemplateTagsScreen')}
+            >
               <Text style={styles.editActionText}>태그 편집</Text>
             </TouchableOpacity>
           </View>
@@ -414,7 +417,7 @@ const styles = StyleSheet.create({
   },
   editActionButton: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 8,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
