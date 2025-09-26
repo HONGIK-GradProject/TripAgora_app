@@ -1,4 +1,4 @@
-import { REGION_DATA } from '@/constants/Regions';
+import { REGION_DATA, Region } from '@/constants/Regions';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
@@ -9,7 +9,7 @@ const EditTemplateLocationScreen: React.FC = () => {
   const [selectedParent, setSelectedParent] = useState<string>(parents[0]);
   const [selectedChild, setSelectedChild] = useState<string | null>(null);
 
-  const children = useMemo(
+  const children = useMemo<Region[]>(
     () => (selectedParent ? REGION_DATA[selectedParent] : []),
     [selectedParent]
   );
@@ -64,7 +64,7 @@ const EditTemplateLocationScreen: React.FC = () => {
                       active ? 'text-[#8130FF] font-semibold' : 'text-black'
                     }`}
                   >
-                    {p}
+                    {p && p.length > 2 ? p.slice(0, -2) : p}
                   </Text>
                 </TouchableOpacity>
               );
@@ -76,22 +76,27 @@ const EditTemplateLocationScreen: React.FC = () => {
         <ScrollView className='w-1/2'>
           <View className='py-2'>
             {children.map((c) => {
-              const active = c === selectedChild;
+              const active = c.name === selectedChild;
               return (
                 <TouchableOpacity
-                  key={c}
+                  key={c.id}
                   className={`px-5 py-4 ${
                     active ? 'bg-[#F3ECFF]' : 'bg-white'
                   }`}
-                  onPress={() => setSelectedChild(c)}
+                  onPress={() => setSelectedChild(c.name)}
                 >
                   <Text
                     className={`text-base ${
                       active ? 'text-[#8130FF] font-semibold' : 'text-black'
                     }`}
                   >
-                    {c}
+                    {c.name}
                   </Text>
+                  {active ? (
+                    <Text className='text-xs text-[#8130FF] mt-1'>
+                      ID: {c.id}
+                    </Text>
+                  ) : null}
                 </TouchableOpacity>
               );
             })}
