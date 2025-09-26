@@ -151,7 +151,10 @@ const ProductDetailScreen: React.FC = () => {
             ))}
           </View>
           <View style={styles.editActionsRow}>
-            <TouchableOpacity style={styles.editActionButton}>
+            <TouchableOpacity
+              style={styles.editActionButton}
+              onPress={() => router.push('/EditTemplateRegionScreen')}
+            >
               <Text style={styles.editActionText}>지역 편집</Text>
             </TouchableOpacity>
             <TouchableOpacity
