@@ -7,26 +7,30 @@ import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 const EditTemplateRegionScreen: React.FC = () => {
   const parents = useMemo(() => Object.keys(REGION_DATA), []);
   const [selectedParent, setSelectedParent] = useState<string>(parents[0]);
-  const [selectedChildren, setSelectedChildren] = useState<string[]>([]);
+  const [selectedRegionIds, setSelectedRegionIds] = useState<number[]>([]);
 
   const children = useMemo<Region[]>(
     () => (selectedParent ? REGION_DATA[selectedParent] : []),
     [selectedParent]
   );
 
-  const toggleChild = (name: string) => {
-    setSelectedChildren((prev) =>
-      prev.includes(name) ? prev.filter((c) => c !== name) : [...prev, name]
+  // For displaying selected tags, we need the full region objects
+  const allChildren = useMemo(() => Object.values(REGION_DATA).flat(), []);
+  const selectedRegions = useMemo(
+    () => allChildren.filter((c) => selectedRegionIds.includes(c.id)),
+    [selectedRegionIds, allChildren]
+  );
+
+  const toggleRegionId = (id: number) => {
+    setSelectedRegionIds((prev) =>
+      prev.includes(id) ? prev.filter((rid) => rid !== id) : [...prev, id]
     );
   };
 
   const handleSave = () => {
-    if (selectedChildren.length === 0) {
-      router.back();
-      return;
-    }
-    // TODO: 선택된 지역들(selectedParent, selectedChildren[])을 템플릿에 반영
-    // 예: await updateTemplateRegion({ parent: selectedParent, children: selectedChildren })
+    // TODO: 선택된 지역 ID들(selectedRegionIds)을 템플릿에 반영하는 로직 연결
+    // 예: await updateTemplateRegions({ regionIds: selectedRegionIds })
+    console.log('Saved Region IDs:', selectedRegionIds);
     router.back();
   };
 
@@ -47,14 +51,14 @@ const EditTemplateRegionScreen: React.FC = () => {
       </View>
 
       {/* 선택된 태그 표시 */}
-      <View className='flex-row flex-wrap px-5 py-3 gap-2'>
-        {selectedChildren.map((c) => (
+      <View className='flex-row flex-wrap px-5 py-3 gap-2 border-b border-[#E9E9E9]'>
+        {selectedRegions.map((region) => (
           <View
-            key={c}
+            key={region.id}
             className='flex-row items-center px-3 py-1 rounded-full bg-[#F3ECFF]'
           >
-            <Text className='text-[#8130FF] mr-1'>{c}</Text>
-            <TouchableOpacity onPress={() => toggleChild(c)}>
+            <Text className='text-[#8130FF] mr-1'>{region.name}</Text>
+            <TouchableOpacity onPress={() => toggleRegionId(region.id)}>
               <Ionicons name='close' size={16} color='#8130FF' />
             </TouchableOpacity>
           </View>
@@ -64,7 +68,7 @@ const EditTemplateRegionScreen: React.FC = () => {
       {/* Content */}
       <View className='flex-1 flex-row'>
         {/* Parents */}
-        <ScrollView className='w-1/2 border-r border-[#F0F0F0]'>
+        <ScrollView className='w-1/3 border-r border-[#F0F0F0]'>
           <View className='py-2'>
             {parents.map((p) => {
               const active = p === selectedParent;
@@ -92,21 +96,21 @@ const EditTemplateRegionScreen: React.FC = () => {
         </ScrollView>
 
         {/* Children */}
-        <ScrollView className='w-1/2'>
+        <ScrollView className='w-2/3'>
           <View className='py-2'>
             {children.map((c) => {
-              const active = selectedChildren.includes(c.name);
+              const active = selectedRegionIds.includes(c.id);
               return (
                 <TouchableOpacity
                   key={c.id}
                   className={`px-5 py-4 ${
-                    active ? 'bg-[#F3ECFF]' : 'bg-white'
+                    active ? 'bg-purple-100' : 'bg-white'
                   }`}
-                  onPress={() => toggleChild(c.name)}
+                  onPress={() => toggleRegionId(c.id)}
                 >
                   <Text
                     className={`text-base ${
-                      active ? 'text-[#8130FF] font-semibold' : 'text-black'
+                      active ? 'text-primary font-semibold' : 'text-black'
                     }`}
                   >
                     {c.name}
@@ -122,10 +126,10 @@ const EditTemplateRegionScreen: React.FC = () => {
       <View className='px-5 pb-6 pt-3 border-t border-[#E9E9E9] bg-white'>
         <TouchableOpacity
           className={`w-full h-[52px] rounded-md items-center justify-center ${
-            selectedChildren.length > 0 ? 'bg-primary' : 'bg-[#E5E5EA]'
+            selectedRegionIds.length > 0 ? 'bg-primary' : 'bg-[#E5E5EA]'
           }`}
           onPress={handleSave}
-          disabled={selectedChildren.length === 0}
+          disabled={selectedRegionIds.length === 0}
         >
           <Text className='text-white text-base font-bold'>저장</Text>
         </TouchableOpacity>
