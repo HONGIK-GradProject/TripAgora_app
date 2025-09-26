@@ -99,13 +99,6 @@ const EditTripScheduleScreen: React.FC = () => {
             <Text style={styles.addScheduleButtonText}>일정 추가</Text>
           </TouchableOpacity>
         </View>
-
-        {/* 날짜 선택기 (임시) */}
-        <View style={styles.datePickerContainer}>
-          <Text style={styles.datePickerTitle}>날짜 선택</Text>
-          {/* 실제 날짜 선택기 컴포넌트가 들어갈 자리 */}
-          <Text>2025년 8월 17일</Text>
-        </View>
       </ScrollView>
     </View>
   );
@@ -130,14 +123,14 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
   },
   saveButton: {
     marginLeft: 10,
   },
   saveButtonText: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#8130FF',
   },
@@ -146,7 +139,7 @@ const styles = StyleSheet.create({
   },
   mapContainer: {
     width: '100%',
-    height: 442,
+    height: 300,
     backgroundColor: '#D9D9D9',
     justifyContent: 'center',
     alignItems: 'center',
@@ -180,11 +173,11 @@ const styles = StyleSheet.create({
     borderColor: '#8130FF',
   },
   dayButtonText: {
-    fontSize: 20,
+    fontSize: 16,
     color: '#8130FF',
   },
   dayButtonTextActive: {
-    fontSize: 20,
+    fontSize: 16,
     color: '#fff',
   },
   scheduleList: {
@@ -201,7 +194,7 @@ const styles = StyleSheet.create({
   },
   scheduleText: {
     flex: 1,
-    fontSize: 20,
+    fontSize: 16,
     color: '#000',
   },
   deleteButton: {
@@ -219,7 +212,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   addScheduleButtonText: {
-    fontSize: 20,
+    fontSize: 16,
     color: '#8130FF',
     marginLeft: 10,
   },
@@ -228,7 +221,7 @@ const styles = StyleSheet.create({
     marginTop: 30,
   },
   datePickerTitle: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 15,
   },

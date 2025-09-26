@@ -45,11 +45,11 @@ const AddScheduleItemScreen: React.FC = () => {
           </View>
         </View>
         <View style={styles.formSection}>
-          <Text style={styles.label}>장소</Text>
+          <Text style={styles.label}>장소명 또는 일정명</Text>
           <TextInput
             value={place}
             onChangeText={setPlace}
-            placeholder='장소를 입력하세요'
+            placeholder='장소명 또는 일정명을 입력하세요'
             placeholderTextColor={'#9A9A9A'}
             style={styles.input}
           />
@@ -69,11 +69,11 @@ const AddScheduleItemScreen: React.FC = () => {
         </View>
 
         <View style={styles.formSection}>
-          <Text style={styles.label}>시간 (선택)</Text>
+          <Text style={styles.label}>시간</Text>
           <TextInput
             value={time}
             onChangeText={setTime}
-            placeholder='예: 14:30'
+            placeholder='시간 선택 모듈로 대체 예정'
             placeholderTextColor={'#9A9A9A'}
             style={styles.input}
             keyboardType='numbers-and-punctuation'
@@ -103,14 +103,14 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
   },
   saveButton: {
     marginLeft: 10,
   },
   saveButtonText: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#8130FF',
   },
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   label: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
     color: '#000',
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 12,
-    fontSize: 16,
+    fontSize: 14,
     color: '#000',
     backgroundColor: '#FFF',
   },

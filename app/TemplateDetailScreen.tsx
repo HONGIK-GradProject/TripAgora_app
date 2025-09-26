@@ -83,6 +83,7 @@ const ProductDetailScreen: React.FC = () => {
   const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
   const [isEditingDescription, setIsEditingDescription] =
     useState<boolean>(false);
+  // Location and Tags will navigate to separate edit screens; no local edit state needed
 
   return (
     <View style={styles.container}>
@@ -142,13 +143,20 @@ const ProductDetailScreen: React.FC = () => {
               {product.guideName} · {product.ratingSummary}
             </Text>
           </View>
-
           <View style={styles.tagsRow}>
             {product.tags.map((tag) => (
               <View key={tag} style={styles.tagChip}>
                 <Text style={styles.tagText}>{tag}</Text>
               </View>
             ))}
+          </View>
+          <View style={styles.editActionsRow}>
+            <TouchableOpacity style={styles.editActionButton}>
+              <Text style={styles.editActionText}>지역 편집</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.editActionButton}>
+              <Text style={styles.editActionText}>태그 편집</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -236,7 +244,7 @@ const ProductDetailScreen: React.FC = () => {
       </View>
 
       <View style={styles.bottomActionContainer}>
-        <TouchableOpacity style={[styles.ctaButton, styles.secondaryButton]}>
+        {/* <TouchableOpacity style={[styles.ctaButton, styles.secondaryButton]}>
           <Ionicons
             name='chatbubble-ellipses-outline'
             size={20}
@@ -245,7 +253,12 @@ const ProductDetailScreen: React.FC = () => {
           <Text style={styles.secondaryButtonText}>가이드에게 문의</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.ctaButton, styles.primaryButton]}>
-          <Text style={styles.primaryButtonText}>예약하기</Text>
+          <Text style={styles.primaryButtonText}>예약하기</Text> */}
+
+        <TouchableOpacity style={[styles.ctaButton, styles.primaryButton]}>
+          <Text style={styles.primaryButtonText}>
+            이 템플릿으로 모집 시작하기
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -333,6 +346,18 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     marginTop: 12,
   },
+  subsectionHeader: {
+    marginTop: 16,
+    marginBottom: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  subsectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+  },
   tagChip: {
     borderColor: '#949494',
     borderWidth: 1,
@@ -376,6 +401,28 @@ const styles = StyleSheet.create({
     borderColor: '#D9C7FF',
   },
   editButtonText: {
+    color: '#8130FF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  editActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginTop: 8,
+  },
+  editActionButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F3ECFF',
+    borderWidth: 1,
+    borderColor: '#D9C7FF',
+  },
+  editActionText: {
     color: '#8130FF',
     fontSize: 14,
     fontWeight: '600',
