@@ -132,7 +132,7 @@ export const REGION_DATA: RegionTree = {
     { id: '0707', name: '부여군' },
     { id: '0708', name: '서산시' },
     { id: '0709', name: '서천군' },
-    { id: '0710', name: 'अ산시' },
+    { id: '0710', name: '아산시' },
     { id: '0711', name: '예산군' },
     { id: '0712', name: '천안시 동남구' },
     { id: '0713', name: '천안시 서북구' },

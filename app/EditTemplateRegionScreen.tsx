@@ -4,24 +4,29 @@ import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
-const EditTemplateLocationScreen: React.FC = () => {
+const EditTemplateRegionScreen: React.FC = () => {
   const parents = useMemo(() => Object.keys(REGION_DATA), []);
   const [selectedParent, setSelectedParent] = useState<string>(parents[0]);
-  const [selectedChild, setSelectedChild] = useState<string | null>(null);
+  const [selectedChildren, setSelectedChildren] = useState<string[]>([]);
 
   const children = useMemo<Region[]>(
     () => (selectedParent ? REGION_DATA[selectedParent] : []),
     [selectedParent]
   );
 
+  const toggleChild = (name: string) => {
+    setSelectedChildren((prev) =>
+      prev.includes(name) ? prev.filter((c) => c !== name) : [...prev, name]
+    );
+  };
+
   const handleSave = () => {
-    if (!selectedParent || !selectedChild) {
-      // 선택이 미완료된 경우에는 단순히 뒤로가기만 합니다. 추후 검증/토스트 추가 가능.
+    if (selectedChildren.length === 0) {
       router.back();
       return;
     }
-    // TODO: 선택된 지역(selectedParent, selectedChild)을 템플릿에 반영하는 로직 연결
-    // 예: await updateTemplateLocation({ parent: selectedParent, child: selectedChild })
+    // TODO: 선택된 지역들(selectedParent, selectedChildren[])을 템플릿에 반영
+    // 예: await updateTemplateRegion({ parent: selectedParent, children: selectedChildren })
     router.back();
   };
 
@@ -41,6 +46,21 @@ const EditTemplateLocationScreen: React.FC = () => {
         <View className='w-10' />
       </View>
 
+      {/* 선택된 태그 표시 */}
+      <View className='flex-row flex-wrap px-5 py-3 gap-2'>
+        {selectedChildren.map((c) => (
+          <View
+            key={c}
+            className='flex-row items-center px-3 py-1 rounded-full bg-[#F3ECFF]'
+          >
+            <Text className='text-[#8130FF] mr-1'>{c}</Text>
+            <TouchableOpacity onPress={() => toggleChild(c)}>
+              <Ionicons name='close' size={16} color='#8130FF' />
+            </TouchableOpacity>
+          </View>
+        ))}
+      </View>
+
       {/* Content */}
       <View className='flex-1 flex-row'>
         {/* Parents */}
@@ -56,7 +76,6 @@ const EditTemplateLocationScreen: React.FC = () => {
                   }`}
                   onPress={() => {
                     setSelectedParent(p);
-                    setSelectedChild(null);
                   }}
                 >
                   <Text
@@ -76,14 +95,14 @@ const EditTemplateLocationScreen: React.FC = () => {
         <ScrollView className='w-1/2'>
           <View className='py-2'>
             {children.map((c) => {
-              const active = c.name === selectedChild;
+              const active = selectedChildren.includes(c.name);
               return (
                 <TouchableOpacity
                   key={c.id}
                   className={`px-5 py-4 ${
                     active ? 'bg-[#F3ECFF]' : 'bg-white'
                   }`}
-                  onPress={() => setSelectedChild(c.name)}
+                  onPress={() => toggleChild(c.name)}
                 >
                   <Text
                     className={`text-base ${
@@ -92,11 +111,6 @@ const EditTemplateLocationScreen: React.FC = () => {
                   >
                     {c.name}
                   </Text>
-                  {active ? (
-                    <Text className='text-xs text-[#8130FF] mt-1'>
-                      ID: {c.id}
-                    </Text>
-                  ) : null}
                 </TouchableOpacity>
               );
             })}
@@ -108,10 +122,10 @@ const EditTemplateLocationScreen: React.FC = () => {
       <View className='px-5 pb-6 pt-3 border-t border-[#E9E9E9] bg-white'>
         <TouchableOpacity
           className={`w-full h-[52px] rounded-md items-center justify-center ${
-            selectedChild ? 'bg-primary' : 'bg-[#E5E5EA]'
+            selectedChildren.length > 0 ? 'bg-primary' : 'bg-[#E5E5EA]'
           }`}
           onPress={handleSave}
-          disabled={!selectedChild}
+          disabled={selectedChildren.length === 0}
         >
           <Text className='text-white text-base font-bold'>저장</Text>
         </TouchableOpacity>
@@ -120,4 +134,4 @@ const EditTemplateLocationScreen: React.FC = () => {
   );
 };
 
-export default EditTemplateLocationScreen;
+export default EditTemplateRegionScreen;
