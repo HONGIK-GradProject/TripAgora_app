@@ -4,6 +4,7 @@ import { Text, TouchableOpacity, View } from 'react-native';
 
 import InterestTag from '@/components/InterestTag';
 import { INTEREST_TAGS } from '@/constants/Tags';
+import { setTemplateTags } from '@/services/templates';
 import { router, useLocalSearchParams } from 'expo-router';
 import Toast from 'react-native-toast-message';
 
@@ -32,14 +33,17 @@ const EditTemplateTagsScreen: React.FC = () => {
       return;
     }
     try {
-      // await 템플릿수정요청({ templateId: id, tags: selectedTags });
+      const _id = +id;
+      await setTemplateTags(_id, selectedTags);
       console.log(`Saved tags for template ${id}:`, selectedTags);
-      router.back();
+      
       return true;
     } catch (error) {
       console.error('태그 업데이트 실패:', error);
       Toast.show({ type: 'error', text1: '태그 업데이트 실패' });
       return false;
+    } finally {
+      router.back();
     }
   };
 

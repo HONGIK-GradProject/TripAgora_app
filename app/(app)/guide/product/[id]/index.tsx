@@ -1,4 +1,5 @@
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
+import { setTemplateContent, setTemplateTitle } from '@/services/templates';
 import { TemplateDetails, TemplateItinerary } from '@/types/templates';
 import { Ionicons } from '@expo/vector-icons';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
@@ -64,6 +65,22 @@ const ProductDetailScreen: React.FC = () => {
   // In the future, use `id` to fetch detail via API. For now, show sample.
   const { title, content, regionNames, tagNames, imageUrls, isEditingContent, isEditingTitle, setIsEditingContent, setIsEditingTitle, setTitle, setContent, itineraries } = useTemplateDetails(id);
 
+  const handleEditTitle = async () => {
+    const prevTitle = title;
+    if (isEditingTitle && title !== prevTitle) {
+      await setTemplateTitle(_id, title);
+    }
+    setIsEditingTitle((prev) => !prev);
+  }
+
+  const handleEditContent = async () => {
+    const prevContent = content;
+    if (isEditingContent && title !== prevContent) {
+      await setTemplateContent(_id, content);
+    }
+    setIsEditingContent((prev) => !prev);
+  }
+  
   // Location and Tags will navigate to separate edit screens; no local edit state needed
 
   return (
@@ -95,7 +112,7 @@ const ProductDetailScreen: React.FC = () => {
             )}
             <TouchableOpacity
               style={styles.editButton}
-              onPress={() => {}}
+              onPress={handleEditTitle}
             >
               <Text style={styles.editButtonText}>
                 {isEditingTitle ? '완료' : '편집'}
@@ -105,7 +122,7 @@ const ProductDetailScreen: React.FC = () => {
           <View style={styles.metaRow}>
             <Ionicons name='location-outline' size={20} color='#8130FF' />
             <Text style={styles.metaText}>
-              {regionNames.reduce(region => `${region} `, '')}
+              {regionNames.join(' ')}
             </Text>
           </View>
           <View style={styles.metaRow}>
@@ -143,7 +160,7 @@ const ProductDetailScreen: React.FC = () => {
             </Text>
             <TouchableOpacity
               style={styles.editButton}
-              onPress={() => {}}
+              onPress={handleEditContent}
             >
               <Text style={styles.editButtonText}>
                 {isEditingContent ? '완료' : '편집'}
