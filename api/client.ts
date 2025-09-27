@@ -60,6 +60,12 @@ export const setupInterceptors = (
     (response) => response,
     async (error) => {
       const originalRequest = error.config as CustomInternalAxiosRequestConfig;
+
+      // 토큰 재발급 요청 자체에서 발생한 401은 무시하여 무한 루프를 방지합니다.
+      if (originalRequest.url === '/auth/reissue') {
+        return Promise.reject(error);
+      }
+
       if (error.response?.status === 401 && !originalRequest._retry) {
         originalRequest._retry = true;
         console.warn('액세스 토큰 만료, 토큰 재발급 시도 중...');
