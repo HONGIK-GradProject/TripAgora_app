@@ -1,0 +1,529 @@
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useMemo, useState } from 'react';
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+type ItineraryItem = {
+  time: string;
+  title: string;
+  description?: string;
+};
+
+type ProductDetail = {
+  title: string;
+  coverImageUrl: string;
+  dateRange: string;
+  participantSummary: string;
+  locationSummary: string;
+  guideName: string;
+  ratingSummary: string;
+  tags: string[];
+  description: string;
+  itinerary: ItineraryItem[];
+};
+
+const sampleProduct: ProductDetail = {
+  title: '후쿠오카 4박 5일 함께해요',
+  coverImageUrl:
+    'https://images.unsplash.com/photo-1549693578-d683be217e58?q=80&w=1640&auto=format&fit=crop',
+  dateRange: '2025.10.02 - 10.06',
+  participantSummary: '3명',
+  locationSummary: '후쿠오카',
+  guideName: '가이드 아라',
+  ratingSummary: '4.9 (128)',
+  tags: ['# 휴양·힐링', '# 쇼핑', '# 즉흥형', '# 핫플'],
+  description:
+    '후쿠오카에서 4박 5일간 함께 여행하실 분을 모집합니다! 가까워서 금방 다녀오기에도 좋아요. 하카타의 캐널시티와 그 주변에서 주로 활동할 예정이에요. 일정은 유동적으로 조율할 수 있습니다.',
+  itinerary: [
+    {
+      time: 'Day 1',
+      title: '하카타 도착 · 체크인',
+      description: '캐널시티 산책, 저녁 라멘 투어',
+    },
+    {
+      time: 'Day 2',
+      title: '텐진 · 다자이후',
+      description: '쇼핑과 카페 투어, 저녁 이자카야',
+    },
+    {
+      time: 'Day 3',
+      title: '모지코 · 고쿠라',
+      description: '현지 시장 탐방, 야경 스팟',
+    },
+    {
+      time: 'Day 4',
+      title: '후쿠오카 타워',
+      description: '바다 전망, 자유 일정',
+    },
+    { time: 'Day 5', title: '체크아웃 · 귀국', description: '기념품 쇼핑' },
+  ],
+};
+
+const ProductDetailScreen: React.FC = () => {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { id } = useLocalSearchParams<{ id?: string }>();
+
+  // In the future, use `id` to fetch detail via API. For now, show sample.
+  const product = useMemo(() => sampleProduct, []);
+
+  // Editable states
+  const [title, setTitle] = useState<string>(product.title);
+  const [description, setDescription] = useState<string>(product.description);
+  const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
+  const [isEditingDescription, setIsEditingDescription] =
+    useState<boolean>(false);
+  // Location and Tags will navigate to separate edit screens; no local edit state needed
+
+  return (
+    <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollViewContent}>
+        <View style={styles.coverContainer}>
+          {/* 배경 이미지 예시 */}
+          <Image
+            source={{ uri: product.coverImageUrl }}
+            style={styles.coverImage}
+          />
+          {/* 배경 이미지 없는 예시 (주석) */}
+          {/** <View style={styles.coverPlaceholder} /> */}
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.rowBetween}>
+            {isEditingTitle ? (
+              <TextInput
+                value={title}
+                onChangeText={setTitle}
+                style={styles.titleInput}
+                placeholder='제목을 입력하세요'
+              />
+            ) : (
+              <Text style={[styles.title, { flex: 1, marginBottom: 0 }]}>
+                {title}
+              </Text>
+            )}
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() => setIsEditingTitle((prev) => !prev)}
+            >
+              <Text style={styles.editButtonText}>
+                {isEditingTitle ? '완료' : '편집'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.metaRow}>
+            <MaterialCommunityIcons
+              name='calendar-month'
+              size={20}
+              color='#8130FF'
+            />
+            <Text style={styles.metaText}>{product.dateRange}</Text>
+          </View>
+          <View style={styles.metaRow}>
+            <Ionicons name='people-outline' size={20} color='#8130FF' />
+            <Text style={styles.metaText}>{product.participantSummary}</Text>
+          </View>
+          <View style={styles.metaRow}>
+            <Ionicons name='location-outline' size={20} color='#8130FF' />
+            <Text style={styles.metaText}>{product.locationSummary}</Text>
+          </View>
+          <View style={styles.metaRow}>
+            <Ionicons name='person-circle-outline' size={20} color='#8130FF' />
+            <Text style={styles.metaText}>
+              {product.guideName} · {product.ratingSummary}
+            </Text>
+          </View>
+          <View style={styles.tagsRow}>
+            {product.tags.map((tag) => (
+              <View key={tag} style={styles.tagChip}>
+                <Text style={styles.tagText}>{tag}</Text>
+              </View>
+            ))}
+          </View>
+          <View style={styles.editActionsRow}>
+            <TouchableOpacity
+              style={styles.editActionButton}
+              onPress={() => router.push('/EditTemplateRegionScreen')}
+            >
+              <Text style={styles.editActionText}>지역 편집</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.editActionButton}
+              onPress={() => router.push('/EditTemplateTagsScreen')}
+            >
+              <Text style={styles.editActionText}>태그 편집</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.divider} />
+
+        <View style={styles.section}>
+          <View style={styles.rowBetween}>
+            <Text style={[styles.sectionTitle, { flex: 1, marginBottom: 0 }]}>
+              여행 소개
+            </Text>
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() => setIsEditingDescription((prev) => !prev)}
+            >
+              <Text style={styles.editButtonText}>
+                {isEditingDescription ? '완료' : '편집'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          {isEditingDescription ? (
+            <TextInput
+              value={description}
+              onChangeText={setDescription}
+              style={styles.multilineInput}
+              multiline
+              textAlignVertical='top'
+              placeholder='여행 소개를 입력하세요'
+            />
+          ) : (
+            <Text style={styles.description}>{description}</Text>
+          )}
+        </View>
+
+        <View style={styles.divider} />
+
+        <View style={styles.section}>
+          <View style={styles.rowBetween}>
+            <Text style={[styles.sectionTitle, { flex: 1, marginBottom: 0 }]}>
+              일정
+            </Text>
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() => router.push('/EditTripScheduleScreen')}
+            >
+              <Text style={styles.editButtonText}>편집</Text>
+            </TouchableOpacity>
+          </View>
+          {product.itinerary.map((item) => (
+            <View key={item.time} style={styles.itineraryItem}>
+              <View style={styles.itineraryTime}>
+                <Text style={styles.itineraryTimeText}>{item.time}</Text>
+              </View>
+              <View style={styles.itineraryContent}>
+                <Text style={styles.itineraryTitle}>{item.title}</Text>
+                {item.description ? (
+                  <Text style={styles.itineraryDesc}>{item.description}</Text>
+                ) : null}
+              </View>
+            </View>
+          ))}
+        </View>
+
+        <View style={{ height: 40 }} />
+      </ScrollView>
+
+      {/* Fixed top action bar */}
+      <View style={[styles.topBar, { top: insets.top + 10 }]}>
+        <TouchableOpacity
+          style={styles.iconButton}
+          onPress={() => router.back()}
+        >
+          <Ionicons name='arrow-back' size={24} color='#000' />
+        </TouchableOpacity>
+        {/** 공유 및 찜 버튼은 여행자 쪽에서 세션을 볼 때 있어야 하는 아이콘입니다.
+         * 여행자 쪽에서 보는 양식을 참고하기 위해 추가해 둔 것으로, 이후 삭제해야 합니다.
+         */}
+        <View style={styles.rightIcons}>
+          <TouchableOpacity style={styles.iconCircle}>
+            <Ionicons name='share-outline' size={20} color='#000' />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconCircle}>
+            <Ionicons name='heart-outline' size={20} color='#000' />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.bottomActionContainer}>
+        {/* <TouchableOpacity style={[styles.ctaButton, styles.secondaryButton]}>
+          <Ionicons
+            name='chatbubble-ellipses-outline'
+            size={20}
+            color='#8130FF'
+          />
+          <Text style={styles.secondaryButtonText}>가이드에게 문의</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.ctaButton, styles.primaryButton]}>
+          <Text style={styles.primaryButtonText}>예약하기</Text> */}
+
+        <TouchableOpacity style={[styles.ctaButton, styles.primaryButton]}>
+          <Text style={styles.primaryButtonText}>
+            이 템플릿으로 모집 시작하기
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  scrollViewContent: {
+    paddingBottom: 120,
+  },
+  coverContainer: {
+    width: '100%',
+    height: 280,
+    backgroundColor: '#D9D9D9',
+  },
+  coverImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  coverPlaceholder: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#D9D9D9',
+  },
+  topBar: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    right: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  iconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rightIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  iconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+  },
+  section: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+  },
+  metaText: {
+    fontSize: 16,
+    marginLeft: 8,
+    color: '#000',
+  },
+  tagsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 12,
+  },
+  subsectionHeader: {
+    marginTop: 16,
+    marginBottom: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  subsectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+  },
+  tagChip: {
+    borderColor: '#949494',
+    borderWidth: 1,
+    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  tagText: {
+    fontSize: 14,
+    color: '#000',
+  },
+  divider: {
+    height: 8,
+    backgroundColor: '#F4F4F4',
+    marginTop: 20,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  description: {
+    fontSize: 16,
+    lineHeight: 22,
+    color: '#000',
+    marginTop: 10,
+  },
+  rowBetween: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  editButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+    backgroundColor: '#F3ECFF',
+    borderWidth: 1,
+    borderColor: '#D9C7FF',
+  },
+  editButtonText: {
+    color: '#8130FF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  editActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginTop: 8,
+  },
+  editActionButton: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F3ECFF',
+    borderWidth: 1,
+    borderColor: '#D9C7FF',
+  },
+  editActionText: {
+    color: '#8130FF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  titleInput: {
+    flex: 1,
+    fontSize: 22,
+    fontWeight: '700',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    color: '#000000',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    borderRadius: 8,
+    backgroundColor: '#FFF',
+    marginRight: 10,
+  },
+  multilineInput: {
+    marginTop: 6,
+    minHeight: 100,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: '#000',
+  },
+  itineraryItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingVertical: 12,
+  },
+  itineraryTime: {
+    width: 70,
+  },
+  itineraryTimeText: {
+    fontSize: 14,
+    color: '#8130FF',
+    fontWeight: 'bold',
+  },
+  itineraryContent: {
+    flex: 1,
+  },
+  itineraryTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  itineraryDesc: {
+    fontSize: 14,
+    color: '#444',
+    lineHeight: 20,
+  },
+  bottomActionContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 20,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#E9E9E9',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  ctaButton: {
+    height: 52,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    flex: 1,
+  },
+  primaryButton: {
+    backgroundColor: '#8130FF',
+  },
+  primaryButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  secondaryButton: {
+    backgroundColor: '#F3ECFF',
+    borderWidth: 1,
+    borderColor: '#D9C7FF',
+  },
+  secondaryButtonText: {
+    color: '#8130FF',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+});
+
+export default ProductDetailScreen;
