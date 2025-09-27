@@ -1,4 +1,4 @@
-import { TemplateCreateRequest, TemplateCreateResponse, TemplateGetRequest, TemplateGetResponse, TemplateItinerary, TemplateSetContentRequest, TemplateSetContentResponse, TemplateSetImageUrlsRequest, TemplateSetImageUrlsResponse, TemplateSetItinerariesRequest, TemplateSetItinerariesResponse, TemplateSetRegionsRequest, TemplateSetRegionsResponse, TemplateSetTagsRequest, TemplateSetTagsResponse, TemplateSetTitleRequest, TemplateSetTitleResponse, TemplateUpdateRequest, TemplateUpdateResponse } from "@/types/templates";
+import { TemplateCreateRequest, TemplateCreateResponse, TemplateGetItinerariesRequest, TemplateGetItinerariesResponse, TemplateGetListRequest, TemplateGetListResponse, TemplateGetRequest, TemplateGetResponse, TemplateItinerary, TemplateSetContentRequest, TemplateSetContentResponse, TemplateSetImageUrlsRequest, TemplateSetImageUrlsResponse, TemplateSetItinerariesRequest, TemplateSetItinerariesResponse, TemplateSetRegionsRequest, TemplateSetRegionsResponse, TemplateSetTagsRequest, TemplateSetTagsResponse, TemplateSetTitleRequest, TemplateSetTitleResponse, TemplateUpdateRequest, TemplateUpdateResponse } from "@/types/templates";
 import apiClient from "./client";
 
 const getTemplate = async (
@@ -7,6 +7,32 @@ const getTemplate = async (
   const requestData: TemplateGetRequest = {};
   const response = await apiClient.get<TemplateGetResponse>(
     `/templates/${id}`,
+    requestData
+  );
+  return response.data;
+};
+
+const getTemplateList = async (
+  page: number
+): Promise<TemplateGetListResponse> => {
+  const requestData: TemplateGetListRequest = {
+    params: {
+      page
+    }
+  };
+  const response = await apiClient.get<TemplateGetListResponse>(
+    `/templates/my`,
+    requestData
+  );
+  return response.data;
+};
+
+const getItineraries = async (
+  id: number
+): Promise<TemplateGetItinerariesResponse> => {
+  const requestData: TemplateGetItinerariesRequest = {};
+  const response = await apiClient.get<TemplateGetItinerariesResponse>(
+    `/templates/${id}/itineraries`,
     requestData
   );
   return response.data;
@@ -117,4 +143,6 @@ export const templatesApi = {
   setTags,
   setRegions,
   setItineraries,
+  getItineraries,
+  getTemplateList
 };

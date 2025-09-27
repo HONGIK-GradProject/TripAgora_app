@@ -1,4 +1,5 @@
 import GuideProductList from '@/components/guide/product/GuideProductList';
+import { useTemplateList } from '@/hooks/templates/useTemplateList';
 import { TemplateInfo } from '@/types/templates';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -11,7 +12,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const SampleProducts : TemplateInfo[] = [
+const sampleProducts : TemplateInfo[] = [
   {
     templateId: 1,
     title: '홍대 1박2일 모임',
@@ -67,6 +68,8 @@ const SampleProducts : TemplateInfo[] = [
 ]
 const MyProductsScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
+  const { products, isLoading, error } = useTemplateList();
+  
   return (
     <View className='flex-1 bg-white pt-12 relative'>
       <View className='flex-row items-center mx-5 mb-5 rounded-full bg-gray-100 px-4 py-3'>
@@ -83,7 +86,8 @@ const MyProductsScreen: React.FC = () => {
       >
         <Text className='text-3xl font-bold mb-5'>내 상품 템플릿</Text>
         <GuideProductList
-          products={ SampleProducts }
+          // Todos: SampleProduct -> products
+          products={ sampleProducts }
         />
       </View>
 

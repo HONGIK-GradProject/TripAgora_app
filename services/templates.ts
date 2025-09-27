@@ -15,11 +15,11 @@ export const createTemplate = async () => {
   }
 }
 
-export const setTemplateTitle = async ({ id, title } : { id: number, title: string }) => {
+export const setTemplateTitle = async (id: number, title: string) => {
   try {
     const response = await templatesApi.setTitle(id, title);
 
-    if (response && response.code === 201) {
+    if (response && response.code === 200) {
       return response.data?.title;
     }
 
@@ -29,11 +29,11 @@ export const setTemplateTitle = async ({ id, title } : { id: number, title: stri
   }
 }
 
-export const setTemplateContent = async ({ id, content } : { id: number, content: string }) => {
+export const setTemplateContent = async (id: number, content: string) => {
   try {
     const response = await templatesApi.setContent(id, content);
 
-    if (response && response.code === 201) {
+    if (response && response.code === 200) {
       return response.data?.content;
     }
 
@@ -43,11 +43,11 @@ export const setTemplateContent = async ({ id, content } : { id: number, content
   }
 }
 
-export const setTemplateImageUrls = async ({ id, imageUrls } : { id: number, imageUrls: string[] }) => {
+export const setTemplateImageUrls = async (id: number, imageUrls: string[]) => {
   try {
     const response = await templatesApi.setImageUrls(id, imageUrls);
 
-    if (response && response.code === 201) {
+    if (response && response.code === 200) {
       return response.data?.imageUrls;
     }
 
@@ -57,11 +57,11 @@ export const setTemplateImageUrls = async ({ id, imageUrls } : { id: number, ima
   }
 }
 
-export const setTemplateTags = async ({ id, tagIds } : { id: number, tagIds: number[] }) => {
+export const setTemplateTags = async (id: number, tagIds: number[]) => {
   try {
     const response = await templatesApi.setTags(id, tagIds);
 
-    if (response && response.code === 201) {
+    if (response && response.code === 200) {
       return response.data?.tagNames;
     }
 
@@ -71,11 +71,11 @@ export const setTemplateTags = async ({ id, tagIds } : { id: number, tagIds: num
   }
 }
 
-export const setTemplateItineraries = async ({ id, itineraries } : { id: number, itineraries: TemplateItinerary[] }) => {
+export const setTemplateItineraries = async (id: number, itineraries: TemplateItinerary[]) => {
   try {
     const response = await templatesApi.setItineraries(id, itineraries);
 
-    if (response && response.code === 201) {
+    if (response && response.code === 200) {
       return true;
     }
 
@@ -85,15 +85,43 @@ export const setTemplateItineraries = async ({ id, itineraries } : { id: number,
   }
 }
 
-export const setTemplateRegions = async ({ id, regionIds } : { id: number, regionIds: number[] }) => {
+export const setTemplateRegions = async (id: number, regionIds: number[]) => {
   try {
     const response = await templatesApi.setRegions(id, regionIds);
 
-    if (response && response.code === 201) {
+    if (response && response.code === 200) {
       return response.data?.regionNames;
     }
 
     throw new Error('템플릿 지역 수정 에러');
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export const getTemplateList = async (page: number) => {
+  try {
+    const response = await templatesApi.getTemplateList(page);
+
+    if (response && response.code === 200) {
+      return response.data;
+    }
+
+    throw new Error('템플릿 리스트 로드 에러');
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export const getItineraries = async (id: number) => {
+  try {
+    const response = await templatesApi.getItineraries(id);
+
+    if (response && response.code === 200) {
+      return true;
+    }
+
+    throw new Error('템플릿 일정 로드 에러');
   } catch (error) {
     console.error(error);
   }

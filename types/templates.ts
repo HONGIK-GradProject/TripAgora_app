@@ -31,13 +31,18 @@ interface TemplateGetRequest {}
 type TemplateGetData = TemplateDetails;
 interface TemplateGetResponse extends APIResponse<TemplateGetData> {}
 
-interface TemplateGetListRequest {}
+interface TemplateGetListRequest {
+  params: {
+    page: number;
+  }
+}
 interface TemplateGetListData {
   templates: TemplateInfo[];
+  hasNext: boolean;
 }
 interface TemplateGetListResponse extends APIResponse<TemplateGetListData> {}
 
-interface TemplateGetItinerariesRequest{}
+interface TemplateGetItinerariesRequest {};
 type TemplateGetItinerariesData = TemplateItinerary;
 interface TemplateGetItinerariesResponse extends APIResponse<TemplateGetItinerariesData> {}
 
