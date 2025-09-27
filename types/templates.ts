@@ -43,7 +43,9 @@ interface TemplateGetListData {
 interface TemplateGetListResponse extends APIResponse<TemplateGetListData> {}
 
 interface TemplateGetItinerariesRequest {};
-type TemplateGetItinerariesData = TemplateItinerary;
+type TemplateGetItinerariesData = {
+  itineraries: TemplateItinerary[];
+};
 interface TemplateGetItinerariesResponse extends APIResponse<TemplateGetItinerariesData> {}
 
 interface TemplateCreateRequest {}

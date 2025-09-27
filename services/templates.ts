@@ -1,7 +1,7 @@
 import { templatesApi } from "@/api/templates";
 import { TemplateItinerary } from "@/types/templates";
 
-export const createTemplate = async () => {
+export const createBlankTemplate = async () => {
   try {
     const response = await templatesApi.createTemplate();
 
@@ -118,10 +118,42 @@ export const getItineraries = async (id: number) => {
     const response = await templatesApi.getItineraries(id);
 
     if (response && response.code === 200) {
-      return true;
+      return response.data;
     }
 
     throw new Error('템플릿 일정 로드 에러');
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export const getTemplateDetails = async (id: string) => {
+  try {
+    const response = await templatesApi.getTemplate(id);
+
+    if (response && response.code === 200) {
+      return response.data;
+    }
+
+    throw new Error('템플릿 상세 정보 로드 에러');
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export const getTemplateDetailsAll = async (id: number) => {
+  try {
+    const details = await getTemplateDetails(id.toString());
+    const itineraries = await getItineraries(id);
+
+    if (details && itineraries) {
+      return {
+        ...details,
+        ...itineraries
+      };
+    }
+    
+    throw new Error('템플릿의 모든 정보 로드 에러');
   } catch (error) {
     console.error(error);
   }

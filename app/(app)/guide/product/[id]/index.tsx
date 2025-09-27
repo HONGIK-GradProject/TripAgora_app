@@ -1,7 +1,8 @@
+import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import { TemplateDetails, TemplateItinerary } from '@/types/templates';
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
+import React from 'react';
 import {
   Image,
   ScrollView,
@@ -18,15 +19,6 @@ interface Itineraries {
 };
 
 type ProductDetails = Itineraries & TemplateDetails;
-
-const asdf : TemplateItinerary = {
-  day: 0,
-  title: '',
-  content: '',
-  startTime: '',
-  latitude: 0,
-  longitude: 0
-}
 
 const sampleProduct: ProductDetails = {
   title: '후쿠오카 4박 5일 함께해요',
@@ -63,15 +55,15 @@ const ProductDetailScreen: React.FC = () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { id } = useLocalSearchParams<{ id?: string }>();
 
-  // In the future, use `id` to fetch detail via API. For now, show sample.
-  const product = useMemo(() => sampleProduct, []);
+  if (!id) {
+    return <Redirect href='/(app)/guide/product'/>
+  }
+  
+  const _id : number = +id;
 
-  // Editable states
-  const [title, setTitle] = useState<string>(product.title);
-  const [description, setDescription] = useState<string>(product.content);
-  const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
-  const [isEditingDescription, setIsEditingDescription] =
-    useState<boolean>(false);
+  // In the future, use `id` to fetch detail via API. For now, show sample.
+  const { title, content, regionNames, tagNames, imageUrls, isEditingContent, isEditingTitle, setIsEditingContent, setIsEditingTitle, setTitle, setContent, itineraries } = useTemplateDetails(id);
+
   // Location and Tags will navigate to separate edit screens; no local edit state needed
 
   return (
@@ -80,7 +72,7 @@ const ProductDetailScreen: React.FC = () => {
         <View style={styles.coverContainer}>
           {/* 배경 이미지 예시 */}
           <Image
-            source={{ uri: product.imageUrls[0] }}
+            source={{ uri: imageUrls[0] }}
             style={styles.coverImage}
           />
           {/* 배경 이미지 없는 예시 (주석) */}
@@ -103,7 +95,7 @@ const ProductDetailScreen: React.FC = () => {
             )}
             <TouchableOpacity
               style={styles.editButton}
-              onPress={() => setIsEditingTitle((prev) => !prev)}
+              onPress={() => {}}
             >
               <Text style={styles.editButtonText}>
                 {isEditingTitle ? '완료' : '편집'}
@@ -113,14 +105,14 @@ const ProductDetailScreen: React.FC = () => {
           <View style={styles.metaRow}>
             <Ionicons name='location-outline' size={20} color='#8130FF' />
             <Text style={styles.metaText}>
-              {product.regionNames.reduce(region => `${region} `)}
+              {regionNames.reduce(region => `${region} `, '')}
             </Text>
           </View>
           <View style={styles.metaRow}>
             <Ionicons name='person-circle-outline' size={20} color='#8130FF' />
           </View>
           <View style={styles.tagsRow}>
-            {product.tagNames.map((tag) => (
+            {tagNames.map((tag) => (
               <View key={tag} style={styles.tagChip}>
                 <Text style={styles.tagText}>{tag}</Text>
               </View>
@@ -151,24 +143,24 @@ const ProductDetailScreen: React.FC = () => {
             </Text>
             <TouchableOpacity
               style={styles.editButton}
-              onPress={() => setIsEditingDescription((prev) => !prev)}
+              onPress={() => {}}
             >
               <Text style={styles.editButtonText}>
-                {isEditingDescription ? '완료' : '편집'}
+                {isEditingContent ? '완료' : '편집'}
               </Text>
             </TouchableOpacity>
           </View>
-          {isEditingDescription ? (
+          {isEditingContent ? (
             <TextInput
-              value={description}
-              onChangeText={setDescription}
+              value={content}
+              onChangeText={setContent}
               style={styles.multilineInput}
               multiline
               textAlignVertical='top'
               placeholder='여행 소개를 입력하세요'
             />
           ) : (
-            <Text style={styles.description}>{description}</Text>
+            <Text style={styles.description}>{content}</Text>
           )}
         </View>
 
@@ -186,7 +178,7 @@ const ProductDetailScreen: React.FC = () => {
               <Text style={styles.editButtonText}>편집</Text>
             </TouchableOpacity>
           </View>
-          {product.itineraries.map((item) => (
+          {itineraries.map((item) => (
             <View key={item.startTime} style={styles.itineraryItem}>
               <View style={styles.itineraryTime}>
                 <Text style={styles.itineraryTimeText}>{item.day}</Text>

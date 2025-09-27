@@ -2,7 +2,7 @@ import { TemplateCreateRequest, TemplateCreateResponse, TemplateGetItinerariesRe
 import apiClient from "./client";
 
 const getTemplate = async (
-  id: number
+  id: string
 ): Promise<TemplateGetResponse> => {
   const requestData: TemplateGetRequest = {};
   const response = await apiClient.get<TemplateGetResponse>(
