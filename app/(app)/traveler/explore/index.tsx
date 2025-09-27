@@ -1,4 +1,4 @@
-import ProductList, { Product } from '@/components/explore/ProductList';
+import ProductList, { Product } from '@/components/traveler/explore/TravelerProductList';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';

@@ -12,15 +12,34 @@ interface TemplateItinerary {
   longitude: number;
 }
 
-interface TemplateGetRequest {}
-interface TemplateGetData {
+interface TemplateInfo {
+  templateId: number;
+  title: string;
+  firstImageUrl: string;
+  regionNames: string[];
+}
+
+interface TemplateDetails {
   title: string;
   content: string;
   regionNames: string[];
   tagNames: string[];
   imageUrls: string[];
 }
+
+interface TemplateGetRequest {}
+type TemplateGetData = TemplateDetails;
 interface TemplateGetResponse extends APIResponse<TemplateGetData> {}
+
+interface TemplateGetListRequest {}
+interface TemplateGetListData {
+  templates: TemplateInfo[];
+}
+interface TemplateGetListResponse extends APIResponse<TemplateGetListData> {}
+
+interface TemplateGetItinerariesRequest{}
+type TemplateGetItinerariesData = TemplateItinerary;
+interface TemplateGetItinerariesResponse extends APIResponse<TemplateGetItinerariesData> {}
 
 interface TemplateCreateRequest {}
 interface TemplateCreateData {
@@ -91,12 +110,13 @@ interface TemplateSetItinerariesResponse extends APIResponse<TemplateSetItinerar
 export {
   TemplateCreateData,
   TemplateCreateRequest,
-  TemplateCreateResponse,
-  TemplateGetData,
-  TemplateGetRequest,
-  TemplateGetResponse,
-  TemplateItinerary,
-  TemplateSetContentData,
+  TemplateCreateResponse, TemplateDetails, TemplateGetData, TemplateGetItinerariesData,
+  TemplateGetItinerariesRequest,
+  TemplateGetItinerariesResponse,
+  TemplateGetListData,
+  TemplateGetListRequest,
+  TemplateGetListResponse, TemplateGetRequest,
+  TemplateGetResponse, TemplateInfo, TemplateItinerary, TemplateSetContentData,
   TemplateSetContentRequest,
   TemplateSetContentResponse,
   TemplateSetImageUrlsData,

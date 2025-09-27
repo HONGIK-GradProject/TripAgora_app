@@ -1,4 +1,5 @@
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { TemplateDetails, TemplateItinerary } from '@/types/templates';
+import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import {
@@ -12,59 +13,47 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-type ItineraryItem = {
-  time: string;
-  title: string;
-  description?: string;
+interface Itineraries {
+  itineraries: TemplateItinerary[];
 };
 
-type ProductDetail = {
-  title: string;
-  coverImageUrl: string;
-  dateRange: string;
-  participantSummary: string;
-  locationSummary: string;
-  guideName: string;
-  ratingSummary: string;
-  tags: string[];
-  description: string;
-  itinerary: ItineraryItem[];
-};
+type ProductDetails = Itineraries & TemplateDetails;
 
-const sampleProduct: ProductDetail = {
+const asdf : TemplateItinerary = {
+  day: 0,
+  title: '',
+  content: '',
+  startTime: '',
+  latitude: 0,
+  longitude: 0
+}
+
+const sampleProduct: ProductDetails = {
   title: '후쿠오카 4박 5일 함께해요',
-  coverImageUrl:
-    'https://images.unsplash.com/photo-1549693578-d683be217e58?q=80&w=1640&auto=format&fit=crop',
-  dateRange: '2025.10.02 - 10.06',
-  participantSummary: '3명',
-  locationSummary: '후쿠오카',
-  guideName: '가이드 아라',
-  ratingSummary: '4.9 (128)',
-  tags: ['# 휴양·힐링', '# 쇼핑', '# 즉흥형', '# 핫플'],
-  description:
+  imageUrls: [
+    'https://images.unsplash.com/photo-1549693578-d683be217e58?q=80&w=1640&auto=format&fit=crop'
+  ],
+  tagNames: ['휴양·힐링', '쇼핑', '즉흥형', '핫플'],
+  content:
     '후쿠오카에서 4박 5일간 함께 여행하실 분을 모집합니다! 가까워서 금방 다녀오기에도 좋아요. 하카타의 캐널시티와 그 주변에서 주로 활동할 예정이에요. 일정은 유동적으로 조율할 수 있습니다.',
-  itinerary: [
+  regionNames: ['후쿠오카', '일본'],
+  itineraries: [
     {
-      time: 'Day 1',
-      title: '하카타 도착 · 체크인',
-      description: '캐널시티 산책, 저녁 라멘 투어',
+      day: 1,
+      title: '하카타 도착 - 체크인',
+      content: '캐널시티 산책, 저녁 라멘 투어',
+      startTime: '12:00:00',
+      latitude: 123.111111,
+      longitude: 123.222222
     },
     {
-      time: 'Day 2',
+      day: 2,
       title: '텐진 · 다자이후',
-      description: '쇼핑과 카페 투어, 저녁 이자카야',
-    },
-    {
-      time: 'Day 3',
-      title: '모지코 · 고쿠라',
-      description: '현지 시장 탐방, 야경 스팟',
-    },
-    {
-      time: 'Day 4',
-      title: '후쿠오카 타워',
-      description: '바다 전망, 자유 일정',
-    },
-    { time: 'Day 5', title: '체크아웃 · 귀국', description: '기념품 쇼핑' },
+      content: '쇼핑과 카페 투어, 저녁 이자카야',
+      startTime: '13:00:00',
+      latitude: 123.111111,
+      longitude: 123.222222
+    }
   ],
 };
 
@@ -79,7 +68,7 @@ const ProductDetailScreen: React.FC = () => {
 
   // Editable states
   const [title, setTitle] = useState<string>(product.title);
-  const [description, setDescription] = useState<string>(product.description);
+  const [description, setDescription] = useState<string>(product.content);
   const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
   const [isEditingDescription, setIsEditingDescription] =
     useState<boolean>(false);
@@ -91,7 +80,7 @@ const ProductDetailScreen: React.FC = () => {
         <View style={styles.coverContainer}>
           {/* 배경 이미지 예시 */}
           <Image
-            source={{ uri: product.coverImageUrl }}
+            source={{ uri: product.imageUrls[0] }}
             style={styles.coverImage}
           />
           {/* 배경 이미지 없는 예시 (주석) */}
@@ -122,29 +111,16 @@ const ProductDetailScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
           <View style={styles.metaRow}>
-            <MaterialCommunityIcons
-              name='calendar-month'
-              size={20}
-              color='#8130FF'
-            />
-            <Text style={styles.metaText}>{product.dateRange}</Text>
-          </View>
-          <View style={styles.metaRow}>
-            <Ionicons name='people-outline' size={20} color='#8130FF' />
-            <Text style={styles.metaText}>{product.participantSummary}</Text>
-          </View>
-          <View style={styles.metaRow}>
             <Ionicons name='location-outline' size={20} color='#8130FF' />
-            <Text style={styles.metaText}>{product.locationSummary}</Text>
+            <Text style={styles.metaText}>
+              {product.regionNames.reduce(region => `${region} `)}
+            </Text>
           </View>
           <View style={styles.metaRow}>
             <Ionicons name='person-circle-outline' size={20} color='#8130FF' />
-            <Text style={styles.metaText}>
-              {product.guideName} · {product.ratingSummary}
-            </Text>
           </View>
           <View style={styles.tagsRow}>
-            {product.tags.map((tag) => (
+            {product.tagNames.map((tag) => (
               <View key={tag} style={styles.tagChip}>
                 <Text style={styles.tagText}>{tag}</Text>
               </View>
@@ -153,13 +129,13 @@ const ProductDetailScreen: React.FC = () => {
           <View style={styles.editActionsRow}>
             <TouchableOpacity
               style={styles.editActionButton}
-              onPress={() => router.push('/EditTemplateRegionScreen')}
+              onPress={() => router.push(`/guide/product/${id}/edit-regions`)}
             >
               <Text style={styles.editActionText}>지역 편집</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.editActionButton}
-              onPress={() => router.push('/EditTemplateTagsScreen')}
+              onPress={() => router.push(`/guide/product/${id}/edit-tags`)}
             >
               <Text style={styles.editActionText}>태그 편집</Text>
             </TouchableOpacity>
@@ -205,20 +181,21 @@ const ProductDetailScreen: React.FC = () => {
             </Text>
             <TouchableOpacity
               style={styles.editButton}
-              onPress={() => router.push('/EditTripScheduleScreen')}
+              onPress={() => router.push(`/guide/product/${id}/edit-trip-schedule`)}
             >
               <Text style={styles.editButtonText}>편집</Text>
             </TouchableOpacity>
           </View>
-          {product.itinerary.map((item) => (
-            <View key={item.time} style={styles.itineraryItem}>
+          {product.itineraries.map((item) => (
+            <View key={item.startTime} style={styles.itineraryItem}>
               <View style={styles.itineraryTime}>
-                <Text style={styles.itineraryTimeText}>{item.time}</Text>
+                <Text style={styles.itineraryTimeText}>{item.day}</Text>
+                <Text style={styles.itineraryTimeText}>{item.startTime}</Text>
               </View>
               <View style={styles.itineraryContent}>
                 <Text style={styles.itineraryTitle}>{item.title}</Text>
-                {item.description ? (
-                  <Text style={styles.itineraryDesc}>{item.description}</Text>
+                {item.content ? (
+                  <Text style={styles.itineraryDesc}>{item.content}</Text>
                 ) : null}
               </View>
             </View>

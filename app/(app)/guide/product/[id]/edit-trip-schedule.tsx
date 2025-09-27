@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import {
   ScrollView,
@@ -11,6 +11,7 @@ import {
 
 const EditTripScheduleScreen: React.FC = () => {
   const router = useRouter();
+  const { id } = useLocalSearchParams<{ id: string }>();
   return (
     <View style={styles.container}>
       <View style={styles.header}>
