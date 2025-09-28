@@ -1,4 +1,4 @@
-import { signOut } from '@/api/auth';
+import { authApi } from '@/api/auth';
 import { useAuth } from '@/hooks/useAuth';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -13,7 +13,7 @@ const GuideMyPageScreen: React.FC = () => {
   };
 
   const handleSignOut = async () => {
-    await signOut();
+    await authApi.signOut();
     router.replace('/login');
   };
 
