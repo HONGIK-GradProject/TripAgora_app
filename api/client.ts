@@ -39,6 +39,10 @@ apiClient.interceptors.request.use(
     const tokens = await getTokens();
     const accessToken = tokens.accessToken;
 
+    // 토큰 재발급 API에서 액세스 토큰을 검증하는 로직을 회피합니다.
+    if (config.url === '/auth/reissue') {
+      config.headers.Authorization = undefined;
+    }
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
