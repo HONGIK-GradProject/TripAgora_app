@@ -126,7 +126,7 @@ const setItineraries = async (
   itineraries: TemplateItinerary[]
 ): Promise<TemplateSetItinerariesResponse> => {
   const requestData: TemplateSetItinerariesRequest = { itineraries };
-  const response = await apiClient.patch<TemplateSetItinerariesResponse>(
+  const response = await apiClient.put<TemplateSetItinerariesResponse>(
     `/templates/${id}/itineraries`,
     requestData
   );

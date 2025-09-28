@@ -1,5 +1,6 @@
 import { templatesApi } from "@/api/templates";
 import { TemplateItinerary } from "@/types/templates";
+import { isAxiosError } from "axios";
 
 export const createBlankTemplate = async () => {
   try {
@@ -81,7 +82,13 @@ export const setTemplateItineraries = async (id: number, itineraries: TemplateIt
 
     throw new Error('템플릿 일정 수정 에러');
   } catch (error) {
-    console.error(error);
+    if (isAxiosError(error)) {
+      console.error(error.response?.data);
+    }
+    else {
+      console.error(error);
+    }
+    
   }
 }
 

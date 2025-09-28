@@ -75,6 +75,8 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
     setAccessToken(accessToken);
 
+    console.log(accessToken);
+
     try {
       const decodedToken = jwtDecode<AuthDecodedToken>(accessToken);
       if (decodedToken.role) {

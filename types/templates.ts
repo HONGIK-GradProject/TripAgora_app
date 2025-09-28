@@ -114,6 +114,8 @@ interface TemplateSetItinerariesRequest {
 interface TemplateSetItinerariesData {}
 interface TemplateSetItinerariesResponse extends APIResponse<TemplateSetItinerariesData> {}
 
+type TemplateItineraryWithId = TemplateItinerary & { clientId : number };
+
 export {
   TemplateCreateData,
   TemplateCreateRequest,
@@ -123,7 +125,7 @@ export {
   TemplateGetListData,
   TemplateGetListRequest,
   TemplateGetListResponse, TemplateGetRequest,
-  TemplateGetResponse, TemplateInfo, TemplateItinerary, TemplateSetContentData,
+  TemplateGetResponse, TemplateInfo, TemplateItinerary, TemplateItineraryWithId, TemplateSetContentData,
   TemplateSetContentRequest,
   TemplateSetContentResponse,
   TemplateSetImageUrlsData,

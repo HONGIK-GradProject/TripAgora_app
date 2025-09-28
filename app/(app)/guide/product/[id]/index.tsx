@@ -1,6 +1,5 @@
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import { setTemplateContent, setTemplateTitle } from '@/services/templates';
-import { TemplateDetails, TemplateItinerary } from '@/types/templates';
 import { Ionicons } from '@expo/vector-icons';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
@@ -15,41 +14,6 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-interface Itineraries {
-  itineraries: TemplateItinerary[];
-};
-
-type ProductDetails = Itineraries & TemplateDetails;
-
-const sampleProduct: ProductDetails = {
-  title: '후쿠오카 4박 5일 함께해요',
-  imageUrls: [
-    'https://images.unsplash.com/photo-1549693578-d683be217e58?q=80&w=1640&auto=format&fit=crop'
-  ],
-  tagNames: ['휴양·힐링', '쇼핑', '즉흥형', '핫플'],
-  content:
-    '후쿠오카에서 4박 5일간 함께 여행하실 분을 모집합니다! 가까워서 금방 다녀오기에도 좋아요. 하카타의 캐널시티와 그 주변에서 주로 활동할 예정이에요. 일정은 유동적으로 조율할 수 있습니다.',
-  regionNames: ['후쿠오카', '일본'],
-  itineraries: [
-    {
-      day: 1,
-      title: '하카타 도착 - 체크인',
-      content: '캐널시티 산책, 저녁 라멘 투어',
-      startTime: '12:00:00',
-      latitude: 123.111111,
-      longitude: 123.222222
-    },
-    {
-      day: 2,
-      title: '텐진 · 다자이후',
-      content: '쇼핑과 카페 투어, 저녁 이자카야',
-      startTime: '13:00:00',
-      latitude: 123.111111,
-      longitude: 123.222222
-    }
-  ],
-};
-
 const ProductDetailScreen: React.FC = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -63,19 +27,17 @@ const ProductDetailScreen: React.FC = () => {
   const _id : number = +id;
 
   // In the future, use `id` to fetch detail via API. For now, show sample.
-  const { title, content, regionNames, tagNames, imageUrls, isEditingContent, isEditingTitle, setIsEditingContent, setIsEditingTitle, setTitle, setContent, itineraries } = useTemplateDetails(id);
+  const { title, content, regionNames, tagNames, imageUrls, isEditingContent, isEditingTitle, setIsEditingContent, setIsEditingTitle, setTitle, setContent, itineraries } = useTemplateDetails();
 
   const handleEditTitle = async () => {
-    const prevTitle = title;
-    if (isEditingTitle && title !== prevTitle) {
+    if (isEditingTitle) {
       await setTemplateTitle(_id, title);
     }
     setIsEditingTitle((prev) => !prev);
   }
 
   const handleEditContent = async () => {
-    const prevContent = content;
-    if (isEditingContent && title !== prevContent) {
+    if (isEditingContent) {
       await setTemplateContent(_id, content);
     }
     setIsEditingContent((prev) => !prev);
@@ -190,15 +152,15 @@ const ProductDetailScreen: React.FC = () => {
             </Text>
             <TouchableOpacity
               style={styles.editButton}
-              onPress={() => router.push(`/guide/product/${id}/edit-trip-schedule`)}
+              onPress={() => router.push(`/guide/product/${id}/edit-itineraries`)}
             >
               <Text style={styles.editButtonText}>편집</Text>
             </TouchableOpacity>
           </View>
           {itineraries.map((item) => (
-            <View key={item.startTime} style={styles.itineraryItem}>
+            <View key={item.clientId} style={styles.itineraryItem}>
               <View style={styles.itineraryTime}>
-                <Text style={styles.itineraryTimeText}>{item.day}</Text>
+                <Text style={styles.itineraryTimeText}>Day {item.day}</Text>
                 <Text style={styles.itineraryTimeText}>{item.startTime}</Text>
               </View>
               <View style={styles.itineraryContent}>
