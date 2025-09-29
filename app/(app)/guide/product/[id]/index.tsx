@@ -17,32 +17,45 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const ProductDetailScreen: React.FC = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   const { id } = useLocalSearchParams<{ id?: string }>();
 
-  if (!id) {
-    return <Redirect href='/(app)/guide/product'/>
-  }
-  
-  const _id : number = +id;
-
   // In the future, use `id` to fetch detail via API. For now, show sample.
-  const { title, content, regionNames, tagNames, imageUrls, isEditingContent, isEditingTitle, setIsEditingContent, setIsEditingTitle, setTitle, setContent, itineraries } = useTemplateDetails();
+  const {
+    title,
+    content,
+    regionNames,
+    tagNames,
+    imageUrls,
+    isEditingContent,
+    isEditingTitle,
+    setIsEditingContent,
+    setIsEditingTitle,
+    setTitle,
+    setContent,
+    itineraries,
+  } = useTemplateDetails();
+
+  if (!id) {
+    return <Redirect href='/(app)/guide/product' />;
+  }
+
+  const _id: number = +id;
 
   const handleEditTitle = async () => {
     if (isEditingTitle) {
       await setTemplateTitle(_id, title);
     }
     setIsEditingTitle((prev) => !prev);
-  }
+  };
 
   const handleEditContent = async () => {
     if (isEditingContent) {
       await setTemplateContent(_id, content);
     }
     setIsEditingContent((prev) => !prev);
-  }
-  
+  };
+
   // Location and Tags will navigate to separate edit screens; no local edit state needed
 
   return (
@@ -50,10 +63,7 @@ const ProductDetailScreen: React.FC = () => {
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
         <View style={styles.coverContainer}>
           {/* 배경 이미지 예시 */}
-          <Image
-            source={{ uri: imageUrls[0] }}
-            style={styles.coverImage}
-          />
+          <Image source={{ uri: imageUrls[0] }} style={styles.coverImage} />
           {/* 배경 이미지 없는 예시 (주석) */}
           {/** <View style={styles.coverPlaceholder} /> */}
         </View>
@@ -83,9 +93,7 @@ const ProductDetailScreen: React.FC = () => {
           </View>
           <View style={styles.metaRow}>
             <Ionicons name='location-outline' size={20} color='#8130FF' />
-            <Text style={styles.metaText}>
-              {regionNames.join(' ')}
-            </Text>
+            <Text style={styles.metaText}>{regionNames.join(' ')}</Text>
           </View>
           <View style={styles.metaRow}>
             <Ionicons name='person-circle-outline' size={20} color='#8130FF' />
@@ -152,7 +160,9 @@ const ProductDetailScreen: React.FC = () => {
             </Text>
             <TouchableOpacity
               style={styles.editButton}
-              onPress={() => router.push(`/guide/product/${id}/edit-itineraries`)}
+              onPress={() =>
+                router.push(`/guide/product/${id}/edit-itineraries`)
+              }
             >
               <Text style={styles.editButtonText}>편집</Text>
             </TouchableOpacity>
