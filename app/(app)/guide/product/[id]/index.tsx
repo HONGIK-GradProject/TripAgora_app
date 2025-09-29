@@ -1,10 +1,11 @@
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import { setTemplateContent, setTemplateTitle } from '@/services/templates';
 import { Ionicons } from '@expo/vector-icons';
-import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
-import React from 'react';
+import { Redirect, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useCallback } from 'react';
 import {
   Image,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -34,7 +35,17 @@ const ProductDetailScreen: React.FC = () => {
     setTitle,
     setContent,
     itineraries,
+    isLoading,
+    refetch,
   } = useTemplateDetails();
+
+  useFocusEffect(
+    useCallback(() => {
+      if (id) {
+        refetch();
+      }
+    }, [id, refetch])
+  );
 
   if (!id) {
     return <Redirect href='/(app)/guide/product' />;
@@ -60,7 +71,12 @@ const ProductDetailScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollViewContent}>
+      <ScrollView
+        contentContainerStyle={styles.scrollViewContent}
+        refreshControl={
+          <RefreshControl refreshing={isLoading} onRefresh={refetch} />
+        }
+      >
         <View style={styles.coverContainer}>
           {/* 배경 이미지 예시 */}
           <Image source={{ uri: imageUrls[0] }} style={styles.coverImage} />

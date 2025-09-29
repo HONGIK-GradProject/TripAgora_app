@@ -72,32 +72,32 @@ const useTemplateDetailsLogic = (id: string) => {
   const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
   const [isEditingContent, setIsEditingContent] = useState<boolean>(false);
 
-  useEffect(() => {
-    const fetchTemplateDetails = async () => {
-      if (!id) return;
-      setIsLoading(true);
-      try {
-        const response = await getTemplateDetails(id);
-        const itinerariesResponse = await getItineraries(+id);
+  const fetchTemplateDetails = useCallback(async () => {
+    if (!id) return;
+    setIsLoading(true);
+    try {
+      const response = await getTemplateDetails(id);
+      const itinerariesResponse = await getItineraries(+id);
 
-        if (response && itinerariesResponse) {
-          const itinerariesWithId = addItineraryIds(itinerariesResponse.itineraries);
-          setTitle(response.title);
-          setContent(response.content);
-          setRegionNames(response.regionNames);
-          setTagNames(response.tagNames);
-          setImageUrls(response.imageUrls);
-          setItineraries(sortItineraries(itinerariesWithId));
-        }
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setIsLoading(false);
+      if (response && itinerariesResponse) {
+        const itinerariesWithId = addItineraryIds(itinerariesResponse.itineraries);
+        setTitle(response.title);
+        setContent(response.content);
+        setRegionNames(response.regionNames);
+        setTagNames(response.tagNames);
+        setImageUrls(response.imageUrls);
+        setItineraries(sortItineraries(itinerariesWithId));
       }
-    };
-
-    fetchTemplateDetails();
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
   }, [id]);
+
+  useEffect(() => {
+    fetchTemplateDetails();
+  }, [fetchTemplateDetails]);
 
   const addItinerary = useCallback((newItinerary: TemplateItineraryWithId) => {
     setItineraries((prev) => sortItineraries([...prev, newItinerary]));
@@ -135,6 +135,7 @@ const useTemplateDetailsLogic = (id: string) => {
     addItinerary,
     updateItinerary,
     deleteItinerary,
+    refetch: fetchTemplateDetails,
   };
 };
 

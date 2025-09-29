@@ -2,8 +2,8 @@ import GuideProductList from '@/components/guide/product/GuideProductList';
 import { useTemplateList } from '@/hooks/templates/useTemplateList';
 import { createBlankTemplate } from '@/services/templates';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import React from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import React, { useCallback } from 'react';
 import {
   ActivityIndicator,
   Text,
@@ -18,6 +18,12 @@ const MyProductsScreen: React.FC = () => {
   const { products, isLoading, error, hasNextPage, loadMore, refetch } =
     useTemplateList();
   const { bottom } = useSafeAreaInsets();
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   const handleCreateTemplate = async () => {
     try {
