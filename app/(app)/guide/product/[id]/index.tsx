@@ -93,7 +93,7 @@ const ProductDetailScreen: React.FC = () => {
           </View>
           <View style={styles.metaRow}>
             <Ionicons name='location-outline' size={20} color='#8130FF' />
-            <Text style={styles.metaText}>{regionNames.join(' ')}</Text>
+            <Text style={styles.metaText}>{regionNames.join(', ')}</Text>
           </View>
           <View style={styles.metaRow}>
             <Ionicons name='person-circle-outline' size={20} color='#8130FF' />
