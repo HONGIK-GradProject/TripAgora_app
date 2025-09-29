@@ -1,7 +1,12 @@
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import { setTemplateContent, setTemplateTitle } from '@/services/templates';
 import { Ionicons } from '@expo/vector-icons';
-import { Redirect, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import {
+  Redirect,
+  useFocusEffect,
+  useLocalSearchParams,
+  useRouter,
+} from 'expo-router';
 import React, { useCallback } from 'react';
 import {
   Image,
@@ -78,10 +83,9 @@ const ProductDetailScreen: React.FC = () => {
         }
       >
         <View style={styles.coverContainer}>
-          {/* 배경 이미지 예시 */}
+          {/* 배경 이미지 */}
           <Image source={{ uri: imageUrls[0] }} style={styles.coverImage} />
-          {/* 배경 이미지 없는 예시 (주석) */}
-          {/** <View style={styles.coverPlaceholder} /> */}
+          {/* 이미지가 없을 땐 이대로 그냥 회색 배경? 아니면 default 이미지를 만들까? */}
         </View>
 
         <View style={styles.section}>
@@ -103,7 +107,7 @@ const ProductDetailScreen: React.FC = () => {
               onPress={handleEditTitle}
             >
               <Text style={styles.editButtonText}>
-                {isEditingTitle ? '완료' : '편집'}
+                {isEditingTitle ? '저장' : '편집'}
               </Text>
             </TouchableOpacity>
           </View>

@@ -17,7 +17,10 @@ export const useTemplateList = () => {
     async (isRefresh: boolean) => {
       const pageToLoad = isRefresh ? 0 : stateRef.current.page;
       // ref를 통해 최신 상태를 확인합니다.
-      if (stateRef.current.isLoading || (!isRefresh && !stateRef.current.hasNextPage)) {
+      if (
+        stateRef.current.isLoading ||
+        (!isRefresh && !stateRef.current.hasNextPage)
+      ) {
         return;
       }
 
@@ -60,8 +63,7 @@ export const useTemplateList = () => {
   useEffect(() => {
     // 컴포넌트 마운트 시 첫 페이지 로드
     fetchTemplates(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchTemplates]); // fetchTemplates는 이제 안정적인 의존성입니다.
+  }, [fetchTemplates]);
 
   return { products, isLoading, error, hasNextPage, loadMore, refetch };
 };

@@ -15,8 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const MyProductsScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
-  const { products, isLoading, error, hasNextPage, loadMore, refetch } =
-    useTemplateList();
+  const { products, isLoading, error, loadMore, refetch } = useTemplateList();
   const { bottom } = useSafeAreaInsets();
 
   useFocusEffect(
