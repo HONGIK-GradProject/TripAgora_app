@@ -15,7 +15,7 @@ const EditTemplateTagsScreen: React.FC = () => {
   const showToast = () => {
     Toast.show({
       type: 'error',
-      text1: '태그를 3개 이상 선택해 주세요.',
+      text1: '태그는 5개 이하여야 합니다.',
       position: 'bottom',
       bottomOffset: 100,
     });
@@ -28,7 +28,7 @@ const EditTemplateTagsScreen: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if (selectedTags.length < 3) {
+    if (selectedTags.length > 5) {
       showToast();
       return;
     }
@@ -36,7 +36,7 @@ const EditTemplateTagsScreen: React.FC = () => {
       const _id = +id;
       await setTemplateTags(_id, selectedTags);
       console.log(`Saved tags for template ${id}:`, selectedTags);
-      
+
       return true;
     } catch (error) {
       console.error('태그 업데이트 실패:', error);
