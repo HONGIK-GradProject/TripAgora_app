@@ -1,5 +1,6 @@
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import { setTemplateContent, setTemplateTitle } from '@/services/templates';
+import { flattenItineraries } from '@/utils/Itineraries';
 import { Ionicons } from '@expo/vector-icons';
 import {
   Redirect,
@@ -187,7 +188,7 @@ const ProductDetailScreen: React.FC = () => {
               <Text style={styles.editButtonText}>편집</Text>
             </TouchableOpacity>
           </View>
-          {itineraries.map((item) => (
+          {flattenItineraries(itineraries).map((item) => (
             <View key={item.clientId} style={styles.itineraryItem}>
               <View style={styles.itineraryTime}>
                 <Text style={styles.itineraryTimeText}>Day {item.day}</Text>

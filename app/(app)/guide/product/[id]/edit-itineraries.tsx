@@ -2,6 +2,7 @@ import GuideItineraryList, { TemplateItineraryWithId } from '@/components/guide/
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import { setTemplateItineraries } from '@/services/templates';
 import { TemplateItinerary } from '@/types/templates';
+import { flattenItineraries } from '@/utils/Itineraries';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
@@ -17,7 +18,7 @@ const EditTripScheduleScreen: React.FC = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
 
   // useTemplateDetails 훅에서 여정 데이터 및 관리 함수들을 가져옵니다.
-  const { itineraries, deleteItinerary, addItinerary } = useTemplateDetails();
+  const { itineraries, day, deleteItinerary, addItinerary, setDay } = useTemplateDetails();
 
   // 수정/삭제 핸들러를 정의합니다. (추후 수정 모달 등을 띄우는 로직 추가)
   const handleUpdate = (item: TemplateItineraryWithId) => {
@@ -44,7 +45,7 @@ const EditTripScheduleScreen: React.FC = () => {
       startTime: '00:00:00',
       latitude: 0,
       longitude: 0,
-      clientId: Date.now() + itineraries.length,
+      clientId: Date.now(),
       id: id
     };
     console.log('Add Item:', newSchedule.clientId);
@@ -57,7 +58,8 @@ const EditTripScheduleScreen: React.FC = () => {
 
   const handleSave = async () => {
     try {
-      const newItineraries : TemplateItinerary[] = itineraries.map(schedule => {
+      const newItineraries : TemplateItinerary[] = flattenItineraries(itineraries)
+      .map(schedule => {
         const { clientId, ...rest } = schedule;
         return rest;
       });
@@ -69,6 +71,9 @@ const EditTripScheduleScreen: React.FC = () => {
       router.back();
     }
   }
+
+  // `itineraries` 객체에서 day 목록을 추출하고 정렬합니다.
+  const availableDays = Object.keys(itineraries).map(Number).sort((a, b) => a - b);
 
   // FlatList의 헤더 컴포넌트
   const ListHeader = (
@@ -83,12 +88,25 @@ const EditTripScheduleScreen: React.FC = () => {
       </View>
 
       <View style={styles.daySelection}>
-        <TouchableOpacity style={[styles.dayButton, styles.dayButtonActive]}>
-          <Text style={styles.dayButtonTextActive}>1일차</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.dayButton}>
-          <Text style={styles.dayButtonText}>2일차</Text>
-        </TouchableOpacity>
+        {availableDays.map((dayNumber) => (
+          <TouchableOpacity
+            key={dayNumber}
+            style={[
+              styles.dayButton,
+              day === dayNumber && styles.dayButtonActive,
+            ]}
+            onPress={() => setDay(dayNumber)}
+          >
+            <Text
+              style={[
+                styles.dayButtonText,
+                day === dayNumber && styles.dayButtonTextActive,
+              ]}
+            >
+              {dayNumber}일차
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
       <Text style={styles.listTitle}>상세 일정</Text>
     </>
@@ -112,10 +130,10 @@ const EditTripScheduleScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      {/* ScrollView를 제거하고 GuideItineraryList를 메인 스크롤 컨테이너로 사용 */}
-      {/* itineraries prop에 sampleItineraries를 전달하여 UI를 확인합니다. */}
+      {/* 선택된 날짜(day)에 해당하는 일정을 표시합니다. */}
+      {/* 데이터가 없는 경우를 대비해 '|| []'를 추가하여 안정성을 높입니다. */}
       <GuideItineraryList
-        itineraries={itineraries}
+        itineraries={itineraries[day] || []}
         onUpdate={handleUpdate}
         onDelete={handleDelete}
         ListHeaderComponent={ListHeader}

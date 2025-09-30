@@ -114,6 +114,7 @@ interface TemplateSetItinerariesRequest {
 interface TemplateSetItinerariesData {}
 interface TemplateSetItinerariesResponse extends APIResponse<TemplateSetItinerariesData> {}
 
+// API에서 id를 추가하여 제공 할 예정. API 수정이 끝나는 대로 삭제
 type TemplateItineraryWithId = TemplateItinerary & { clientId : number };
 
 export {

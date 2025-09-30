@@ -1,5 +1,6 @@
 import { getItineraries, getTemplateDetails } from '@/services/templates';
-import { TemplateItinerary, TemplateItineraryWithId } from '@/types/templates';
+import { TemplateItineraryWithId } from '@/types/templates';
+import { addItineraryIds, flattenItineraries, groupItinerariesByDay } from '@/utils/Itineraries';
 import React, {
   createContext,
   ReactNode,
@@ -8,26 +9,6 @@ import React, {
   useState,
 } from 'react';
 
-// --- Helper Functions ---
-const sortItineraries = (
-  items: TemplateItineraryWithId[]
-): TemplateItineraryWithId[] => {
-  return [...items].sort((a, b) => {
-    if (a.day !== b.day) {
-      return a.day - b.day;
-    }
-    return a.startTime.localeCompare(b.startTime);
-  });
-};
-
-const addItineraryIds = (
-  items: TemplateItinerary[]
-): TemplateItineraryWithId[] => {
-  return items.map((item, index) => ({
-    ...item,
-    clientId: Date.now() + index,
-  }));
-};
 
 // --- Internal Hook with State Logic ---
 // Note: This hook contains the actual state and logic.
@@ -38,9 +19,12 @@ const useTemplateDetailsLogic = (id: string) => {
   const [regionNames, setRegionNames] = useState<string[]>(['서울']);
   const [tagNames, setTagNames] = useState<string[]>([]);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [itineraries, setItineraries] = useState<TemplateItineraryWithId[]>([]);
+  const [itineraries, setItineraries] = useState<
+    Record<number, TemplateItineraryWithId[]>
+  >({});
   const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
   const [isEditingContent, setIsEditingContent] = useState<boolean>(false);
+  const [day, setDay] = useState<number>(1);
 
   const fetchTemplateDetails = useCallback(async () => {
     if (!id) return;
@@ -58,7 +42,7 @@ const useTemplateDetailsLogic = (id: string) => {
         setRegionNames(response.regionNames);
         setTagNames(response.tagNames);
         setImageUrls(response.imageUrls);
-        setItineraries(sortItineraries(itinerariesWithId));
+        setItineraries(groupItinerariesByDay(itinerariesWithId));
       }
     } catch (error) {
       console.log(error);
@@ -72,25 +56,40 @@ const useTemplateDetailsLogic = (id: string) => {
   }, [fetchTemplateDetails]);
 
   const addItinerary = useCallback((newItinerary: TemplateItineraryWithId) => {
-    setItineraries((prev) => sortItineraries([...prev, newItinerary]));
+    const day = newItinerary.day;
+    setItineraries((prev) => {
+      const dayItineraries = prev[day] || [];
+      const updatedDayItineraries = [...dayItineraries, newItinerary].sort((a, b) =>
+        a.startTime.localeCompare(b.startTime)
+      );
+      return {
+        ...prev,
+        [day]: updatedDayItineraries,
+      };
+    });
   }, []);
 
   const updateItinerary = useCallback(
     (updatedItinerary: TemplateItineraryWithId) => {
       setItineraries((prev) => {
-        const updatedList = prev.map((item) =>
+        const flatList = flattenItineraries(prev);
+        const updatedList = flatList.map((item) =>
           item.clientId === updatedItinerary.clientId ? updatedItinerary : item
         );
-        return sortItineraries(updatedList);
+        return groupItinerariesByDay(updatedList);
       });
     },
     []
   );
 
   const deleteItinerary = useCallback((itineraryId: number) => {
-    setItineraries((prev) =>
-      prev.filter((item) => item.clientId !== itineraryId)
-    );
+    setItineraries((prev) => {
+      const flatList = flattenItineraries(prev);
+      const updatedList = flatList.filter(
+        (item) => item.clientId !== itineraryId
+      );
+      return groupItinerariesByDay(updatedList);
+    });
   }, []);
 
   return {
@@ -103,6 +102,7 @@ const useTemplateDetailsLogic = (id: string) => {
     itineraries,
     isEditingContent,
     isEditingTitle,
+    day,
     setTitle,
     setContent,
     setRegionNames,
@@ -113,6 +113,7 @@ const useTemplateDetailsLogic = (id: string) => {
     updateItinerary,
     deleteItinerary,
     refetch: fetchTemplateDetails,
+    setDay,
   };
 };
 

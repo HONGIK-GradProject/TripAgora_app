@@ -35,12 +35,12 @@ type ScheduleParamProps = {
 const AddScheduleItemScreen: React.FC = () => {
   const router = useRouter();
   const params = useLocalSearchParams<ScheduleParamProps>();
-  const { updateItinerary } = useTemplateDetails();
+  const { updateItinerary, setDay } = useTemplateDetails();
 
   // TextInput을 제어하기 위해 state를 사용합니다.
   // useLocalSearchParams에서 받은 값을 초기값으로 설정합니다.
   const [title, setTitle] = React.useState(params.title || '');
-  const [day, setDay] = React.useState(params.day || '');
+  const [localDay, setLocalDay] = React.useState(params.day || '');
   const [content, setContent] = React.useState(params.content || '');
   const [startTime, setStartTime] = React.useState(params.startTime || '');
   const [latitude, setLatitude] = React.useState(params.latitude || '');
@@ -49,7 +49,7 @@ const AddScheduleItemScreen: React.FC = () => {
   const handleEditSchedule = () => {
     // 저장 시에는 state의 현재 값을 사용합니다.
     const newSchedule: TemplateItineraryWithId = {
-      day: +day,
+      day: +localDay,
       title: title,
       content: content,
       startTime: startTime,
@@ -59,6 +59,7 @@ const AddScheduleItemScreen: React.FC = () => {
     };
 
     updateItinerary(newSchedule);
+    setDay(newSchedule.day);
     router.back();
   };
 
@@ -100,8 +101,8 @@ const AddScheduleItemScreen: React.FC = () => {
         <View style={styles.formSection}>
           <Text style={styles.label}>Day</Text>
           <TextInput
-            value={day}
-            onChangeText={setDay}
+            value={localDay}
+            onChangeText={setLocalDay}
             placeholder='Day'
             placeholderTextColor={'#9A9A9A'}
             style={styles.input}
