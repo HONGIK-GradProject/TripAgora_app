@@ -45,7 +45,10 @@ const ProductDetailScreen: React.FC = () => {
   } = useTemplateDetails();
 
   const availableDays = useMemo(
-    () => Object.keys(itineraries).map(Number).sort((a, b) => a - b),
+    () =>
+      Object.keys(itineraries)
+        .map(Number)
+        .sort((a, b) => a - b),
     [itineraries]
   );
 
@@ -226,8 +229,7 @@ const ProductDetailScreen: React.FC = () => {
           ))}
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.listTitle}>상세 일정</Text>
+        <View style={[styles.section, { paddingTop: 0 }]}>
           {(itineraries[selectedDay] || [])
             .sort((a, b) => a.startTime.localeCompare(b.startTime))
             .map((item) => (
