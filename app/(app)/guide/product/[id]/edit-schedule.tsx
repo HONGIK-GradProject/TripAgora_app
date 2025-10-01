@@ -1,9 +1,11 @@
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import { TemplateItinerary, TemplateItineraryWithId } from '@/types/templates';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import {
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,14 +14,14 @@ import {
   View,
 } from 'react-native';
 
-const asdf : TemplateItinerary = {
+const asdf: TemplateItinerary = {
   day: 0,
   title: '',
   content: '',
   startTime: '',
   latitude: 0,
-  longitude: 0
-}
+  longitude: 0,
+};
 
 type ScheduleParamProps = {
   day: string;
@@ -30,7 +32,7 @@ type ScheduleParamProps = {
   longitude: string;
   clientId: string;
   id: string;
-}
+};
 
 const AddScheduleItemScreen: React.FC = () => {
   const router = useRouter();
@@ -42,9 +44,47 @@ const AddScheduleItemScreen: React.FC = () => {
   const [title, setTitle] = React.useState(params.title || '');
   const [localDay, setLocalDay] = React.useState(params.day || '');
   const [content, setContent] = React.useState(params.content || '');
-  const [startTime, setStartTime] = React.useState(params.startTime || '');
+  const [startTime, setStartTime] = React.useState(params.startTime || '09:00');
   const [latitude, setLatitude] = React.useState(params.latitude || '');
   const [longitude, setLongitude] = React.useState(params.longitude || '');
+
+  const parseStartTime = (timeStr: string) => {
+    if (!timeStr) {
+      const d = new Date();
+      d.setHours(9);
+      d.setMinutes(0);
+      return d;
+    }
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    const date = new Date();
+    if (!isNaN(hours) && !isNaN(minutes)) {
+      date.setHours(hours);
+      date.setMinutes(minutes);
+    }
+    return date;
+  };
+
+  const [date, setDate] = React.useState(parseStartTime(params.startTime));
+  const [showPicker, setShowPicker] = React.useState(false);
+
+  const onTimeChange = (event: any, selectedDate?: Date) => {
+    const isIOS = Platform.OS === 'ios';
+    if (!isIOS) {
+      setShowPicker(false);
+    }
+
+    if (event.type === 'set' && selectedDate) {
+      if (isIOS) {
+        setShowPicker(false);
+      }
+      setDate(selectedDate);
+      const hours = selectedDate.getHours().toString().padStart(2, '0');
+      const minutes = selectedDate.getMinutes().toString().padStart(2, '0');
+      setStartTime(`${hours}:${minutes}`);
+    } else if (event.type === 'dismissed') {
+      setShowPicker(false);
+    }
+  };
 
   const handleEditSchedule = () => {
     // 저장 시에는 state의 현재 값을 사용합니다.
@@ -73,7 +113,10 @@ const AddScheduleItemScreen: React.FC = () => {
           <Ionicons name='arrow-back' size={24} color='#000' />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>일정 수정</Text>
-        <TouchableOpacity style={styles.saveButton} onPress={handleEditSchedule}>
+        <TouchableOpacity
+          style={styles.saveButton}
+          onPress={handleEditSchedule}
+        >
           <Text style={styles.saveButtonText}>저장</Text>
         </TouchableOpacity>
       </View>
@@ -124,14 +167,25 @@ const AddScheduleItemScreen: React.FC = () => {
         </View>
 
         <View style={styles.formSection}>
-          <Text style={styles.label}>시간</Text>
-          <TextInput
-            value={startTime}
-            onChangeText={setStartTime}
-            placeholder='HH:MM 형식으로 입력 (예: 14:30)'
-            placeholderTextColor={'#9A9A9A'}
+          <Text style={styles.label}>시작 시간</Text>
+          <TouchableOpacity
+            onPress={() => setShowPicker(true)}
             style={styles.input}
-          />
+          >
+            <View style={styles.timeInputContainer}>
+              <Text style={styles.timeText}>{startTime.substring(0, 5)}</Text>
+              <Ionicons name="time-outline" size={20} color="#8130FF" />
+            </View>
+          </TouchableOpacity>
+          {showPicker && (
+            <DateTimePicker
+              value={date}
+              mode={'time'}
+              is24Hour={true}
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={onTimeChange}
+            />
+          )}
         </View>
 
         <View style={styles.formSection}>
@@ -236,6 +290,15 @@ const styles = StyleSheet.create({
   },
   multiline: {
     minHeight: 100,
+  },
+  timeText: {
+    fontSize: 14,
+    color: '#000',
+  },
+  timeInputContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
 });
 

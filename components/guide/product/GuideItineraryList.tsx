@@ -21,7 +21,7 @@ const GuideItineraryList: React.FC<GuideItineraryListProps> = ({ itineraries, on
       <View className='flex-row justify-between items-start mb-2'>
         <View className='flex-1'>
           <Text className='text-lg font-bold text-blue-600'>Day {item.day}</Text>
-          <Text className='text-base text-gray-500'>{item.startTime}</Text>
+          <Text className='text-base text-gray-500'>{item.startTime.substring(0, 5)}</Text>
         </View>
         <View className='flex-row'>
           <TouchableOpacity onPress={() => onUpdate(item)} className='p-2 active:opacity-50'>

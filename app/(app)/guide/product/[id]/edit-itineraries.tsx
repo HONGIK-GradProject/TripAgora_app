@@ -1,4 +1,6 @@
-import GuideItineraryList, { TemplateItineraryWithId } from '@/components/guide/product/GuideItineraryList';
+import GuideItineraryList, {
+  TemplateItineraryWithId,
+} from '@/components/guide/product/GuideItineraryList';
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import { setTemplateItineraries } from '@/services/templates';
 import { TemplateItinerary } from '@/types/templates';
@@ -6,19 +8,15 @@ import { flattenItineraries } from '@/utils/Itineraries';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const EditTripScheduleScreen: React.FC = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   // useTemplateDetails 훅에서 여정 데이터 및 관리 함수들을 가져옵니다.
-  const { itineraries, day, deleteItinerary, addItinerary, setDay } = useTemplateDetails();
+  const { itineraries, day, deleteItinerary, addItinerary, setDay } =
+    useTemplateDetails();
 
   // 수정/삭제 핸들러를 정의합니다. (추후 수정 모달 등을 띄우는 로직 추가)
   const handleUpdate = (item: TemplateItineraryWithId) => {
@@ -27,8 +25,8 @@ const EditTripScheduleScreen: React.FC = () => {
       pathname: '/(app)/guide/product/[id]/edit-schedule',
       params: {
         ...item,
-        id: id
-      }
+        id: id,
+      },
     });
   };
 
@@ -42,24 +40,25 @@ const EditTripScheduleScreen: React.FC = () => {
       day: 1,
       title: '',
       content: '',
-      startTime: '00:00:00',
+      startTime: '00:00',
       latitude: 0,
       longitude: 0,
       clientId: Date.now(),
-      id: id
+      id: id,
     };
     console.log('Add Item:', newSchedule.clientId);
     addItinerary(newSchedule);
     router.push({
       pathname: '/(app)/guide/product/[id]/edit-schedule',
-      params: newSchedule
+      params: newSchedule,
     });
-  }
+  };
 
   const handleSave = async () => {
     try {
-      const newItineraries : TemplateItinerary[] = flattenItineraries(itineraries)
-      .map(schedule => {
+      const newItineraries: TemplateItinerary[] = flattenItineraries(
+        itineraries
+      ).map((schedule) => {
         const { clientId, ...rest } = schedule;
         return rest;
       });
@@ -70,10 +69,12 @@ const EditTripScheduleScreen: React.FC = () => {
     } finally {
       router.back();
     }
-  }
+  };
 
   // `itineraries` 객체에서 day 목록을 추출하고 정렬합니다.
-  const availableDays = Object.keys(itineraries).map(Number).sort((a, b) => a - b);
+  const availableDays = Object.keys(itineraries)
+    .map(Number)
+    .sort((a, b) => a - b);
 
   // FlatList의 헤더 컴포넌트
   const ListHeader = (
@@ -122,10 +123,7 @@ const EditTripScheduleScreen: React.FC = () => {
           <Ionicons name='arrow-back' size={24} color='#000' />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>여행 일정 편집하기</Text>
-        <TouchableOpacity
-          style={styles.saveButton}
-          onPress={handleSave}
-        >
+        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
           <Text style={styles.saveButtonText}>저장</Text>
         </TouchableOpacity>
       </View>
@@ -140,10 +138,7 @@ const EditTripScheduleScreen: React.FC = () => {
         contentContainerStyle={styles.scrollViewContent}
       />
 
-      <TouchableOpacity
-        style={styles.addScheduleButton}
-        onPress={handleAdd}
-      >
+      <TouchableOpacity style={styles.addScheduleButton} onPress={handleAdd}>
         <Ionicons name='add-circle' size={30} color='#8130FF' />
         <Text style={styles.addScheduleButtonText}>일정 추가</Text>
       </TouchableOpacity>
@@ -251,7 +246,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 10,
     backgroundColor: '#fff',
-  }
+  },
 });
 
 export default EditTripScheduleScreen;
