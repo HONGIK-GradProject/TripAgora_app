@@ -1,6 +1,5 @@
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import { setTemplateContent, setTemplateTitle } from '@/services/templates';
-import { flattenItineraries } from '@/utils/Itineraries';
 import { Ionicons } from '@expo/vector-icons';
 import {
   Redirect,
@@ -8,7 +7,7 @@ import {
   useLocalSearchParams,
   useRouter,
 } from 'expo-router';
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Image,
   RefreshControl,
@@ -44,6 +43,21 @@ const ProductDetailScreen: React.FC = () => {
     isLoading,
     refetch,
   } = useTemplateDetails();
+
+  const availableDays = useMemo(
+    () => Object.keys(itineraries).map(Number).sort((a, b) => a - b),
+    [itineraries]
+  );
+
+  const [selectedDay, setSelectedDay] = useState(
+    availableDays.length > 0 ? availableDays[0] : 1
+  );
+
+  useEffect(() => {
+    if (availableDays.length > 0 && !availableDays.includes(selectedDay)) {
+      setSelectedDay(availableDays[0]);
+    }
+  }, [availableDays, selectedDay]);
 
   useFocusEffect(
     useCallback(() => {
@@ -188,20 +202,49 @@ const ProductDetailScreen: React.FC = () => {
               <Text style={styles.editButtonText}>편집</Text>
             </TouchableOpacity>
           </View>
-          {flattenItineraries(itineraries).map((item) => (
-            <View key={item.clientId} style={styles.itineraryItem}>
-              <View style={styles.itineraryTime}>
-                <Text style={styles.itineraryTimeText}>Day {item.day}</Text>
-                <Text style={styles.itineraryTimeText}>{item.startTime}</Text>
-              </View>
-              <View style={styles.itineraryContent}>
-                <Text style={styles.itineraryTitle}>{item.title}</Text>
-                {item.content ? (
-                  <Text style={styles.itineraryDesc}>{item.content}</Text>
-                ) : null}
-              </View>
-            </View>
+        </View>
+
+        <View style={styles.daySelection}>
+          {availableDays.map((dayNumber) => (
+            <TouchableOpacity
+              key={dayNumber}
+              style={[
+                styles.dayButton,
+                selectedDay === dayNumber && styles.dayButtonActive,
+              ]}
+              onPress={() => setSelectedDay(dayNumber)}
+            >
+              <Text
+                style={[
+                  styles.dayButtonText,
+                  selectedDay === dayNumber && styles.dayButtonTextActive,
+                ]}
+              >
+                {dayNumber}일차
+              </Text>
+            </TouchableOpacity>
           ))}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.listTitle}>상세 일정</Text>
+          {(itineraries[selectedDay] || [])
+            .sort((a, b) => a.startTime.localeCompare(b.startTime))
+            .map((item) => (
+              <View key={item.clientId} style={styles.itineraryItem}>
+                <View style={styles.itineraryTime}>
+                  <Text style={styles.itineraryTimeText}>
+                    {item.startTime.substring(0, 5)}
+                  </Text>
+                </View>
+                <View style={styles.itineraryContent}>
+                  <Text style={styles.itineraryTitle}>{item.title}</Text>
+                  {item.content ? (
+                    <Text style={styles.itineraryDesc}>{item.content}</Text>
+                  ) : null}
+                </View>
+              </View>
+            ))}
         </View>
 
         <View style={{ height: 40 }} />
@@ -434,6 +477,39 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     color: '#000',
+  },
+  daySelection: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    backgroundColor: '#fff',
+    paddingHorizontal: 20,
+  },
+  dayButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    borderColor: '#949494',
+    borderWidth: 1,
+    marginHorizontal: 5,
+  },
+  dayButtonActive: {
+    backgroundColor: '#8130FF',
+    borderColor: '#8130FF',
+  },
+  dayButtonText: {
+    fontSize: 16,
+    color: '#8130FF',
+  },
+  dayButtonTextActive: {
+    fontSize: 16,
+    color: '#fff',
+  },
+  listTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    paddingBottom: 10,
+    marginBottom: 10,
   },
   itineraryItem: {
     flexDirection: 'row',
