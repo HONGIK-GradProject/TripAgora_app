@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 const asdf: TemplateItinerary = {
   day: 0,
@@ -87,6 +88,15 @@ const AddScheduleItemScreen: React.FC = () => {
   };
 
   const handleEditSchedule = () => {
+    if (!localDay || !title || !startTime || !latitude || !longitude) {
+      Toast.show({
+        type: 'error',
+        text1: '모든 필드를 채워주세요.',
+        position: 'bottom',
+        bottomOffset: 100,
+      });
+      return;
+    }
     // 저장 시에는 state의 현재 값을 사용합니다.
     const newSchedule: TemplateItineraryWithId = {
       day: +localDay,
@@ -154,7 +164,7 @@ const AddScheduleItemScreen: React.FC = () => {
         </View>
 
         <View style={styles.formSection}>
-          <Text style={styles.label}>내용 (선택)</Text>
+          <Text style={styles.label}>일정 내용</Text>
           <TextInput
             value={content}
             onChangeText={setContent}
@@ -174,7 +184,7 @@ const AddScheduleItemScreen: React.FC = () => {
           >
             <View style={styles.timeInputContainer}>
               <Text style={styles.timeText}>{startTime.substring(0, 5)}</Text>
-              <Ionicons name="time-outline" size={20} color="#8130FF" />
+              <Ionicons name='time-outline' size={20} color='#8130FF' />
             </View>
           </TouchableOpacity>
           {showPicker && (
