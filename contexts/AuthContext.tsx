@@ -10,7 +10,7 @@ import { reissueToken } from '@/services/auth';
 import { kakaoSignIn, kakaoSignOut } from '@/services/kakaoAuth';
 import { AuthContextType, AuthDecodedToken } from '@/types/auth';
 import { UserRole } from '@/types/users';
-import axios from 'axios';
+import { isAxiosError } from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import { createContext, useCallback, useEffect, useState } from 'react';
 
@@ -32,7 +32,9 @@ const AuthContext = createContext<AuthContextType | null>(null);
  * @param {object} props - 컴포넌트 프롭스
  * @param {React.ReactNode} props.children - Provider가 감쌀 자식 컴포넌트들
  */
-const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isNewUser, setIsNewUser] = useState<boolean>(false);
@@ -49,7 +51,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       await authApi.signOut();
       await kakaoSignOut();
     } catch (error) {
-      if (!(axios.isAxiosError(error) && error.response?.status === 401)) {
+      if (!(isAxiosError(error) && error.response?.status === 401)) {
         console.error('Sign-out error:', error);
       }
     } finally {
@@ -67,25 +69,30 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
    * @param {string} accessToken - 처리할 액세스 토큰
    * @param {string} [refreshToken] - (선택적) 함께 저장할 리프레시 토큰. 로그인, 역할 전환 시에만 전달됩니다.
    */
-  const processAndSetAuth = useCallback(async (accessToken: string, refreshToken?: string) => {
-    // refreshToken이 주어진 경우에만 토큰을 저장 (로그인, 역할 전환 시)
-    if (refreshToken) {
-      await saveTokens(accessToken, refreshToken);
-    }
-
-    setAccessToken(accessToken);
-
-    try {
-      const decodedToken = jwtDecode<AuthDecodedToken>(accessToken);
-      if (decodedToken.role) {
-        const role = decodedToken.role.toLowerCase() as UserRole;
-        setUserRole(role);
+  const processAndSetAuth = useCallback(
+    async (accessToken: string, refreshToken?: string) => {
+      // refreshToken이 주어진 경우에만 토큰을 저장 (로그인, 역할 전환 시)
+      if (refreshToken) {
+        await saveTokens(accessToken, refreshToken);
       }
-    } catch (error) {
-      console.error('JWT 디코딩 또는 역할 설정 실패', error);
-      await signOutHandler(); // 유효하지 않은 토큰은 로그아웃 처리
-    }
-  }, [signOutHandler]);
+
+      setAccessToken(accessToken);
+
+      console.log(accessToken);
+
+      try {
+        const decodedToken = jwtDecode<AuthDecodedToken>(accessToken);
+        if (decodedToken.role) {
+          const role = decodedToken.role.toLowerCase() as UserRole;
+          setUserRole(role);
+        }
+      } catch (error) {
+        console.error('JWT 디코딩 또는 역할 설정 실패', error);
+        await signOutHandler(); // 유효하지 않은 토큰은 로그아웃 처리
+      }
+    },
+    [signOutHandler]
+  );
 
   /**
    * @description 소셜 로그인을 통해 전체 로그인 과정을 처리합니다.
@@ -118,25 +125,29 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
    * 서버에 역할 전환을 요청하고, 성공 시 새로운 토큰을 받아 인증 상태를 갱신합니다.
    * @param {UserRole} newUserRole - 전환하고자 하는 새로운 역할
    */
-  const switchUserRoleHandler = useCallback(async (newUserRole: UserRole) => {
-    setIsLoading(true);
-    try {
-      const response = newUserRole === 'traveler'
-        ? await usersApi.switchToTraveler()
-        : await usersApi.switchToGuide();
+  const switchUserRoleHandler = useCallback(
+    async (newUserRole: UserRole) => {
+      setIsLoading(true);
+      try {
+        const response =
+          newUserRole === 'traveler'
+            ? await usersApi.switchToTraveler()
+            : await usersApi.switchToGuide();
 
-      if (response && response.code === 200 && response.data) {
-        const { accessToken, refreshToken } = response.data;
-        await processAndSetAuth(accessToken, refreshToken);
-      } else {
-        throw new Error('역할 전환에 실패했습니다.');
+        if (response && response.code === 200 && response.data) {
+          const { accessToken, refreshToken } = response.data;
+          await processAndSetAuth(accessToken, refreshToken);
+        } else {
+          throw new Error('역할 전환에 실패했습니다.');
+        }
+      } catch (error) {
+        console.error('Role Switch error:', error);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error('Role Switch error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [processAndSetAuth]);
+    },
+    [processAndSetAuth]
+  );
 
   /**
    * @description API 클라이언트 인터셉터를 설정합니다.
@@ -162,7 +173,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
           await processAndSetAuth(token);
         }
       } catch (error) {
-        console.error("초기 토큰 로딩 중 에러 발생: ", error);
+        console.error('초기 토큰 로딩 중 에러 발생: ', error);
         await signOutHandler();
       } finally {
         setIsLoading(false);
@@ -171,7 +182,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
     loadInitialAuth();
   }, [processAndSetAuth, signOutHandler]);
-  
+
   return (
     <AuthContext.Provider
       value={{
@@ -190,4 +201,3 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 };
 
 export { AuthContext, AuthProvider };
-

@@ -19,10 +19,10 @@ interface ProductListProps {
   products: Product[];
 }
 
-const ProductList: React.FC<ProductListProps> = ({ products }) => {
+const TravelerProductList: React.FC<ProductListProps> = ({ products }) => {
   const renderItem = ({ item }: { item: Product }) => (
     <Link href={{
-      pathname: "/explore/[id]",
+      pathname: "/traveler/explore/[id]",
       params: {
         id: item.id
       }
@@ -90,4 +90,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ProductList;
+export default TravelerProductList;

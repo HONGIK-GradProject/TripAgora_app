@@ -13,6 +13,7 @@
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
     "@expo/vector-icons": "^15.0.2",
+    "@react-native-community/datetimepicker": "8.4.4",
     "@react-native-seoul/kakao-login": "^5.4.1",
     "axios": "^1.11.0",
     "expo": "54.0.7",

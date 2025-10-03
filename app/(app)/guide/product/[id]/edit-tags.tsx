@@ -4,16 +4,18 @@ import { Text, TouchableOpacity, View } from 'react-native';
 
 import InterestTag from '@/components/InterestTag';
 import { INTEREST_TAGS } from '@/constants/Tags';
-import { router } from 'expo-router';
+import { setTemplateTags } from '@/services/templates';
+import { router, useLocalSearchParams } from 'expo-router';
 import Toast from 'react-native-toast-message';
 
 const EditTemplateTagsScreen: React.FC = () => {
+  const { id } = useLocalSearchParams<{ id: string }>();
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
 
   const showToast = () => {
     Toast.show({
       type: 'error',
-      text1: '태그를 3개 이상 선택해 주세요.',
+      text1: '태그는 5개 이하여야 합니다.',
       position: 'bottom',
       bottomOffset: 100,
     });
@@ -26,19 +28,22 @@ const EditTemplateTagsScreen: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if (selectedTags.length < 3) {
+    if (selectedTags.length > 5) {
       showToast();
       return;
     }
     try {
-      // await 템플릿수정요청(selectedTags);
-      console.log(selectedTags);
-      router.back();
+      const _id = +id;
+      await setTemplateTags(_id, selectedTags);
+      console.log(`Saved tags for template ${id}:`, selectedTags);
+
       return true;
     } catch (error) {
       console.error('태그 업데이트 실패:', error);
       Toast.show({ type: 'error', text1: '태그 업데이트 실패' });
       return false;
+    } finally {
+      router.back();
     }
   };
 

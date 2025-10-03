@@ -1,10 +1,12 @@
 import { REGION_DATA, Region } from '@/constants/Regions';
+import { setTemplateRegions } from '@/services/templates';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 const EditTemplateRegionScreen: React.FC = () => {
+  const { id } = useLocalSearchParams<{ id: string }>();
   const parents = useMemo(() => Object.keys(REGION_DATA), []);
   const [selectedParent, setSelectedParent] = useState<string>(parents[0]);
   const [selectedRegionIds, setSelectedRegionIds] = useState<number[]>([]);
@@ -27,11 +29,17 @@ const EditTemplateRegionScreen: React.FC = () => {
     );
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // TODO: 선택된 지역 ID들(selectedRegionIds)을 템플릿에 반영하는 로직 연결
-    // 예: await updateTemplateRegions({ regionIds: selectedRegionIds })
-    console.log('Saved Region IDs:', selectedRegionIds);
-    router.back();
+    // 예: await updateTemplateRegions({ templateId: id, regionIds: selectedRegionIds })
+    const _id : number = +id;
+    try {
+      await setTemplateRegions(_id, selectedRegionIds);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      router.back();
+    }
   };
 
   return (

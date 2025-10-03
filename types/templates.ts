@@ -12,15 +12,41 @@ interface TemplateItinerary {
   longitude: number;
 }
 
-interface TemplateGetRequest {}
-interface TemplateGetData {
+interface TemplateInfo {
+  templateId: number;
+  title: string;
+  firstImageUrl: string;
+  regionNames: string[];
+}
+
+interface TemplateDetails {
   title: string;
   content: string;
   regionNames: string[];
   tagNames: string[];
   imageUrls: string[];
 }
+
+interface TemplateGetRequest {}
+type TemplateGetData = TemplateDetails;
 interface TemplateGetResponse extends APIResponse<TemplateGetData> {}
+
+interface TemplateGetListRequest {
+  params: {
+    page: number;
+  }
+}
+interface TemplateGetListData {
+  templates: TemplateInfo[];
+  hasNext: boolean;
+}
+interface TemplateGetListResponse extends APIResponse<TemplateGetListData> {}
+
+interface TemplateGetItinerariesRequest {};
+type TemplateGetItinerariesData = {
+  itineraries: TemplateItinerary[];
+};
+interface TemplateGetItinerariesResponse extends APIResponse<TemplateGetItinerariesData> {}
 
 interface TemplateCreateRequest {}
 interface TemplateCreateData {
@@ -88,15 +114,19 @@ interface TemplateSetItinerariesRequest {
 interface TemplateSetItinerariesData {}
 interface TemplateSetItinerariesResponse extends APIResponse<TemplateSetItinerariesData> {}
 
+// API에서 id를 추가하여 제공 할 예정. API 수정이 끝나는 대로 삭제
+type TemplateItineraryWithId = TemplateItinerary & { clientId : number };
+
 export {
   TemplateCreateData,
   TemplateCreateRequest,
-  TemplateCreateResponse,
-  TemplateGetData,
-  TemplateGetRequest,
-  TemplateGetResponse,
-  TemplateItinerary,
-  TemplateSetContentData,
+  TemplateCreateResponse, TemplateDetails, TemplateGetData, TemplateGetItinerariesData,
+  TemplateGetItinerariesRequest,
+  TemplateGetItinerariesResponse,
+  TemplateGetListData,
+  TemplateGetListRequest,
+  TemplateGetListResponse, TemplateGetRequest,
+  TemplateGetResponse, TemplateInfo, TemplateItinerary, TemplateItineraryWithId, TemplateSetContentData,
   TemplateSetContentRequest,
   TemplateSetContentResponse,
   TemplateSetImageUrlsData,

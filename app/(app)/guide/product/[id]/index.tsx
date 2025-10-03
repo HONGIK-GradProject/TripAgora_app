@@ -1,8 +1,16 @@
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
+import { setTemplateContent, setTemplateTitle } from '@/services/templates';
+import { Ionicons } from '@expo/vector-icons';
+import {
+  Redirect,
+  useFocusEffect,
+  useLocalSearchParams,
+  useRouter,
+} from 'expo-router';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Image,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,90 +20,90 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-type ItineraryItem = {
-  time: string;
-  title: string;
-  description?: string;
-};
-
-type ProductDetail = {
-  title: string;
-  coverImageUrl: string;
-  dateRange: string;
-  participantSummary: string;
-  locationSummary: string;
-  guideName: string;
-  ratingSummary: string;
-  tags: string[];
-  description: string;
-  itinerary: ItineraryItem[];
-};
-
-const sampleProduct: ProductDetail = {
-  title: '후쿠오카 4박 5일 함께해요',
-  coverImageUrl:
-    'https://images.unsplash.com/photo-1549693578-d683be217e58?q=80&w=1640&auto=format&fit=crop',
-  dateRange: '2025.10.02 - 10.06',
-  participantSummary: '3명',
-  locationSummary: '후쿠오카',
-  guideName: '가이드 아라',
-  ratingSummary: '4.9 (128)',
-  tags: ['# 휴양·힐링', '# 쇼핑', '# 즉흥형', '# 핫플'],
-  description:
-    '후쿠오카에서 4박 5일간 함께 여행하실 분을 모집합니다! 가까워서 금방 다녀오기에도 좋아요. 하카타의 캐널시티와 그 주변에서 주로 활동할 예정이에요. 일정은 유동적으로 조율할 수 있습니다.',
-  itinerary: [
-    {
-      time: 'Day 1',
-      title: '하카타 도착 · 체크인',
-      description: '캐널시티 산책, 저녁 라멘 투어',
-    },
-    {
-      time: 'Day 2',
-      title: '텐진 · 다자이후',
-      description: '쇼핑과 카페 투어, 저녁 이자카야',
-    },
-    {
-      time: 'Day 3',
-      title: '모지코 · 고쿠라',
-      description: '현지 시장 탐방, 야경 스팟',
-    },
-    {
-      time: 'Day 4',
-      title: '후쿠오카 타워',
-      description: '바다 전망, 자유 일정',
-    },
-    { time: 'Day 5', title: '체크아웃 · 귀국', description: '기념품 쇼핑' },
-  ],
-};
-
 const ProductDetailScreen: React.FC = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   const { id } = useLocalSearchParams<{ id?: string }>();
 
   // In the future, use `id` to fetch detail via API. For now, show sample.
-  const product = useMemo(() => sampleProduct, []);
+  const {
+    title,
+    content,
+    regionNames,
+    tagNames,
+    imageUrls,
+    isEditingContent,
+    isEditingTitle,
+    setIsEditingContent,
+    setIsEditingTitle,
+    setTitle,
+    setContent,
+    itineraries,
+    isLoading,
+    refetch,
+  } = useTemplateDetails();
 
-  // Editable states
-  const [title, setTitle] = useState<string>(product.title);
-  const [description, setDescription] = useState<string>(product.description);
-  const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
-  const [isEditingDescription, setIsEditingDescription] =
-    useState<boolean>(false);
+  const availableDays = useMemo(
+    () =>
+      Object.keys(itineraries)
+        .map(Number)
+        .sort((a, b) => a - b),
+    [itineraries]
+  );
+
+  const [selectedDay, setSelectedDay] = useState(
+    availableDays.length > 0 ? availableDays[0] : 1
+  );
+
+  useEffect(() => {
+    if (availableDays.length > 0 && !availableDays.includes(selectedDay)) {
+      setSelectedDay(availableDays[0]);
+    }
+  }, [availableDays, selectedDay]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (id) {
+        refetch();
+      }
+    }, [id, refetch])
+  );
+
+  if (!id) {
+    return <Redirect href='/(app)/guide/product' />;
+  }
+
+  const _id: number = +id;
+
+  const handleEditTitle = async () => {
+    if (isEditingTitle) {
+      await setTemplateTitle(_id, title);
+    }
+    setIsEditingTitle((prev) => !prev);
+  };
+
+  const handleEditContent = async () => {
+    if (isEditingContent) {
+      await setTemplateContent(_id, content);
+    }
+    setIsEditingContent((prev) => !prev);
+  };
+
   // Location and Tags will navigate to separate edit screens; no local edit state needed
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollViewContent}>
+      <ScrollView
+        contentContainerStyle={styles.scrollViewContent}
+        refreshControl={
+          <RefreshControl refreshing={isLoading} onRefresh={refetch} />
+        }
+      >
         <View style={styles.coverContainer}>
-          {/* 배경 이미지 예시 */}
-          <Image
-            source={{ uri: product.coverImageUrl }}
-            style={styles.coverImage}
-          />
-          {/* 배경 이미지 없는 예시 (주석) */}
-          {/** <View style={styles.coverPlaceholder} /> */}
+          {/* 배경 이미지 */}
+          <Image source={{ uri: imageUrls[0] }} style={styles.coverImage} />
+          {/* 이미지가 없을 땐 이대로 그냥 회색 배경? 아니면 default 이미지를 만들까? */}
         </View>
 
         <View style={styles.section}>
@@ -114,37 +122,22 @@ const ProductDetailScreen: React.FC = () => {
             )}
             <TouchableOpacity
               style={styles.editButton}
-              onPress={() => setIsEditingTitle((prev) => !prev)}
+              onPress={handleEditTitle}
             >
               <Text style={styles.editButtonText}>
-                {isEditingTitle ? '완료' : '편집'}
+                {isEditingTitle ? '저장' : '편집'}
               </Text>
             </TouchableOpacity>
           </View>
           <View style={styles.metaRow}>
-            <MaterialCommunityIcons
-              name='calendar-month'
-              size={20}
-              color='#8130FF'
-            />
-            <Text style={styles.metaText}>{product.dateRange}</Text>
-          </View>
-          <View style={styles.metaRow}>
-            <Ionicons name='people-outline' size={20} color='#8130FF' />
-            <Text style={styles.metaText}>{product.participantSummary}</Text>
-          </View>
-          <View style={styles.metaRow}>
             <Ionicons name='location-outline' size={20} color='#8130FF' />
-            <Text style={styles.metaText}>{product.locationSummary}</Text>
+            <Text style={styles.metaText}>{regionNames.join(', ')}</Text>
           </View>
           <View style={styles.metaRow}>
             <Ionicons name='person-circle-outline' size={20} color='#8130FF' />
-            <Text style={styles.metaText}>
-              {product.guideName} · {product.ratingSummary}
-            </Text>
           </View>
           <View style={styles.tagsRow}>
-            {product.tags.map((tag) => (
+            {tagNames.map((tag) => (
               <View key={tag} style={styles.tagChip}>
                 <Text style={styles.tagText}>{tag}</Text>
               </View>
@@ -153,13 +146,13 @@ const ProductDetailScreen: React.FC = () => {
           <View style={styles.editActionsRow}>
             <TouchableOpacity
               style={styles.editActionButton}
-              onPress={() => router.push('/EditTemplateRegionScreen')}
+              onPress={() => router.push(`/guide/product/${id}/edit-regions`)}
             >
               <Text style={styles.editActionText}>지역 편집</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.editActionButton}
-              onPress={() => router.push('/EditTemplateTagsScreen')}
+              onPress={() => router.push(`/guide/product/${id}/edit-tags`)}
             >
               <Text style={styles.editActionText}>태그 편집</Text>
             </TouchableOpacity>
@@ -175,24 +168,24 @@ const ProductDetailScreen: React.FC = () => {
             </Text>
             <TouchableOpacity
               style={styles.editButton}
-              onPress={() => setIsEditingDescription((prev) => !prev)}
+              onPress={handleEditContent}
             >
               <Text style={styles.editButtonText}>
-                {isEditingDescription ? '완료' : '편집'}
+                {isEditingContent ? '완료' : '편집'}
               </Text>
             </TouchableOpacity>
           </View>
-          {isEditingDescription ? (
+          {isEditingContent ? (
             <TextInput
-              value={description}
-              onChangeText={setDescription}
+              value={content}
+              onChangeText={setContent}
               style={styles.multilineInput}
               multiline
               textAlignVertical='top'
               placeholder='여행 소개를 입력하세요'
             />
           ) : (
-            <Text style={styles.description}>{description}</Text>
+            <Text style={styles.description}>{content}</Text>
           )}
         </View>
 
@@ -205,24 +198,55 @@ const ProductDetailScreen: React.FC = () => {
             </Text>
             <TouchableOpacity
               style={styles.editButton}
-              onPress={() => router.push('/EditTripScheduleScreen')}
+              onPress={() =>
+                router.push(`/guide/product/${id}/edit-itineraries`)
+              }
             >
               <Text style={styles.editButtonText}>편집</Text>
             </TouchableOpacity>
           </View>
-          {product.itinerary.map((item) => (
-            <View key={item.time} style={styles.itineraryItem}>
-              <View style={styles.itineraryTime}>
-                <Text style={styles.itineraryTimeText}>{item.time}</Text>
-              </View>
-              <View style={styles.itineraryContent}>
-                <Text style={styles.itineraryTitle}>{item.title}</Text>
-                {item.description ? (
-                  <Text style={styles.itineraryDesc}>{item.description}</Text>
-                ) : null}
-              </View>
-            </View>
+        </View>
+
+        <View style={styles.daySelection}>
+          {availableDays.map((dayNumber) => (
+            <TouchableOpacity
+              key={dayNumber}
+              style={[
+                styles.dayButton,
+                selectedDay === dayNumber && styles.dayButtonActive,
+              ]}
+              onPress={() => setSelectedDay(dayNumber)}
+            >
+              <Text
+                style={[
+                  styles.dayButtonText,
+                  selectedDay === dayNumber && styles.dayButtonTextActive,
+                ]}
+              >
+                {dayNumber}일차
+              </Text>
+            </TouchableOpacity>
           ))}
+        </View>
+
+        <View style={[styles.section, { paddingTop: 0 }]}>
+          {(itineraries[selectedDay] || [])
+            .sort((a, b) => a.startTime.localeCompare(b.startTime))
+            .map((item) => (
+              <View key={item.clientId} style={styles.itineraryItem}>
+                <View style={styles.itineraryTime}>
+                  <Text style={styles.itineraryTimeText}>
+                    {item.startTime.substring(0, 5)}
+                  </Text>
+                </View>
+                <View style={styles.itineraryContent}>
+                  <Text style={styles.itineraryTitle}>{item.title}</Text>
+                  {item.content ? (
+                    <Text style={styles.itineraryDesc}>{item.content}</Text>
+                  ) : null}
+                </View>
+              </View>
+            ))}
         </View>
 
         <View style={{ height: 40 }} />
@@ -455,6 +479,39 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     color: '#000',
+  },
+  daySelection: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    backgroundColor: '#fff',
+    paddingHorizontal: 20,
+  },
+  dayButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    borderColor: '#949494',
+    borderWidth: 1,
+    marginHorizontal: 5,
+  },
+  dayButtonActive: {
+    backgroundColor: '#8130FF',
+    borderColor: '#8130FF',
+  },
+  dayButtonText: {
+    fontSize: 16,
+    color: '#8130FF',
+  },
+  dayButtonTextActive: {
+    fontSize: 16,
+    color: '#fff',
+  },
+  listTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    paddingBottom: 10,
+    marginBottom: 10,
   },
   itineraryItem: {
     flexDirection: 'row',
