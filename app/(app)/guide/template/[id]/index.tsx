@@ -261,7 +261,7 @@ const ProductDetailScreen: React.FC = () => {
           {(itineraries[selectedDay] || [])
             .sort((a, b) => a.startTime.localeCompare(b.startTime))
             .map((item) => (
-              <View key={item.clientId} style={styles.itineraryItem}>
+              <View key={item.id} style={styles.itineraryItem}>
                 <View style={styles.itineraryTime}>
                   <Text style={styles.itineraryTimeText}>
                     {item.startTime.substring(0, 5)}

@@ -1,8 +1,8 @@
-import { TemplateItinerary, TemplateItineraryWithId } from "@/types/templates";
+import { TemplateItinerary } from "@/types/templates";
 
 const sortItineraries = (
-  items: TemplateItineraryWithId[]
-): TemplateItineraryWithId[] => {
+  items: TemplateItinerary[]
+): TemplateItinerary[] => {
   return [...items].sort((a, b) => {
     if (a.day !== b.day) {
       return a.day - b.day;
@@ -11,20 +11,11 @@ const sortItineraries = (
   });
 };
 
-const addItineraryIds = (
-  items: TemplateItinerary[]
-): TemplateItineraryWithId[] => {
-  return items.map((item, index) => ({
-    ...item,
-    clientId: Date.now() + index,
-  }));
-};
-
 const groupItinerariesByDay = (
-  items: TemplateItineraryWithId[]
-): Record<number, TemplateItineraryWithId[]> => {
+  items: TemplateItinerary[]
+): Record<number, TemplateItinerary[]> => {
   const sortedItems = sortItineraries(items);
-  return sortedItems.reduce<Record<number, TemplateItineraryWithId[]>>(
+  return sortedItems.reduce<Record<number, TemplateItinerary[]>>(
     (acc, item) => {
       const day = item.day;
       if (!acc[day]) {
@@ -38,9 +29,10 @@ const groupItinerariesByDay = (
 };
 
 const flattenItineraries = (
-  groupedItems: Record<number, TemplateItineraryWithId[]>
-): TemplateItineraryWithId[] => {
+  groupedItems: Record<number, TemplateItinerary[]>
+): TemplateItinerary[] => {
   return Object.values(groupedItems).flat();
 };
 
-export { addItineraryIds, flattenItineraries, groupItinerariesByDay, sortItineraries };
+export { flattenItineraries, groupItinerariesByDay, sortItineraries };
+

@@ -4,6 +4,7 @@ import APIResponse from "./apiResponse";
  * 템플릿의 여행 일정 정보를 나타냅니다.
  */
 interface TemplateItinerary {
+  id: number;
   day: number;
   title: string;
   content: string;
@@ -108,7 +109,7 @@ interface TemplateSetRegionsData {
 interface TemplateSetRegionsResponse extends APIResponse<TemplateSetRegionsData> {}
 
 interface TemplateSetItinerariesRequest {
-  itineraries: TemplateItinerary[];
+  itineraries: TemplateItineraryWithoutId[];
 }
 interface TemplateSetItinerariesData {}
 interface TemplateSetItinerariesResponse extends APIResponse<TemplateSetItinerariesData> {}
@@ -116,6 +117,8 @@ interface TemplateSetItinerariesResponse extends APIResponse<TemplateSetItinerar
 interface TemplateDeleteRequest {}
 interface TemplateDeleteData{}
 interface TemplateDeleteResponse extends APIResponse<TemplateDeleteData> {}
+
+type TemplateItineraryWithoutId = Omit<TemplateItinerary, 'id'>;
 
 export {
   TemplateCreateData,
@@ -127,7 +130,7 @@ export {
   TemplateGetListData,
   TemplateGetListRequest,
   TemplateGetListResponse, TemplateGetRequest,
-  TemplateGetResponse, TemplateInfo, TemplateItinerary, TemplateSetContentData,
+  TemplateGetResponse, TemplateInfo, TemplateItinerary, TemplateItineraryWithoutId, TemplateSetContentData,
   TemplateSetContentRequest,
   TemplateSetContentResponse,
   TemplateSetImageUrlsData,

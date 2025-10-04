@@ -1,5 +1,5 @@
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
-import { TemplateItinerary, TemplateItineraryWithId } from '@/types/templates';
+import { TemplateItinerary } from '@/types/templates';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -15,29 +15,19 @@ import {
 } from 'react-native';
 import Toast from 'react-native-toast-message';
 
-const asdf: TemplateItinerary = {
-  day: 0,
-  title: '',
-  content: '',
-  startTime: '',
-  latitude: 0,
-  longitude: 0,
-};
-
-type ScheduleParamProps = {
+type ItineraryParamProps = {
   day: string;
   title: string;
   content: string;
   startTime: string;
   latitude: string;
   longitude: string;
-  clientId: string;
-  id: string;
+  itineraryId: string;
 };
 
-const AddScheduleItemScreen: React.FC = () => {
+const EditTemplateItineraryScreen: React.FC = () => {
   const router = useRouter();
-  const params = useLocalSearchParams<ScheduleParamProps>();
+  const params = useLocalSearchParams<ItineraryParamProps>();
   const { updateItinerary, setDay } = useTemplateDetails();
 
   // TextInput을 제어하기 위해 state를 사용합니다.
@@ -48,6 +38,8 @@ const AddScheduleItemScreen: React.FC = () => {
   const [startTime, setStartTime] = React.useState(params.startTime || '09:00');
   const [latitude, setLatitude] = React.useState(params.latitude || '');
   const [longitude, setLongitude] = React.useState(params.longitude || '');
+
+  console.log(params.itineraryId);
 
   const parseStartTime = (timeStr: string) => {
     if (!timeStr) {
@@ -98,14 +90,14 @@ const AddScheduleItemScreen: React.FC = () => {
       return;
     }
     // 저장 시에는 state의 현재 값을 사용합니다.
-    const newSchedule: TemplateItineraryWithId = {
+    const newSchedule: TemplateItinerary = {
+      id: +params.itineraryId,
       day: +localDay,
       title: title,
       content: content,
       startTime: startTime,
       latitude: +latitude,
       longitude: +longitude,
-      clientId: +params.clientId, // clientId는 변경되지 않으므로 params 값을 그대로 사용
     };
 
     updateItinerary(newSchedule);
@@ -312,4 +304,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AddScheduleItemScreen;
+export default EditTemplateItineraryScreen;

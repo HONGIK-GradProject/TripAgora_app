@@ -1,6 +1,6 @@
 import { getItineraries, getTemplateDetails } from '@/services/templates';
-import { TemplateItineraryWithId } from '@/types/templates';
-import { addItineraryIds, flattenItineraries, groupItinerariesByDay } from '@/utils/Itineraries';
+import { TemplateItinerary } from '@/types/templates';
+import { flattenItineraries, groupItinerariesByDay } from '@/utils/Itineraries';
 import React, {
   createContext,
   ReactNode,
@@ -20,7 +20,7 @@ const useTemplateDetailsLogic = (id: string) => {
   const [tagIds, setTagIds] = useState<number[]>([]);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [itineraries, setItineraries] = useState<
-    Record<number, TemplateItineraryWithId[]>
+    Record<number, TemplateItinerary[]>
   >({});
   const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
   const [isEditingContent, setIsEditingContent] = useState<boolean>(false);
@@ -34,15 +34,13 @@ const useTemplateDetailsLogic = (id: string) => {
       const itinerariesResponse = await getItineraries(+id);
 
       if (response && itinerariesResponse) {
-        const itinerariesWithId = addItineraryIds(
-          itinerariesResponse.itineraries
-        );
+        const itinerariesByDay = groupItinerariesByDay(itinerariesResponse.itineraries);
         setTitle(response.title);
         setContent(response.content);
         setRegionIds(response.regionIds);
         setTagIds(response.tagIds);
         setImageUrls(response.imageUrls);
-        setItineraries(groupItinerariesByDay(itinerariesWithId));
+        setItineraries(itinerariesByDay);
       }
     } catch (error) {
       console.log(error);
@@ -55,7 +53,7 @@ const useTemplateDetailsLogic = (id: string) => {
     fetchTemplateDetails();
   }, [fetchTemplateDetails]);
 
-  const addItinerary = useCallback((newItinerary: TemplateItineraryWithId) => {
+  const addItinerary = useCallback((newItinerary: TemplateItinerary) => {
     const day = newItinerary.day;
     setItineraries((prev) => {
       const dayItineraries = prev[day] || [];
@@ -70,11 +68,11 @@ const useTemplateDetailsLogic = (id: string) => {
   }, []);
 
   const updateItinerary = useCallback(
-    (updatedItinerary: TemplateItineraryWithId) => {
+    (updatedItinerary: TemplateItinerary) => {
       setItineraries((prev) => {
         const flatList = flattenItineraries(prev);
         const updatedList = flatList.map((item) =>
-          item.clientId === updatedItinerary.clientId ? updatedItinerary : item
+          item.id === updatedItinerary.id ? updatedItinerary : item
         );
         return groupItinerariesByDay(updatedList);
       });
@@ -86,7 +84,7 @@ const useTemplateDetailsLogic = (id: string) => {
     setItineraries((prev) => {
       const flatList = flattenItineraries(prev);
       const updatedList = flatList.filter(
-        (item) => item.clientId !== itineraryId
+        (item) => item.id !== itineraryId
       );
       return groupItinerariesByDay(updatedList);
     });

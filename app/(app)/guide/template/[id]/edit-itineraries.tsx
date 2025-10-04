@@ -1,6 +1,4 @@
-import GuideItineraryList, {
-  TemplateItineraryWithId,
-} from '@/components/guide/product/GuideItineraryList';
+import GuideItineraryList from '@/components/guide/product/GuideItineraryList';
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import { setTemplateItineraries } from '@/services/templates';
 import { TemplateItinerary } from '@/types/templates';
@@ -10,7 +8,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-const EditTripScheduleScreen: React.FC = () => {
+const EditTemplateItinerariesScreen: React.FC = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
 
@@ -19,49 +17,52 @@ const EditTripScheduleScreen: React.FC = () => {
     useTemplateDetails();
 
   // 수정/삭제 핸들러를 정의합니다. (추후 수정 모달 등을 띄우는 로직 추가)
-  const handleUpdate = (item: TemplateItineraryWithId) => {
-    console.log('Update item:', item.clientId);
+  const handleUpdate = (item: TemplateItinerary) => {
+    // id 충돌을 피하기 위해 item의 id를 itineraryId로 명시적으로 전달
+    const { id: itineraryId, ...restOfItem } = item;
     router.push({
-      pathname: '/(app)/guide/template/[id]/edit-schedule',
+      pathname: '/(app)/guide/template/[id]/edit-itinerary',
       params: {
-        ...item,
-        id: id,
+        id, // URL 경로의 [id]를 채우기 위한 템플릿 ID
+        itineraryId: itineraryId.toString(), // 수정할 아이템의 ID
+        ...restOfItem, // 나머지 아이템 정보
       },
     });
   };
 
-  const handleDelete = (clientId: number) => {
-    console.log('Delete item:', clientId);
-    deleteItinerary(clientId);
+  const handleDelete = (scheduleId: number) => {
+    console.log('Delete item:', scheduleId);
+    deleteItinerary(scheduleId);
   };
 
   const handleAdd = () => {
-    const newSchedule = {
-      day: 1,
+    const newSchedule: TemplateItinerary = {
+      day: day, // 현재 선택된 day에 추가하도록 수정
       title: '',
       content: '',
       startTime: '00:00',
       latitude: 0,
       longitude: 0,
-      clientId: Date.now(),
-      id: id,
+      id: Date.now(), // 임시 ID
     };
-    console.log('Add Item:', newSchedule.clientId);
+
     addItinerary(newSchedule);
+
+    // id 충돌을 피하기 위해 newSchedule의 id를 itineraryId로 명시적으로 전달
+    const { id: itineraryId, ...restOfSchedule } = newSchedule;
     router.push({
-      pathname: '/(app)/guide/template/[id]/edit-schedule',
-      params: newSchedule,
+      pathname: '/(app)/guide/template/[id]/edit-itinerary',
+      params: {
+        id, // URL 경로의 [id]를 채우기 위한 템플릿 ID
+        itineraryId: itineraryId.toString(), // 새 아이템의 임시 ID
+        ...restOfSchedule,
+      },
     });
   };
 
   const handleSave = async () => {
     try {
-      const newItineraries: TemplateItinerary[] = flattenItineraries(
-        itineraries
-      ).map((schedule) => {
-        const { clientId, ...rest } = schedule;
-        return rest;
-      });
+      const newItineraries: TemplateItinerary[] = flattenItineraries(itineraries);
 
       await setTemplateItineraries(+id, newItineraries);
     } catch (error) {
@@ -246,4 +247,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default EditTripScheduleScreen;
+export default EditTemplateItinerariesScreen;

@@ -1,5 +1,5 @@
 import { templatesApi } from "@/api/templates";
-import { TemplateItinerary } from "@/types/templates";
+import { TemplateItineraryWithoutId } from "@/types/templates";
 import { isAxiosError } from "axios";
 
 export const createBlankTemplate = async () => {
@@ -72,7 +72,7 @@ export const setTemplateTags = async (id: number, tagIds: number[]) => {
   }
 }
 
-export const setTemplateItineraries = async (id: number, itineraries: TemplateItinerary[]) => {
+export const setTemplateItineraries = async (id: number, itineraries: TemplateItineraryWithoutId[]) => {
   try {
     const response = await templatesApi.setItineraries(id, itineraries);
 
