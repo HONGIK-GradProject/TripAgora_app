@@ -2,13 +2,13 @@ import FullScreenLoader from '@/components/ui/FullScreenLoader';
 import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { TAG_ID_TO_NAME_MAP } from '@/constants/Tags';
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
-import { deleteTemplate, setTemplateContent, setTemplateTitle } from '@/services/templates';
-import { Ionicons } from '@expo/vector-icons';
 import {
-  useFocusEffect,
-  useLocalSearchParams,
-  useRouter
-} from 'expo-router';
+  deleteTemplate,
+  setTemplateContent,
+  setTemplateTitle,
+} from '@/services/templates';
+import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -170,7 +170,9 @@ const ProductDetailScreen: React.FC = () => {
       >
         <View style={styles.coverContainer}>
           {/* 배경 이미지 */}
-          {imageUrls[0] && <Image source={{ uri: imageUrls[0] }} style={styles.coverImage} />}
+          {imageUrls[0] && (
+            <Image source={{ uri: imageUrls[0] }} style={styles.coverImage} />
+          )}
           {/* 이미지가 없을 땐 이대로 그냥 회색 배경? 아니면 default 이미지를 만들까? */}
         </View>
 
@@ -194,9 +196,13 @@ const ProductDetailScreen: React.FC = () => {
               onPress={handleEditTitle}
               disabled={isSavingTitle}
             >
-              {isSavingTitle ? <ActivityIndicator size="small" /> : <Text style={styles.editButtonText}>
-                {isEditingTitle ? '저장' : '편집'}
-              </Text>}
+              {isSavingTitle ? (
+                <ActivityIndicator size='small' />
+              ) : (
+                <Text style={styles.editButtonText}>
+                  {isEditingTitle ? '저장' : '편집'}
+                </Text>
+              )}
             </TouchableOpacity>
           </View>
           <View style={styles.metaRow}>
@@ -210,7 +216,9 @@ const ProductDetailScreen: React.FC = () => {
           <View style={styles.tagsRow}>
             {tagIds.map((tagId) => (
               <View key={tagId} style={styles.tagChip}>
-                <Text style={styles.tagText}># {TAG_ID_TO_NAME_MAP[tagId]}</Text>
+                <Text style={styles.tagText}>
+                  # {TAG_ID_TO_NAME_MAP[tagId]}
+                </Text>
               </View>
             ))}
           </View>
@@ -242,9 +250,13 @@ const ProductDetailScreen: React.FC = () => {
               onPress={handleEditContent}
               disabled={isSavingContent}
             >
-              {isSavingContent ? <ActivityIndicator size="small" /> : <Text style={styles.editButtonText}>
-                {isEditingContent ? '완료' : '편집'}
-              </Text>}
+              {isSavingContent ? (
+                <ActivityIndicator size='small' />
+              ) : (
+                <Text style={styles.editButtonText}>
+                  {isEditingContent ? '완료' : '편집'}
+                </Text>
+              )}
             </TouchableOpacity>
           </View>
           {isEditingContent ? (
@@ -352,7 +364,11 @@ const ProductDetailScreen: React.FC = () => {
             onPress={handleDeleteTemplate}
             disabled={isDeleting}
           >
-            {isDeleting ? <ActivityIndicator size="small" color="#FF3B30" /> : <Ionicons name='trash-outline' size={20} color='#FF3B30' />}
+            {isDeleting ? (
+              <ActivityIndicator size='small' color='#FF3B30' />
+            ) : (
+              <Ionicons name='trash-outline' size={20} color='#FF3B30' />
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -369,7 +385,10 @@ const ProductDetailScreen: React.FC = () => {
         <TouchableOpacity style={[styles.ctaButton, styles.primaryButton]}>
           <Text style={styles.primaryButtonText}>예약하기</Text> */}
 
-        <TouchableOpacity style={[styles.ctaButton, styles.primaryButton]}>
+        <TouchableOpacity
+          style={[styles.ctaButton, styles.primaryButton]}
+          onPress={() => router.push(`/guide/template/${id}/start-recruitment`)}
+        >
           <Text style={styles.primaryButtonText}>
             이 템플릿으로 모집 시작하기
           </Text>
