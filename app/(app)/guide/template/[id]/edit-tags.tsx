@@ -9,6 +9,9 @@ import { setTemplateTags } from '@/services/templates';
 import { router, useLocalSearchParams } from 'expo-router';
 import Toast from 'react-native-toast-message';
 
+/**
+ * 여행 템플릿에 적용될 태그를 선택하고 편집하는 화면입니다.
+ */
 const EditTemplateTagsScreen: React.FC = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { tagIds, setTagIds } = useTemplateDetails();
@@ -24,12 +27,19 @@ const EditTemplateTagsScreen: React.FC = () => {
     });
   };
 
+  /**
+   * 특정 태그 ID를 선택 목록에 추가하거나 제거합니다 (토글).
+   * @param tagId - 토글할 태그의 ID
+   */
   const handleToggleTag = (tagId: number) => {
     setSelectedTags((prev) =>
       prev.includes(tagId) ? prev.filter((t) => t !== tagId) : [...prev, tagId]
     );
   };
 
+  /**
+   * 선택된 태그 목록을 서버에 저장하고, 로컬 컨텍스트 상태를 업데이트합니다.
+   */
   const handleSave = async () => {
     if (selectedTags.length > 5) {
       showToast();

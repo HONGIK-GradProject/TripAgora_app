@@ -23,6 +23,10 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+/**
+ * 특정 여행 템플릿의 모든 상세 정보를 보여주는 화면입니다.
+ * 제목, 소개, 지역, 태그, 일정 등을 확인하고 각 항목의 편집 화면으로 이동하는 기능을 제공합니다.
+ */
 const ProductDetailScreen: React.FC = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -79,6 +83,9 @@ const ProductDetailScreen: React.FC = () => {
 
   const _id: number = +id;
 
+  /**
+   * 템플릿 제목의 편집 모드를 토글하고, 편집 완료 시 서버에 변경사항을 저장합니다.
+   */
   const handleEditTitle = async () => {
     if (isEditingTitle) {
       await setTemplateTitle(_id, title);
@@ -86,6 +93,9 @@ const ProductDetailScreen: React.FC = () => {
     setIsEditingTitle((prev) => !prev);
   };
 
+  /**
+   * 템플릿 소개 내용의 편집 모드를 토글하고, 편집 완료 시 서버에 변경사항을 저장합니다.
+   */
   const handleEditContent = async () => {
     if (isEditingContent) {
       await setTemplateContent(_id, content);
@@ -95,6 +105,9 @@ const ProductDetailScreen: React.FC = () => {
 
   // Location and Tags will navigate to separate edit screens; no local edit state needed
 
+  /**
+   * 현재 템플릿을 삭제할지 확인하는 경고창을 띄우고, 확인 시 삭제 API를 호출합니다.
+   */
   const handleDeleteTemplate = () => {
     Alert.alert(
       '템플릿 삭제',

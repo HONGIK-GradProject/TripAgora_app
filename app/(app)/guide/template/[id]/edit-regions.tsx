@@ -6,16 +6,16 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
-const EditTemplateRegionScreen: React.FC = () => {
+/**
+ * 여행 템플릿에 적용될 지역을 선택하고 편집하는 화면입니다.
+ */
+const EditTemplateRegionsScreen: React.FC = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { regionIds, setRegionIds } = useTemplateDetails();
 
   const parents = useMemo(() => Object.keys(REGION_DATA), []);
   const [selectedParent, setSelectedParent] = useState<string>(parents[0]);
   const [selectedRegionIds, setSelectedRegionIds] = useState<number[]>(regionIds);
-
-  
-
   const children = useMemo<Region[]>(
     () => (selectedParent ? REGION_DATA[selectedParent] : []),
     [selectedParent]
@@ -31,12 +31,19 @@ const EditTemplateRegionScreen: React.FC = () => {
     [selectedRegionIds]
   );
 
+  /**
+   * 특정 지역 ID를 선택 목록에 추가하거나 제거합니다 (토글).
+   * @param id - 토글할 지역의 ID
+   */
   const toggleRegionId = (id: number) => {
     setSelectedRegionIds((prev) =>
       prev.includes(id) ? prev.filter((rid) => rid !== id) : [...prev, id]
     );
   };
 
+  /**
+   * 선택된 지역 목록을 서버에 저장하고, 로컬 컨텍스트 상태를 업데이트합니다.
+   */
   const handleSave = async () => {
     // TODO: 선택된 지역 ID들(selectedRegionIds)을 템플릿에 반영하는 로직 연결
     // 예: await updateTemplateRegions({ templateId: id, regionIds: selectedRegionIds })
@@ -155,4 +162,4 @@ const EditTemplateRegionScreen: React.FC = () => {
   );
 };
 
-export default EditTemplateRegionScreen;
+export default EditTemplateRegionsScreen;

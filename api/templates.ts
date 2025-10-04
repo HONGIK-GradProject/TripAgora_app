@@ -1,6 +1,11 @@
-import { TemplateCreateRequest, TemplateCreateResponse, TemplateDeleteRequest, TemplateDeleteResponse, TemplateGetItinerariesRequest, TemplateGetItinerariesResponse, TemplateGetListRequest, TemplateGetListResponse, TemplateGetRequest, TemplateGetResponse, TemplateItinerary, TemplateSetContentRequest, TemplateSetContentResponse, TemplateSetImageUrlsRequest, TemplateSetImageUrlsResponse, TemplateSetItinerariesRequest, TemplateSetItinerariesResponse, TemplateSetRegionsRequest, TemplateSetRegionsResponse, TemplateSetTagsRequest, TemplateSetTagsResponse, TemplateSetTitleRequest, TemplateSetTitleResponse, TemplateUpdateRequest, TemplateUpdateResponse } from "@/types/templates";
+import { TemplateCreateRequest, TemplateCreateResponse, TemplateDeleteRequest, TemplateDeleteResponse, TemplateGetItinerariesRequest, TemplateGetItinerariesResponse, TemplateGetListRequest, TemplateGetListResponse, TemplateGetRequest, TemplateGetResponse, TemplateItineraryWithoutId, TemplateSetContentRequest, TemplateSetContentResponse, TemplateSetImageUrlsRequest, TemplateSetImageUrlsResponse, TemplateSetItinerariesRequest, TemplateSetItinerariesResponse, TemplateSetRegionsRequest, TemplateSetRegionsResponse, TemplateSetTagsRequest, TemplateSetTagsResponse, TemplateSetTitleRequest, TemplateSetTitleResponse, TemplateUpdateRequest, TemplateUpdateResponse } from "@/types/templates";
 import apiClient from "./client";
 
+/**
+ * 특정 여행 템플릿의 상세 정보를 조회합니다.
+ * @param id - 조회할 템플릿의 ID
+ * @returns 템플릿 상세 정보를 담은 Promise
+ */
 const getTemplate = async (
   id: string
 ): Promise<TemplateGetResponse> => {
@@ -12,6 +17,11 @@ const getTemplate = async (
   return response.data;
 };
 
+/**
+ * 자신이 작성한 여행 템플릿 목록을 페이지별로 조회합니다.
+ * @param page - 조회할 페이지 번호
+ * @returns 템플릿 목록 정보를 담은 Promise
+ */
 const getTemplateList = async (
   page: number
 ): Promise<TemplateGetListResponse> => {
@@ -27,6 +37,11 @@ const getTemplateList = async (
   return response.data;
 };
 
+/**
+ * 특정 여행 템플릿에 속한 모든 상세 일정을 조회합니다.
+ * @param id - 일정을 조회할 템플릿의 ID
+ * @returns 상세 일정 목록 정보를 담은 Promise
+ */
 const getItineraries = async (
   id: number
 ): Promise<TemplateGetItinerariesResponse> => {
@@ -38,6 +53,10 @@ const getItineraries = async (
   return response.data;
 };
 
+/**
+ * 비어있는 새로운 여행 템플릿을 생성합니다.
+ * @returns 생성된 템플릿의 ID를 포함한 응답 정보를 담은 Promise
+ */
 const createTemplate = async (): Promise<TemplateCreateResponse> => {
   const requestData: TemplateCreateRequest = {};
   const response = await apiClient.post<TemplateCreateResponse>(
@@ -47,6 +66,14 @@ const createTemplate = async (): Promise<TemplateCreateResponse> => {
   return response.data;
 };
 
+/**
+ * 여행 템플릿의 주요 정보(제목, 내용, 이미지)를 한 번에 수정합니다.
+ * @param id - 수정할 템플릿의 ID
+ * @param title - 새로운 템플릿 제목
+ * @param content - 새로운 템플릿 내용
+ * @param imageUrls - 새로운 이미지 URL 목록
+ * @returns 수정 결과를 담은 Promise
+ */
 const updateTemplate = async (
   id: number,
   title: string,
@@ -61,6 +88,12 @@ const updateTemplate = async (
   return response.data;
 };
 
+/**
+ * 여행 템플릿의 제목을 수정합니다.
+ * @param id - 수정할 템플릿의 ID
+ * @param title - 새로운 템플릿 제목
+ * @returns 수정 결과를 담은 Promise
+ */
 const setTitle = async (
   id: number,
   title: string,
@@ -73,6 +106,12 @@ const setTitle = async (
   return response.data;
 };
 
+/**
+ * 여행 템플릿의 내용을 수정합니다.
+ * @param id - 수정할 템플릿의 ID
+ * @param content - 새로운 템플릿 내용
+ * @returns 수정 결과를 담은 Promise
+ */
 const setContent = async (
   id: number,
   content: string,
@@ -85,6 +124,12 @@ const setContent = async (
   return response.data;
 };
 
+/**
+ * 여행 템플릿의 이미지 URL 목록을 수정합니다.
+ * @param id - 수정할 템플릿의 ID
+ * @param imageUrls - 새로운 이미지 URL 목록
+ * @returns 수정 결과를 담은 Promise
+ */
 const setImageUrls = async (
   id: number,
   imageUrls: string[],
@@ -97,6 +142,12 @@ const setImageUrls = async (
   return response.data;
 };
 
+/**
+ * 여행 템플릿의 태그를 수정합니다.
+ * @param id - 수정할 템플릿의 ID
+ * @param tagIds - 새로운 태그 ID 목록
+ * @returns 수정 결과를 담은 Promise
+ */
 const setTags = async (
   id: number,
   tagIds: number[]
@@ -109,6 +160,12 @@ const setTags = async (
   return response.data;
 };
 
+/**
+ * 여행 템플릿의 지역을 수정합니다.
+ * @param id - 수정할 템플릿의 ID
+ * @param regionIds - 새로운 지역 ID 목록
+ * @returns 수정 결과를 담은 Promise
+ */
 const setRegions = async (
   id: number,
   regionIds: number[]
@@ -121,9 +178,15 @@ const setRegions = async (
   return response.data;
 };
 
+/**
+ * 여행 템플릿의 상세 일정 전체를 덮어쓰기 방식으로 수정합니다.
+ * @param id - 수정할 템플릿의 ID
+ * @param itineraries - 새로운 상세 일정 목록
+ * @returns 수정 결과를 담은 Promise
+ */
 const setItineraries = async (
   id: number,
-  itineraries: TemplateItinerary[]
+  itineraries: TemplateItineraryWithoutId[]
 ): Promise<TemplateSetItinerariesResponse> => {
   const requestData: TemplateSetItinerariesRequest = { itineraries };
   const response = await apiClient.put<TemplateSetItinerariesResponse>(
@@ -133,6 +196,11 @@ const setItineraries = async (
   return response.data;
 };
 
+/**
+ * 특정 여행 템플릿을 삭제합니다.
+ * @param id - 삭제할 템플릿의 ID
+ * @returns 삭제 결과를 담은 Promise
+ */
 const deleteTemplate = async (
   id: number
 ): Promise<TemplateDeleteResponse> => {
@@ -144,6 +212,9 @@ const deleteTemplate = async (
   return response.data;
 }
 
+/**
+ * 여행 템플릿 관련 API 함수들을 모아놓은 객체입니다.
+ */
 export const templatesApi = {
   getTemplate,
   createTemplate,

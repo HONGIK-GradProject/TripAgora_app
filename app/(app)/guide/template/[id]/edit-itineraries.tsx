@@ -8,6 +8,10 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+/**
+ * 여행 템플릿의 상세 일정 목록을 편집하는 화면입니다.
+ * 일정을 추가, 수정, 삭제하고 전체 변경사항을 저장할 수 있습니다.
+ */
 const EditTemplateItinerariesScreen: React.FC = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -16,7 +20,10 @@ const EditTemplateItinerariesScreen: React.FC = () => {
   const { itineraries, day, deleteItinerary, addItinerary, setDay } =
     useTemplateDetails();
 
-  // 수정/삭제 핸들러를 정의합니다. (추후 수정 모달 등을 띄우는 로직 추가)
+  /**
+   * 선택된 일정 항목의 편집 화면으로 이동합니다.
+   * @param item - 수정할 일정 항목 객체
+   */
   const handleUpdate = (item: TemplateItinerary) => {
     // id 충돌을 피하기 위해 item의 id를 itineraryId로 명시적으로 전달
     const { id: itineraryId, ...restOfItem } = item;
@@ -30,13 +37,20 @@ const EditTemplateItinerariesScreen: React.FC = () => {
     });
   };
 
-  const handleDelete = (scheduleId: number) => {
-    console.log('Delete item:', scheduleId);
-    deleteItinerary(scheduleId);
+  /**
+   * 선택된 일정 항목을 로컬 상태에서 삭제합니다.
+   * @param itineraryId - 삭제할 일정 항목의 ID
+   */
+  const handleDelete = (itineraryId: number) => {
+    console.log('Delete item:', itineraryId);
+    deleteItinerary(itineraryId);
   };
 
+  /**
+   * 새로운 빈 일정 항목을 로컬 상태에 추가하고, 해당 항목의 편집 화면으로 즉시 이동합니다.
+   */
   const handleAdd = () => {
-    const newSchedule: TemplateItinerary = {
+    const newItinerary: TemplateItinerary = {
       day: day, // 현재 선택된 day에 추가하도록 수정
       title: '',
       content: '',
@@ -46,20 +60,23 @@ const EditTemplateItinerariesScreen: React.FC = () => {
       id: Date.now(), // 임시 ID
     };
 
-    addItinerary(newSchedule);
+    addItinerary(newItinerary);
 
-    // id 충돌을 피하기 위해 newSchedule의 id를 itineraryId로 명시적으로 전달
-    const { id: itineraryId, ...restOfSchedule } = newSchedule;
+    // id 충돌을 피하기 위해 newItinerary의 id를 itineraryId로 명시적으로 전달
+    const { id: itineraryId, ...rest } = newItinerary;
     router.push({
       pathname: '/(app)/guide/template/[id]/edit-itinerary',
       params: {
         id, // URL 경로의 [id]를 채우기 위한 템플릿 ID
         itineraryId: itineraryId.toString(), // 새 아이템의 임시 ID
-        ...restOfSchedule,
+        ...rest,
       },
     });
   };
 
+  /**
+   * 현재까지의 모든 일정 변경사항(추가, 수정, 삭제)을 서버에 일괄 저장합니다.
+   */
   const handleSave = async () => {
     try {
       const newItineraries: TemplateItinerary[] = flattenItineraries(itineraries);
@@ -136,16 +153,16 @@ const EditTemplateItinerariesScreen: React.FC = () => {
         contentContainerStyle={styles.scrollViewContent}
       />
 
-      <TouchableOpacity style={styles.addScheduleButton} onPress={handleAdd}>
+      <TouchableOpacity style={styles.addItineraryButton} onPress={handleAdd}>
         <Ionicons name='add-circle' size={30} color='#8130FF' />
-        <Text style={styles.addScheduleButtonText}>일정 추가</Text>
+        <Text style={styles.addItineraryButtonText}>일정 추가</Text>
       </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  addScheduleButton: {
+  addItineraryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -156,7 +173,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     marginTop: 20,
   },
-  addScheduleButtonText: {
+  addItineraryButtonText: {
     fontSize: 16,
     color: '#8130FF',
     marginLeft: 10,

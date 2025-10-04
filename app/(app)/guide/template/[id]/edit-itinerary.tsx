@@ -25,6 +25,10 @@ type ItineraryParamProps = {
   itineraryId: string;
 };
 
+/**
+ * 개별 상세 일정 항목의 내용을 편집하는 화면입니다.
+ * 장소명, 시간, 내용 등을 수정하여 로컬 상태를 업데이트합니다.
+ */
 const EditTemplateItineraryScreen: React.FC = () => {
   const router = useRouter();
   const params = useLocalSearchParams<ItineraryParamProps>();
@@ -41,6 +45,12 @@ const EditTemplateItineraryScreen: React.FC = () => {
 
   console.log(params.itineraryId);
 
+  /**
+   * 시간 문자열('HH:MM')을 `Date` 객체로 파싱합니다.
+   * `DateTimePicker`의 초기값으로 사용됩니다.
+   * @param timeStr - 파싱할 시간 문자열
+   * @returns 파싱된 `Date` 객체
+   */
   const parseStartTime = (timeStr: string) => {
     if (!timeStr) {
       const d = new Date();
@@ -60,6 +70,11 @@ const EditTemplateItineraryScreen: React.FC = () => {
   const [date, setDate] = React.useState(parseStartTime(params.startTime));
   const [showPicker, setShowPicker] = React.useState(false);
 
+  /**
+   * `DateTimePicker`에서 시간이 변경될 때 호출되는 이벤트 핸들러입니다.
+   * @param event - 이벤트 객체
+   * @param selectedDate - 선택된 날짜/시간 `Date` 객체
+   */
   const onTimeChange = (event: any, selectedDate?: Date) => {
     const isIOS = Platform.OS === 'ios';
     if (!isIOS) {
@@ -79,6 +94,9 @@ const EditTemplateItineraryScreen: React.FC = () => {
     }
   };
 
+  /**
+   * 수정된 일정 정보를 로컬 컨텍스트 상태에 업데이트하고 이전 화면으로 돌아갑니다.
+   */
   const handleEditSchedule = () => {
     if (!localDay || !title || !startTime || !latitude || !longitude) {
       Toast.show({

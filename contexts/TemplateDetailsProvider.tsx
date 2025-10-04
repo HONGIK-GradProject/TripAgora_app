@@ -9,9 +9,12 @@ import React, {
   useState,
 } from 'react';
 
-
-// --- Internal Hook with State Logic ---
-// Note: This hook contains the actual state and logic.
+/**
+ * 템플릿 상세 정보 관련 상태와 로직을 관리하는 내부 훅입니다.
+ * 템플릿 ID를 기반으로 상세 정보와 일정 목록을 가져오고, 상태를 관리하는 다양한 함수를 제공합니다.
+ * @param id - 상세 정보를 조회할 템플릿의 ID
+ * @returns 템플릿 상세 정보 상태와 관리 함수들을 담은 객체
+ */
 const useTemplateDetailsLogic = (id: string) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [title, setTitle] = useState<string>('샘플 여행 제목'); // 샘플 데이터용 제목
@@ -26,6 +29,9 @@ const useTemplateDetailsLogic = (id: string) => {
   const [isEditingContent, setIsEditingContent] = useState<boolean>(false);
   const [day, setDay] = useState<number>(1);
 
+  /**
+   * 서버에서 템플릿 상세 정보와 일정 목록을 비동기적으로 가져와 상태를 업데이트합니다.
+   */
   const fetchTemplateDetails = useCallback(async () => {
     if (!id) return;
     setIsLoading(true);
@@ -53,6 +59,10 @@ const useTemplateDetailsLogic = (id: string) => {
     fetchTemplateDetails();
   }, [fetchTemplateDetails]);
 
+  /**
+   * 새로운 일정 항목을 로컬 상태에 추가합니다. 시간순으로 정렬됩니다.
+   * @param newItinerary - 추가할 새로운 일정 객체
+   */
   const addItinerary = useCallback((newItinerary: TemplateItinerary) => {
     const day = newItinerary.day;
     setItineraries((prev) => {
@@ -67,6 +77,10 @@ const useTemplateDetailsLogic = (id: string) => {
     });
   }, []);
 
+  /**
+   * 기존 일정 항목을 로컬 상태에서 업데이트합니다.
+   * @param updatedItinerary - 업데이트할 일정 객체. ID를 기준으로 기존 항목을 찾습니다.
+   */
   const updateItinerary = useCallback(
     (updatedItinerary: TemplateItinerary) => {
       setItineraries((prev) => {
@@ -80,6 +94,10 @@ const useTemplateDetailsLogic = (id: string) => {
     []
   );
 
+  /**
+   * 특정 일정 항목을 로컬 상태에서 삭제합니다.
+   * @param itineraryId - 삭제할 일정 항목의 ID
+   */
   const deleteItinerary = useCallback((itineraryId: number) => {
     setItineraries((prev) => {
       const flatList = flattenItineraries(prev);
@@ -116,14 +134,19 @@ const useTemplateDetailsLogic = (id: string) => {
   };
 };
 
-// --- Context Definition ---
-// The context will have a value matching the return type of our logic hook.
+/**
+ * 템플릿 상세 정보 상태를 공유하기 위한 React Context입니다.
+ */
 export const TemplateDetailsContext = createContext<
   ReturnType<typeof useTemplateDetailsLogic> | undefined
 >(undefined);
 
-// --- Provider Component ---
-// This component will wrap our screen layout.
+/**
+ * 하위 컴포넌트들에게 템플릿 상세 정보 컨텍스트를 제공하는 Provider 컴포넌트입니다.
+ * `_layout.tsx`와 같은 레이아웃 컴포넌트에서 화면을 감싸는 데 사용됩니다.
+ * @param children - 컨텍스트를 제공받을 자식 컴포넌트들
+ * @param id - 상태를 초기화하고 데이터를 가져오는 데 사용될 템플릿의 ID
+ */
 export const TemplateDetailsProvider = ({
   children,
   id,
