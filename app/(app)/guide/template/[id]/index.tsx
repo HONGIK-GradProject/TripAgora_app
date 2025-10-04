@@ -1,5 +1,6 @@
+import FullScreenLoader from '@/components/ui/FullScreenLoader';
 import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
-import { INTEREST_TAGS } from '@/constants/Tags';
+import { TAG_ID_TO_NAME_MAP } from '@/constants/Tags';
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import { deleteTemplate, setTemplateContent, setTemplateTitle } from '@/services/templates';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,7 +22,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import FullScreenLoader from '@/components/ui/FullScreenLoader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 /**
