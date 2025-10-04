@@ -43,7 +43,7 @@ apiClient.interceptors.request.use(
     if (config.url === '/auth/reissue') {
       config.headers.Authorization = undefined;
     }
-    if (accessToken) {
+    else if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
 
