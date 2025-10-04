@@ -5,8 +5,14 @@ import { TemplateItinerary } from '@/types/templates';
 import { flattenItineraries } from '@/utils/Itineraries';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 /**
  * 여행 템플릿의 상세 일정 목록을 편집하는 화면입니다.
@@ -15,6 +21,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 const EditTemplateItinerariesScreen: React.FC = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const [isSaving, setIsSaving] = useState(false);
 
   // useTemplateDetails 훅에서 여정 데이터 및 관리 함수들을 가져옵니다.
   const { itineraries, day, deleteItinerary, addItinerary, setDay } =
@@ -78,14 +85,17 @@ const EditTemplateItinerariesScreen: React.FC = () => {
    * 현재까지의 모든 일정 변경사항(추가, 수정, 삭제)을 서버에 일괄 저장합니다.
    */
   const handleSave = async () => {
+    setIsSaving(true);
     try {
       const newItineraries: TemplateItinerary[] = flattenItineraries(itineraries);
 
       await setTemplateItineraries(+id, newItineraries);
+      router.back();
     } catch (error) {
       console.error(error);
+      // TODO: 사용자에게 에러 토스트 메시지 보여주기
     } finally {
-      router.back();
+      setIsSaving(false);
     }
   };
 
@@ -134,12 +144,21 @@ const EditTemplateItinerariesScreen: React.FC = () => {
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.back()}
+          disabled={isSaving}
         >
           <Ionicons name='arrow-back' size={24} color='#000' />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>여행 일정 편집하기</Text>
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>저장</Text>
+        <TouchableOpacity
+          style={styles.saveButton}
+          onPress={handleSave}
+          disabled={isSaving}
+        >
+          {isSaving ? (
+            <ActivityIndicator color="#8130FF" />
+          ) : (
+            <Text style={styles.saveButtonText}>저장</Text>
+          )}
         </TouchableOpacity>
       </View>
 

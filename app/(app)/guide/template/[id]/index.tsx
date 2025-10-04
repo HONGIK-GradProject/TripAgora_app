@@ -4,13 +4,13 @@ import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import { deleteTemplate, setTemplateContent, setTemplateTitle } from '@/services/templates';
 import { Ionicons } from '@expo/vector-icons';
 import {
-  Redirect,
   useFocusEffect,
   useLocalSearchParams,
-  useRouter,
+  useRouter
 } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Image,
   RefreshControl,
@@ -21,6 +21,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import FullScreenLoader from '@/components/ui/FullScreenLoader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 /**
@@ -31,9 +32,8 @@ const ProductDetailScreen: React.FC = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const { id } = useLocalSearchParams<{ id?: string }>();
+  const { id } = useLocalSearchParams<{ id: string }>();
 
-  // In the future, use `id` to fetch detail via API. For now, show sample.
   const {
     title,
     content,
@@ -50,6 +50,15 @@ const ProductDetailScreen: React.FC = () => {
     isLoading,
     refetch,
   } = useTemplateDetails();
+
+  // 로딩 상태 추가
+  const [isSavingTitle, setIsSavingTitle] = useState(false);
+  const [isSavingContent, setIsSavingContent] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // 초기 로딩과 새로고침을 구분하기 위한 변수
+  // 데이터가 전혀 없을 때의 로딩만 전체 화면 로딩으로 간주
+  const isInitialLoading = isLoading && Object.keys(itineraries).length === 0;
 
   const availableDays = useMemo(
     () =>
@@ -71,15 +80,12 @@ const ProductDetailScreen: React.FC = () => {
 
   useFocusEffect(
     useCallback(() => {
+      // The id check is still useful here before refetching
       if (id) {
         refetch();
       }
     }, [id, refetch])
   );
-
-  if (!id) {
-    return <Redirect href='/(app)/guide/template' />;
-  }
 
   const _id: number = +id;
 
@@ -88,7 +94,14 @@ const ProductDetailScreen: React.FC = () => {
    */
   const handleEditTitle = async () => {
     if (isEditingTitle) {
-      await setTemplateTitle(_id, title);
+      setIsSavingTitle(true);
+      try {
+        await setTemplateTitle(_id, title);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsSavingTitle(false);
+      }
     }
     setIsEditingTitle((prev) => !prev);
   };
@@ -98,7 +111,14 @@ const ProductDetailScreen: React.FC = () => {
    */
   const handleEditContent = async () => {
     if (isEditingContent) {
-      await setTemplateContent(_id, content);
+      setIsSavingContent(true);
+      try {
+        await setTemplateContent(_id, content);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsSavingContent(false);
+      }
     }
     setIsEditingContent((prev) => !prev);
   };
@@ -121,13 +141,24 @@ const ProductDetailScreen: React.FC = () => {
           text: '삭제',
           style: 'destructive',
           onPress: async () => {
-            await deleteTemplate(_id);
-            router.back();
+            setIsDeleting(true);
+            try {
+              await deleteTemplate(_id);
+              router.back();
+            } catch (error) {
+              console.error(error);
+            } finally {
+              setIsDeleting(false);
+            }
           },
         },
       ]
     );
   };
+
+  if (isInitialLoading) {
+    return <FullScreenLoader />;
+  }
 
   return (
     <View style={styles.container}>
@@ -139,7 +170,7 @@ const ProductDetailScreen: React.FC = () => {
       >
         <View style={styles.coverContainer}>
           {/* 배경 이미지 */}
-          <Image source={{ uri: imageUrls[0] }} style={styles.coverImage} />
+          {imageUrls[0] && <Image source={{ uri: imageUrls[0] }} style={styles.coverImage} />}
           {/* 이미지가 없을 땐 이대로 그냥 회색 배경? 아니면 default 이미지를 만들까? */}
         </View>
 
@@ -151,6 +182,7 @@ const ProductDetailScreen: React.FC = () => {
                 onChangeText={setTitle}
                 style={styles.titleInput}
                 placeholder='제목을 입력하세요'
+                editable={!isSavingTitle}
               />
             ) : (
               <Text style={[styles.title, { flex: 1, marginBottom: 0 }]}>
@@ -160,10 +192,11 @@ const ProductDetailScreen: React.FC = () => {
             <TouchableOpacity
               style={styles.editButton}
               onPress={handleEditTitle}
+              disabled={isSavingTitle}
             >
-              <Text style={styles.editButtonText}>
+              {isSavingTitle ? <ActivityIndicator size="small" /> : <Text style={styles.editButtonText}>
                 {isEditingTitle ? '저장' : '편집'}
-              </Text>
+              </Text>}
             </TouchableOpacity>
           </View>
           <View style={styles.metaRow}>
@@ -210,10 +243,11 @@ const ProductDetailScreen: React.FC = () => {
             <TouchableOpacity
               style={styles.editButton}
               onPress={handleEditContent}
+              disabled={isSavingContent}
             >
-              <Text style={styles.editButtonText}>
+              {isSavingContent ? <ActivityIndicator size="small" /> : <Text style={styles.editButtonText}>
                 {isEditingContent ? '완료' : '편집'}
-              </Text>
+              </Text>}
             </TouchableOpacity>
           </View>
           {isEditingContent ? (
@@ -224,6 +258,7 @@ const ProductDetailScreen: React.FC = () => {
               multiline
               textAlignVertical='top'
               placeholder='여행 소개를 입력하세요'
+              editable={!isSavingContent}
             />
           ) : (
             <Text style={styles.description}>{content}</Text>
@@ -318,8 +353,9 @@ const ProductDetailScreen: React.FC = () => {
           <TouchableOpacity
             style={styles.deleteButton}
             onPress={handleDeleteTemplate}
+            disabled={isDeleting}
           >
-            <Ionicons name='trash-outline' size={20} color='#FF3B30' />
+            {isDeleting ? <ActivityIndicator size="small" color="#FF3B30" /> : <Ionicons name='trash-outline' size={20} color='#FF3B30' />}
           </TouchableOpacity>
         </View>
       </View>

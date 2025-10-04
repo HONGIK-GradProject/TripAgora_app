@@ -5,8 +5,7 @@ import React, {
   createContext,
   ReactNode,
   useCallback,
-  useEffect,
-  useState,
+  useState
 } from 'react';
 
 /**
@@ -54,10 +53,6 @@ const useTemplateDetailsLogic = (id: string) => {
       setIsLoading(false);
     }
   }, [id]);
-
-  useEffect(() => {
-    fetchTemplateDetails();
-  }, [fetchTemplateDetails]);
 
   /**
    * 새로운 일정 항목을 로컬 상태에 추가합니다. 시간순으로 정렬됩니다.

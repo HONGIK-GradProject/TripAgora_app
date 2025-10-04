@@ -1,4 +1,5 @@
 import GuideProductList from '@/components/guide/product/GuideTemplateList';
+import FullScreenLoader from '@/components/ui/FullScreenLoader';
 import { useTemplateList } from '@/hooks/templates/useTemplateList';
 import { createBlankTemplate } from '@/services/templates';
 import { Ionicons } from '@expo/vector-icons';
@@ -65,7 +66,7 @@ const MyProductsScreen: React.FC = () => {
 
       {/* 초기 로딩 처리 */}
       {isLoading && products.length === 0 ? (
-        <ActivityIndicator size='large' style={{ flex: 1 }} />
+        <FullScreenLoader />
       ) : error ? (
         <Text style={{ textAlign: 'center', marginTop: 50 }}>
           오류가 발생했습니다.

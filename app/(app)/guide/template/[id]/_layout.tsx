@@ -7,7 +7,7 @@ import React from 'react';
  * URL에서 추출한 `id`를 `TemplateDetailsProvider`에 전달하여
  * 하위 모든 화면들이 동일한 데이터 컨텍스트를 공유하도록 합니다.
  */
-export default function ProductIdLayout() {
+export default function TemplateIdLayout() {
   const { id } = useLocalSearchParams<{ id: string }>();
 
   if (!id) {

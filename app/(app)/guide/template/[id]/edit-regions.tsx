@@ -4,7 +4,8 @@ import { setTemplateRegions } from '@/services/templates';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 /**
  * 여행 템플릿에 적용될 지역을 선택하고 편집하는 화면입니다.
@@ -16,6 +17,17 @@ const EditTemplateRegionsScreen: React.FC = () => {
   const parents = useMemo(() => Object.keys(REGION_DATA), []);
   const [selectedParent, setSelectedParent] = useState<string>(parents[0]);
   const [selectedRegionIds, setSelectedRegionIds] = useState<number[]>(regionIds);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const showToast = () => {
+    Toast.show({
+      type: 'error',
+      text1: '지역 수정 중 오류가 발생했습니다.',
+      position: 'bottom',
+      bottomOffset: 100,
+    });
+  };
+
   const children = useMemo<Region[]>(
     () => (selectedParent ? REGION_DATA[selectedParent] : []),
     [selectedParent]
@@ -45,16 +57,17 @@ const EditTemplateRegionsScreen: React.FC = () => {
    * 선택된 지역 목록을 서버에 저장하고, 로컬 컨텍스트 상태를 업데이트합니다.
    */
   const handleSave = async () => {
-    // TODO: 선택된 지역 ID들(selectedRegionIds)을 템플릿에 반영하는 로직 연결
-    // 예: await updateTemplateRegions({ templateId: id, regionIds: selectedRegionIds })
+    setIsSaving(true);
     const _id : number = +id;
     try {
       await setTemplateRegions(_id, selectedRegionIds);
       setRegionIds(selectedRegionIds);
+      router.back();
     } catch (error) {
       console.error(error);
+      showToast();
     } finally {
-      router.back();
+      setIsSaving(false);
     }
   };
 
@@ -153,9 +166,9 @@ const EditTemplateRegionsScreen: React.FC = () => {
             selectedRegionIds.length > 0 ? 'bg-primary' : 'bg-[#E5E5EA]'
           }`}
           onPress={handleSave}
-          disabled={selectedRegionIds.length === 0}
+          disabled={selectedRegionIds.length === 0 || isSaving}
         >
-          <Text className='text-white text-base font-bold'>저장</Text>
+          {isSaving ? <ActivityIndicator color="#fff" /> : <Text className='text-white text-base font-bold'>저장</Text>}
         </TouchableOpacity>
       </View>
     </View>

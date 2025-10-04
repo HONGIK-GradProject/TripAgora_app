@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 
 import InterestTag from '@/components/InterestTag';
 import { INTEREST_TAGS } from '@/constants/Tags';
@@ -17,6 +17,7 @@ const EditTemplateTagsScreen: React.FC = () => {
   const { tagIds, setTagIds } = useTemplateDetails();
 
   const [selectedTags, setSelectedTags] = useState<number[]>(tagIds);
+  const [isSaving, setIsSaving] = useState(false);
 
   const showToast = () => {
     Toast.show({
@@ -45,19 +46,19 @@ const EditTemplateTagsScreen: React.FC = () => {
       showToast();
       return;
     }
+    setIsSaving(true);
     try {
       const _id = +id;
       await setTemplateTags(_id, selectedTags);
       setTagIds(selectedTags);
       
       console.log(`Saved tags for template ${id}:`, selectedTags);
-      return true;
+      router.back();
     } catch (error) {
       console.error('태그 업데이트 실패:', error);
       Toast.show({ type: 'error', text1: '태그 업데이트 실패' });
-      return false;
     } finally {
-      router.back();
+      setIsSaving(false);
     }
   };
 
@@ -95,8 +96,13 @@ const EditTemplateTagsScreen: React.FC = () => {
       <TouchableOpacity
         className='w-[390px] h-[52px] bg-primary rounded-md justify-center items-center absolute bottom-7'
         onPress={handleSave}
+        disabled={isSaving}
       >
-        <Text className='text-xl font-bold text-white'>저장</Text>
+        {isSaving ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text className='text-xl font-bold text-white'>저장</Text>
+        )}
       </TouchableOpacity>
     </View>
   );
