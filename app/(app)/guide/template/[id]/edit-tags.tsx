@@ -4,13 +4,16 @@ import { Text, TouchableOpacity, View } from 'react-native';
 
 import InterestTag from '@/components/InterestTag';
 import { INTEREST_TAGS } from '@/constants/Tags';
+import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import { setTemplateTags } from '@/services/templates';
 import { router, useLocalSearchParams } from 'expo-router';
 import Toast from 'react-native-toast-message';
 
 const EditTemplateTagsScreen: React.FC = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [selectedTags, setSelectedTags] = useState<number[]>([]);
+  const { tagIds, setTagIds } = useTemplateDetails();
+
+  const [selectedTags, setSelectedTags] = useState<number[]>(tagIds);
 
   const showToast = () => {
     Toast.show({
@@ -35,8 +38,9 @@ const EditTemplateTagsScreen: React.FC = () => {
     try {
       const _id = +id;
       await setTemplateTags(_id, selectedTags);
+      setTagIds(selectedTags);
+      
       console.log(`Saved tags for template ${id}:`, selectedTags);
-
       return true;
     } catch (error) {
       console.error('태그 업데이트 실패:', error);

@@ -16,8 +16,8 @@ const useTemplateDetailsLogic = (id: string) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [title, setTitle] = useState<string>('샘플 여행 제목'); // 샘플 데이터용 제목
   const [content, setContent] = useState<string>('샘플 여행 상세 내용입니다.'); // 샘플 데이터용 내용
-  const [regionNames, setRegionNames] = useState<string[]>(['서울']);
-  const [tagNames, setTagNames] = useState<string[]>([]);
+  const [regionIds, setRegionIds] = useState<number[]>([1]);
+  const [tagIds, setTagIds] = useState<number[]>([]);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [itineraries, setItineraries] = useState<
     Record<number, TemplateItineraryWithId[]>
@@ -39,8 +39,8 @@ const useTemplateDetailsLogic = (id: string) => {
         );
         setTitle(response.title);
         setContent(response.content);
-        setRegionNames(response.regionNames);
-        setTagNames(response.tagNames);
+        setRegionIds(response.regionIds);
+        setTagIds(response.tagIds);
         setImageUrls(response.imageUrls);
         setItineraries(groupItinerariesByDay(itinerariesWithId));
       }
@@ -96,16 +96,17 @@ const useTemplateDetailsLogic = (id: string) => {
     isLoading,
     title,
     content,
-    regionNames,
-    tagNames,
+    regionIds,
+    tagIds,
     imageUrls,
     itineraries,
     isEditingContent,
     isEditingTitle,
     day,
+    setTagIds,
     setTitle,
     setContent,
-    setRegionNames,
+    setRegionIds,
     setItineraries,
     setIsEditingTitle,
     setIsEditingContent,

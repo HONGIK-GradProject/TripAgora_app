@@ -63,7 +63,7 @@ export const setTemplateTags = async (id: number, tagIds: number[]) => {
     const response = await templatesApi.setTags(id, tagIds);
 
     if (response && response.code === 200) {
-      return response.data?.tagNames;
+      return response.data?.tagIds;
     }
 
     throw new Error('템플릿 태그 수정 에러');
@@ -97,7 +97,7 @@ export const setTemplateRegions = async (id: number, regionIds: number[]) => {
     const response = await templatesApi.setRegions(id, regionIds);
 
     if (response && response.code === 200) {
-      return response.data?.regionNames;
+      return response.data?.regionIds;
     }
 
     throw new Error('템플릿 지역 수정 에러');

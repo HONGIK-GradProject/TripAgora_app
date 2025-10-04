@@ -22,7 +22,7 @@ const EditTripScheduleScreen: React.FC = () => {
   const handleUpdate = (item: TemplateItineraryWithId) => {
     console.log('Update item:', item.clientId);
     router.push({
-      pathname: '/(app)/guide/product/[id]/edit-schedule',
+      pathname: '/(app)/guide/template/[id]/edit-schedule',
       params: {
         ...item,
         id: id,
@@ -49,7 +49,7 @@ const EditTripScheduleScreen: React.FC = () => {
     console.log('Add Item:', newSchedule.clientId);
     addItinerary(newSchedule);
     router.push({
-      pathname: '/(app)/guide/product/[id]/edit-schedule',
+      pathname: '/(app)/guide/template/[id]/edit-schedule',
       params: newSchedule,
     });
   };
@@ -82,9 +82,6 @@ const EditTripScheduleScreen: React.FC = () => {
       <View style={styles.mapContainer}>
         <View style={styles.mapPlaceholder}>
           <Ionicons name='map' size={40} color='#949494' />
-          <Text style={styles.mapPlaceholderText}>
-            지도가 들어갈 영역 (추후 구현)
-          </Text>
         </View>
       </View>
 

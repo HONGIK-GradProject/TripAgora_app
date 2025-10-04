@@ -1,4 +1,5 @@
-import { REGION_DATA, Region } from '@/constants/Regions';
+import { Region, REGION_DATA, REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
+import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import { setTemplateRegions } from '@/services/templates';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -7,20 +8,27 @@ import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 const EditTemplateRegionScreen: React.FC = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { regionIds, setRegionIds } = useTemplateDetails();
+
   const parents = useMemo(() => Object.keys(REGION_DATA), []);
   const [selectedParent, setSelectedParent] = useState<string>(parents[0]);
-  const [selectedRegionIds, setSelectedRegionIds] = useState<number[]>([]);
+  const [selectedRegionIds, setSelectedRegionIds] = useState<number[]>(regionIds);
+
+  
 
   const children = useMemo<Region[]>(
     () => (selectedParent ? REGION_DATA[selectedParent] : []),
     [selectedParent]
   );
 
-  // For displaying selected tags, we need the full region objects
-  const allChildren = useMemo(() => Object.values(REGION_DATA).flat(), []);
+  // For displaying selected tags, use the efficient ID-to-name map
   const selectedRegions = useMemo(
-    () => allChildren.filter((c) => selectedRegionIds.includes(c.id)),
-    [selectedRegionIds, allChildren]
+    () =>
+      selectedRegionIds.map((id) => ({
+        id,
+        name: REGION_ID_TO_NAME_MAP[id],
+      })),
+    [selectedRegionIds]
   );
 
   const toggleRegionId = (id: number) => {
@@ -35,6 +43,7 @@ const EditTemplateRegionScreen: React.FC = () => {
     const _id : number = +id;
     try {
       await setTemplateRegions(_id, selectedRegionIds);
+      setRegionIds(selectedRegionIds);
     } catch (error) {
       console.error(error);
     } finally {

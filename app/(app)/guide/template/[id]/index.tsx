@@ -1,3 +1,5 @@
+import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
+import { INTEREST_TAGS } from '@/constants/Tags';
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import { setTemplateContent, setTemplateTitle } from '@/services/templates';
 import { Ionicons } from '@expo/vector-icons';
@@ -30,8 +32,8 @@ const ProductDetailScreen: React.FC = () => {
   const {
     title,
     content,
-    regionNames,
-    tagNames,
+    regionIds,
+    tagIds,
     imageUrls,
     isEditingContent,
     isEditingTitle,
@@ -71,7 +73,7 @@ const ProductDetailScreen: React.FC = () => {
   );
 
   if (!id) {
-    return <Redirect href='/(app)/guide/product' />;
+    return <Redirect href='/(app)/guide/template' />;
   }
 
   const _id: number = +id;
@@ -131,28 +133,28 @@ const ProductDetailScreen: React.FC = () => {
           </View>
           <View style={styles.metaRow}>
             <Ionicons name='location-outline' size={20} color='#8130FF' />
-            <Text style={styles.metaText}>{regionNames.join(', ')}</Text>
+            <Text style={styles.metaText}>{regionIds.map(regionId => REGION_ID_TO_NAME_MAP[regionId]).join(', ')}</Text>
           </View>
           <View style={styles.metaRow}>
             <Ionicons name='person-circle-outline' size={20} color='#8130FF' />
           </View>
           <View style={styles.tagsRow}>
-            {tagNames.map((tag) => (
-              <View key={tag} style={styles.tagChip}>
-                <Text style={styles.tagText}>{tag}</Text>
+            {tagIds.map((tagId) => (
+              <View key={tagId} style={styles.tagChip}>
+                <Text style={styles.tagText}>{INTEREST_TAGS[tagId]}</Text>
               </View>
             ))}
           </View>
           <View style={styles.editActionsRow}>
             <TouchableOpacity
               style={styles.editActionButton}
-              onPress={() => router.push(`/guide/product/${id}/edit-regions`)}
+              onPress={() => router.push(`/guide/template/${id}/edit-regions`)}
             >
               <Text style={styles.editActionText}>지역 편집</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.editActionButton}
-              onPress={() => router.push(`/guide/product/${id}/edit-tags`)}
+              onPress={() => router.push(`/guide/template/${id}/edit-tags`)}
             >
               <Text style={styles.editActionText}>태그 편집</Text>
             </TouchableOpacity>
@@ -199,7 +201,7 @@ const ProductDetailScreen: React.FC = () => {
             <TouchableOpacity
               style={styles.editButton}
               onPress={() =>
-                router.push(`/guide/product/${id}/edit-itineraries`)
+                router.push(`/guide/template/${id}/edit-itineraries`)
               }
             >
               <Text style={styles.editButtonText}>편집</Text>

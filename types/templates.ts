@@ -16,16 +16,15 @@ interface TemplateInfo {
   templateId: number;
   title: string;
   firstImageUrl: string;
-  regionNames: string[];
+  regionIds: number[];
 }
 
-interface TemplateDetails {
-  title: string;
-  content: string;
-  regionNames: string[];
-  tagNames: string[];
-  imageUrls: string[];
-}
+type TemplateDetails =
+  TemplateSetTitleData
+  & TemplateSetContentData
+  & TemplateSetImageUrlsData
+  & TemplateSetRegionsData
+  & TemplateSetTagsData;
 
 interface TemplateGetRequest {}
 type TemplateGetData = TemplateDetails;
@@ -96,7 +95,7 @@ interface TemplateSetTagsRequest {
   tagIds: number[];
 }
 interface TemplateSetTagsData {
-  tagNames: string[];
+  tagIds: number[];
 }
 interface TemplateSetTagsResponse extends APIResponse<TemplateSetTagsData> {}
 
@@ -104,7 +103,7 @@ interface TemplateSetRegionsRequest {
   regionIds: number[];
 }
 interface TemplateSetRegionsData {
-  regionNames: string[];
+  regionIds: number[];
 }
 interface TemplateSetRegionsResponse extends APIResponse<TemplateSetRegionsData> {}
 

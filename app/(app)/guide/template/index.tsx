@@ -1,4 +1,4 @@
-import GuideProductList from '@/components/guide/product/GuideProductList';
+import GuideProductList from '@/components/guide/product/GuideTemplateList';
 import { useTemplateList } from '@/hooks/templates/useTemplateList';
 import { createBlankTemplate } from '@/services/templates';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,7 +27,7 @@ const MyProductsScreen: React.FC = () => {
   const handleCreateTemplate = async () => {
     try {
       const newTemplateId = await createBlankTemplate();
-      router.push(`/guide/product/${newTemplateId}`);
+      router.push(`/guide/template/${newTemplateId}`);
       console.log(newTemplateId);
     } catch (error) {
       console.log('템플릿 생성 실패: ', error);
