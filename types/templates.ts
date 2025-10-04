@@ -4,6 +4,7 @@ import APIResponse from "./apiResponse";
  * 템플릿의 여행 일정 정보를 나타냅니다.
  */
 interface TemplateItinerary {
+  id: number;
   day: number;
   title: string;
   content: string;
@@ -16,16 +17,15 @@ interface TemplateInfo {
   templateId: number;
   title: string;
   firstImageUrl: string;
-  regionNames: string[];
+  regionIds: number[];
 }
 
-interface TemplateDetails {
-  title: string;
-  content: string;
-  regionNames: string[];
-  tagNames: string[];
-  imageUrls: string[];
-}
+type TemplateDetails =
+  TemplateSetTitleData
+  & TemplateSetContentData
+  & TemplateSetImageUrlsData
+  & TemplateSetRegionsData
+  & TemplateSetTagsData;
 
 interface TemplateGetRequest {}
 type TemplateGetData = TemplateDetails;
@@ -96,7 +96,7 @@ interface TemplateSetTagsRequest {
   tagIds: number[];
 }
 interface TemplateSetTagsData {
-  tagNames: string[];
+  tagIds: number[];
 }
 interface TemplateSetTagsResponse extends APIResponse<TemplateSetTagsData> {}
 
@@ -104,29 +104,33 @@ interface TemplateSetRegionsRequest {
   regionIds: number[];
 }
 interface TemplateSetRegionsData {
-  regionNames: string[];
+  regionIds: number[];
 }
 interface TemplateSetRegionsResponse extends APIResponse<TemplateSetRegionsData> {}
 
 interface TemplateSetItinerariesRequest {
-  itineraries: TemplateItinerary[];
+  itineraries: TemplateItineraryWithoutId[];
 }
 interface TemplateSetItinerariesData {}
 interface TemplateSetItinerariesResponse extends APIResponse<TemplateSetItinerariesData> {}
 
-// API에서 id를 추가하여 제공 할 예정. API 수정이 끝나는 대로 삭제
-type TemplateItineraryWithId = TemplateItinerary & { clientId : number };
+interface TemplateDeleteRequest {}
+interface TemplateDeleteData{}
+interface TemplateDeleteResponse extends APIResponse<TemplateDeleteData> {}
+
+type TemplateItineraryWithoutId = Omit<TemplateItinerary, 'id'>;
 
 export {
   TemplateCreateData,
   TemplateCreateRequest,
-  TemplateCreateResponse, TemplateDetails, TemplateGetData, TemplateGetItinerariesData,
+  TemplateCreateResponse, TemplateDeleteRequest,
+  TemplateDeleteResponse, TemplateDetails, TemplateGetData, TemplateGetItinerariesData,
   TemplateGetItinerariesRequest,
   TemplateGetItinerariesResponse,
   TemplateGetListData,
   TemplateGetListRequest,
   TemplateGetListResponse, TemplateGetRequest,
-  TemplateGetResponse, TemplateInfo, TemplateItinerary, TemplateItineraryWithId, TemplateSetContentData,
+  TemplateGetResponse, TemplateInfo, TemplateItinerary, TemplateItineraryWithoutId, TemplateSetContentData,
   TemplateSetContentRequest,
   TemplateSetContentResponse,
   TemplateSetImageUrlsData,

@@ -1,14 +1,18 @@
+import FullScreenLoader from '@/components/ui/FullScreenLoader';
+import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
+import { TAG_ID_TO_NAME_MAP } from '@/constants/Tags';
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
-import { setTemplateContent, setTemplateTitle } from '@/services/templates';
+import { deleteTemplate, setTemplateContent, setTemplateTitle } from '@/services/templates';
 import { Ionicons } from '@expo/vector-icons';
 import {
-  Redirect,
   useFocusEffect,
   useLocalSearchParams,
-  useRouter,
+  useRouter
 } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
+  Alert,
   Image,
   RefreshControl,
   ScrollView,
@@ -20,18 +24,21 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+/**
+ * 특정 여행 템플릿의 모든 상세 정보를 보여주는 화면입니다.
+ * 제목, 소개, 지역, 태그, 일정 등을 확인하고 각 항목의 편집 화면으로 이동하는 기능을 제공합니다.
+ */
 const ProductDetailScreen: React.FC = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const { id } = useLocalSearchParams<{ id?: string }>();
+  const { id } = useLocalSearchParams<{ id: string }>();
 
-  // In the future, use `id` to fetch detail via API. For now, show sample.
   const {
     title,
     content,
-    regionNames,
-    tagNames,
+    regionIds,
+    tagIds,
     imageUrls,
     isEditingContent,
     isEditingTitle,
@@ -43,6 +50,15 @@ const ProductDetailScreen: React.FC = () => {
     isLoading,
     refetch,
   } = useTemplateDetails();
+
+  // 로딩 상태 추가
+  const [isSavingTitle, setIsSavingTitle] = useState(false);
+  const [isSavingContent, setIsSavingContent] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // 초기 로딩과 새로고침을 구분하기 위한 변수
+  // 데이터가 전혀 없을 때의 로딩만 전체 화면 로딩으로 간주
+  const isInitialLoading = isLoading && Object.keys(itineraries).length === 0;
 
   const availableDays = useMemo(
     () =>
@@ -64,33 +80,85 @@ const ProductDetailScreen: React.FC = () => {
 
   useFocusEffect(
     useCallback(() => {
+      // The id check is still useful here before refetching
       if (id) {
         refetch();
       }
     }, [id, refetch])
   );
 
-  if (!id) {
-    return <Redirect href='/(app)/guide/product' />;
-  }
-
   const _id: number = +id;
 
+  /**
+   * 템플릿 제목의 편집 모드를 토글하고, 편집 완료 시 서버에 변경사항을 저장합니다.
+   */
   const handleEditTitle = async () => {
     if (isEditingTitle) {
-      await setTemplateTitle(_id, title);
+      setIsSavingTitle(true);
+      try {
+        await setTemplateTitle(_id, title);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsSavingTitle(false);
+      }
     }
     setIsEditingTitle((prev) => !prev);
   };
 
+  /**
+   * 템플릿 소개 내용의 편집 모드를 토글하고, 편집 완료 시 서버에 변경사항을 저장합니다.
+   */
   const handleEditContent = async () => {
     if (isEditingContent) {
-      await setTemplateContent(_id, content);
+      setIsSavingContent(true);
+      try {
+        await setTemplateContent(_id, content);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsSavingContent(false);
+      }
     }
     setIsEditingContent((prev) => !prev);
   };
 
   // Location and Tags will navigate to separate edit screens; no local edit state needed
+
+  /**
+   * 현재 템플릿을 삭제할지 확인하는 경고창을 띄우고, 확인 시 삭제 API를 호출합니다.
+   */
+  const handleDeleteTemplate = () => {
+    Alert.alert(
+      '템플릿 삭제',
+      '정말 템플릿을 삭제하시겠습니까? \n삭제 후엔 복구할 수 없습니다.',
+      [
+        {
+          text: '취소',
+          style: 'cancel',
+        },
+        {
+          text: '삭제',
+          style: 'destructive',
+          onPress: async () => {
+            setIsDeleting(true);
+            try {
+              await deleteTemplate(_id);
+              router.back();
+            } catch (error) {
+              console.error(error);
+            } finally {
+              setIsDeleting(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  if (isInitialLoading) {
+    return <FullScreenLoader />;
+  }
 
   return (
     <View style={styles.container}>
@@ -102,7 +170,7 @@ const ProductDetailScreen: React.FC = () => {
       >
         <View style={styles.coverContainer}>
           {/* 배경 이미지 */}
-          <Image source={{ uri: imageUrls[0] }} style={styles.coverImage} />
+          {imageUrls[0] && <Image source={{ uri: imageUrls[0] }} style={styles.coverImage} />}
           {/* 이미지가 없을 땐 이대로 그냥 회색 배경? 아니면 default 이미지를 만들까? */}
         </View>
 
@@ -114,6 +182,7 @@ const ProductDetailScreen: React.FC = () => {
                 onChangeText={setTitle}
                 style={styles.titleInput}
                 placeholder='제목을 입력하세요'
+                editable={!isSavingTitle}
               />
             ) : (
               <Text style={[styles.title, { flex: 1, marginBottom: 0 }]}>
@@ -123,36 +192,38 @@ const ProductDetailScreen: React.FC = () => {
             <TouchableOpacity
               style={styles.editButton}
               onPress={handleEditTitle}
+              disabled={isSavingTitle}
             >
-              <Text style={styles.editButtonText}>
+              {isSavingTitle ? <ActivityIndicator size="small" /> : <Text style={styles.editButtonText}>
                 {isEditingTitle ? '저장' : '편집'}
-              </Text>
+              </Text>}
             </TouchableOpacity>
           </View>
           <View style={styles.metaRow}>
             <Ionicons name='location-outline' size={20} color='#8130FF' />
-            <Text style={styles.metaText}>{regionNames.join(', ')}</Text>
-          </View>
-          <View style={styles.metaRow}>
-            <Ionicons name='person-circle-outline' size={20} color='#8130FF' />
+            <Text style={styles.metaText}>
+              {regionIds
+                .map((regionId) => REGION_ID_TO_NAME_MAP[regionId])
+                .join(', ')}
+            </Text>
           </View>
           <View style={styles.tagsRow}>
-            {tagNames.map((tag) => (
-              <View key={tag} style={styles.tagChip}>
-                <Text style={styles.tagText}>{tag}</Text>
+            {tagIds.map((tagId) => (
+              <View key={tagId} style={styles.tagChip}>
+                <Text style={styles.tagText}># {TAG_ID_TO_NAME_MAP[tagId]}</Text>
               </View>
             ))}
           </View>
           <View style={styles.editActionsRow}>
             <TouchableOpacity
               style={styles.editActionButton}
-              onPress={() => router.push(`/guide/product/${id}/edit-regions`)}
+              onPress={() => router.push(`/guide/template/${id}/edit-regions`)}
             >
               <Text style={styles.editActionText}>지역 편집</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.editActionButton}
-              onPress={() => router.push(`/guide/product/${id}/edit-tags`)}
+              onPress={() => router.push(`/guide/template/${id}/edit-tags`)}
             >
               <Text style={styles.editActionText}>태그 편집</Text>
             </TouchableOpacity>
@@ -169,10 +240,11 @@ const ProductDetailScreen: React.FC = () => {
             <TouchableOpacity
               style={styles.editButton}
               onPress={handleEditContent}
+              disabled={isSavingContent}
             >
-              <Text style={styles.editButtonText}>
+              {isSavingContent ? <ActivityIndicator size="small" /> : <Text style={styles.editButtonText}>
                 {isEditingContent ? '완료' : '편집'}
-              </Text>
+              </Text>}
             </TouchableOpacity>
           </View>
           {isEditingContent ? (
@@ -183,6 +255,7 @@ const ProductDetailScreen: React.FC = () => {
               multiline
               textAlignVertical='top'
               placeholder='여행 소개를 입력하세요'
+              editable={!isSavingContent}
             />
           ) : (
             <Text style={styles.description}>{content}</Text>
@@ -199,7 +272,7 @@ const ProductDetailScreen: React.FC = () => {
             <TouchableOpacity
               style={styles.editButton}
               onPress={() =>
-                router.push(`/guide/product/${id}/edit-itineraries`)
+                router.push(`/guide/template/${id}/edit-itineraries`)
               }
             >
               <Text style={styles.editButtonText}>편집</Text>
@@ -233,7 +306,7 @@ const ProductDetailScreen: React.FC = () => {
           {(itineraries[selectedDay] || [])
             .sort((a, b) => a.startTime.localeCompare(b.startTime))
             .map((item) => (
-              <View key={item.clientId} style={styles.itineraryItem}>
+              <View key={item.id} style={styles.itineraryItem}>
                 <View style={styles.itineraryTime}>
                   <Text style={styles.itineraryTimeText}>
                     {item.startTime.substring(0, 5)}
@@ -261,14 +334,25 @@ const ProductDetailScreen: React.FC = () => {
           <Ionicons name='arrow-back' size={24} color='#000' />
         </TouchableOpacity>
         {/** 공유 및 찜 버튼은 여행자 쪽에서 세션을 볼 때 있어야 하는 아이콘입니다.
-         * 여행자 쪽에서 보는 양식을 참고하기 위해 추가해 둔 것으로, 이후 삭제해야 합니다.
+         * 여행자 쪽에서 보는 양식을 참고하기 위해 추가해 둔 것으로, 이후 여행자 쪽 화면으로 옮길 예정입니다.
          */}
-        <View style={styles.rightIcons}>
+        {/* <View style={styles.rightIcons}>
           <TouchableOpacity style={styles.iconCircle}>
             <Ionicons name='share-outline' size={20} color='#000' />
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconCircle}>
             <Ionicons name='heart-outline' size={20} color='#000' />
+          </TouchableOpacity>
+        </View> */}
+
+        {/* 삭제 버튼 */}
+        <View style={styles.rightIcons}>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={handleDeleteTemplate}
+            disabled={isDeleting}
+          >
+            {isDeleting ? <ActivityIndicator size="small" color="#FF3B30" /> : <Ionicons name='trash-outline' size={20} color='#FF3B30' />}
           </TouchableOpacity>
         </View>
       </View>
@@ -351,6 +435,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 8,
+  },
+  deleteButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,59,48,0.3)',
   },
   section: {
     paddingHorizontal: 20,

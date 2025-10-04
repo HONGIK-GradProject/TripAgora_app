@@ -47,7 +47,7 @@ const GuideTabLayout: React.FC = () => {
         }}
       />
       <Tabs.Screen
-        name='product'
+        name='template'
         options={{
           title: '내 템플릿',
           tabBarIcon: ({ focused, color }) =>
@@ -59,7 +59,7 @@ const GuideTabLayout: React.FC = () => {
         }}
       />
       <Tabs.Screen
-        name='trip'
+        name='session'
         options={{
           title: '여행',
           tabBarIcon: ({ focused, color }) => (

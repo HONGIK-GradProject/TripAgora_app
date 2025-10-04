@@ -3,19 +3,16 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { FlatList, FlatListProps, ListRenderItem, Text, TouchableOpacity, View } from 'react-native';
 
-export type TemplateItineraryWithId = TemplateItinerary & { clientId: number };
-
 // Omit<FlatListProps...>, 'data' | 'renderItem'> 를 상속받아
 // data와 renderItem을 제외한 FlatList의 모든 props(예: ListHeaderComponent)를 받을 수 있도록 확장합니다.
-interface GuideItineraryListProps extends Omit<FlatListProps<TemplateItineraryWithId>, 'data' | 'renderItem'> {
-  itineraries: TemplateItineraryWithId[];
-  onUpdate: (item: TemplateItineraryWithId) => void;
+interface GuideItineraryListProps extends Omit<FlatListProps<TemplateItinerary>, 'data' | 'renderItem'> {
+  itineraries: TemplateItinerary[];
+  onUpdate: (item: TemplateItinerary) => void;
   onDelete: (clientId: number) => void;
 }
 
 const GuideItineraryList: React.FC<GuideItineraryListProps> = ({ itineraries, onUpdate, onDelete, ...rest }) => {
-
-  const renderItem: ListRenderItem<TemplateItineraryWithId> = ({ item }) => (
+  const renderItem: ListRenderItem<TemplateItinerary> = ({ item }) => (
     // 리스트 아이템 좌우에 마진을 주어 헤더와 구분되도록 합니다.
     <View className='bg-white rounded-2xl p-4 mb-4 border border-gray-200 shadow-sm mx-4'>
       <View className='flex-row justify-between items-start mb-2'>
@@ -27,7 +24,7 @@ const GuideItineraryList: React.FC<GuideItineraryListProps> = ({ itineraries, on
           <TouchableOpacity onPress={() => onUpdate(item)} className='p-2 active:opacity-50'>
             <Ionicons name='pencil' size={22} color={'#6B7280'} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => onDelete(item.clientId)} className='p-2 active:opacity-50'>
+          <TouchableOpacity onPress={() => onDelete(item.id)} className='p-2 active:opacity-50'>
             <Ionicons name='trash-outline' size={22} color={'#EF4444'} />
           </TouchableOpacity>
         </View>
@@ -43,7 +40,7 @@ const GuideItineraryList: React.FC<GuideItineraryListProps> = ({ itineraries, on
     <FlatList
       data={itineraries}
       renderItem={renderItem}
-      keyExtractor={(item) => item.clientId.toString()}
+      keyExtractor={(item) => item.id.toString()}
       showsVerticalScrollIndicator={false}
       // contentContainerStyle에 있던 수평 패딩을 제거하고, 아이템 자체에 마진을 주었습니다.
       contentContainerStyle={{ paddingVertical: 20 }}

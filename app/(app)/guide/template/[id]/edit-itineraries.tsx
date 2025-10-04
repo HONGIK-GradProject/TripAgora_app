@@ -1,73 +1,101 @@
-import GuideItineraryList, {
-  TemplateItineraryWithId,
-} from '@/components/guide/product/GuideItineraryList';
+import GuideItineraryList from '@/components/guide/product/GuideItineraryList';
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import { setTemplateItineraries } from '@/services/templates';
 import { TemplateItinerary } from '@/types/templates';
 import { flattenItineraries } from '@/utils/Itineraries';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
-const EditTripScheduleScreen: React.FC = () => {
+/**
+ * 여행 템플릿의 상세 일정 목록을 편집하는 화면입니다.
+ * 일정을 추가, 수정, 삭제하고 전체 변경사항을 저장할 수 있습니다.
+ */
+const EditTemplateItinerariesScreen: React.FC = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const [isSaving, setIsSaving] = useState(false);
 
   // useTemplateDetails 훅에서 여정 데이터 및 관리 함수들을 가져옵니다.
   const { itineraries, day, deleteItinerary, addItinerary, setDay } =
     useTemplateDetails();
 
-  // 수정/삭제 핸들러를 정의합니다. (추후 수정 모달 등을 띄우는 로직 추가)
-  const handleUpdate = (item: TemplateItineraryWithId) => {
-    console.log('Update item:', item.clientId);
+  /**
+   * 선택된 일정 항목의 편집 화면으로 이동합니다.
+   * @param item - 수정할 일정 항목 객체
+   */
+  const handleUpdate = (item: TemplateItinerary) => {
+    // id 충돌을 피하기 위해 item의 id를 itineraryId로 명시적으로 전달
+    const { id: itineraryId, ...restOfItem } = item;
     router.push({
-      pathname: '/(app)/guide/product/[id]/edit-schedule',
+      pathname: '/(app)/guide/template/[id]/edit-itinerary',
       params: {
-        ...item,
-        id: id,
+        id, // URL 경로의 [id]를 채우기 위한 템플릿 ID
+        itineraryId: itineraryId.toString(), // 수정할 아이템의 ID
+        ...restOfItem, // 나머지 아이템 정보
       },
     });
   };
 
-  const handleDelete = (clientId: number) => {
-    console.log('Delete item:', clientId);
-    deleteItinerary(clientId);
+  /**
+   * 선택된 일정 항목을 로컬 상태에서 삭제합니다.
+   * @param itineraryId - 삭제할 일정 항목의 ID
+   */
+  const handleDelete = (itineraryId: number) => {
+    console.log('Delete item:', itineraryId);
+    deleteItinerary(itineraryId);
   };
 
+  /**
+   * 새로운 빈 일정 항목을 로컬 상태에 추가하고, 해당 항목의 편집 화면으로 즉시 이동합니다.
+   */
   const handleAdd = () => {
-    const newSchedule = {
-      day: 1,
+    const newItinerary: TemplateItinerary = {
+      day: day, // 현재 선택된 day에 추가하도록 수정
       title: '',
       content: '',
       startTime: '00:00',
       latitude: 0,
       longitude: 0,
-      clientId: Date.now(),
-      id: id,
+      id: Date.now(), // 임시 ID
     };
-    console.log('Add Item:', newSchedule.clientId);
-    addItinerary(newSchedule);
+
+    addItinerary(newItinerary);
+
+    // id 충돌을 피하기 위해 newItinerary의 id를 itineraryId로 명시적으로 전달
+    const { id: itineraryId, ...rest } = newItinerary;
     router.push({
-      pathname: '/(app)/guide/product/[id]/edit-schedule',
-      params: newSchedule,
+      pathname: '/(app)/guide/template/[id]/edit-itinerary',
+      params: {
+        id, // URL 경로의 [id]를 채우기 위한 템플릿 ID
+        itineraryId: itineraryId.toString(), // 새 아이템의 임시 ID
+        ...rest,
+      },
     });
   };
 
+  /**
+   * 현재까지의 모든 일정 변경사항(추가, 수정, 삭제)을 서버에 일괄 저장합니다.
+   */
   const handleSave = async () => {
+    setIsSaving(true);
     try {
-      const newItineraries: TemplateItinerary[] = flattenItineraries(
-        itineraries
-      ).map((schedule) => {
-        const { clientId, ...rest } = schedule;
-        return rest;
-      });
+      const newItineraries: TemplateItinerary[] = flattenItineraries(itineraries);
 
       await setTemplateItineraries(+id, newItineraries);
+      router.back();
     } catch (error) {
       console.error(error);
+      // TODO: 사용자에게 에러 토스트 메시지 보여주기
     } finally {
-      router.back();
+      setIsSaving(false);
     }
   };
 
@@ -82,9 +110,6 @@ const EditTripScheduleScreen: React.FC = () => {
       <View style={styles.mapContainer}>
         <View style={styles.mapPlaceholder}>
           <Ionicons name='map' size={40} color='#949494' />
-          <Text style={styles.mapPlaceholderText}>
-            지도가 들어갈 영역 (추후 구현)
-          </Text>
         </View>
       </View>
 
@@ -119,12 +144,21 @@ const EditTripScheduleScreen: React.FC = () => {
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.back()}
+          disabled={isSaving}
         >
           <Ionicons name='arrow-back' size={24} color='#000' />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>여행 일정 편집하기</Text>
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>저장</Text>
+        <TouchableOpacity
+          style={styles.saveButton}
+          onPress={handleSave}
+          disabled={isSaving}
+        >
+          {isSaving ? (
+            <ActivityIndicator color="#8130FF" />
+          ) : (
+            <Text style={styles.saveButtonText}>저장</Text>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -138,16 +172,16 @@ const EditTripScheduleScreen: React.FC = () => {
         contentContainerStyle={styles.scrollViewContent}
       />
 
-      <TouchableOpacity style={styles.addScheduleButton} onPress={handleAdd}>
+      <TouchableOpacity style={styles.addItineraryButton} onPress={handleAdd}>
         <Ionicons name='add-circle' size={30} color='#8130FF' />
-        <Text style={styles.addScheduleButtonText}>일정 추가</Text>
+        <Text style={styles.addItineraryButtonText}>일정 추가</Text>
       </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  addScheduleButton: {
+  addItineraryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -158,7 +192,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     marginTop: 20,
   },
-  addScheduleButtonText: {
+  addItineraryButtonText: {
     fontSize: 16,
     color: '#8130FF',
     marginLeft: 10,
@@ -249,4 +283,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default EditTripScheduleScreen;
+export default EditTemplateItinerariesScreen;
