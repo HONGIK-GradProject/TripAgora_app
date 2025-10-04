@@ -304,3 +304,14 @@ export const REGION_DATA: RegionTree = {
     { id: 1702, name: '제주시' },
   ],
 };
+
+// Create a map for id -> name lookup for efficient access
+const allRegions = Object.values(REGION_DATA).flat();
+
+export const REGION_ID_TO_NAME_MAP: Record<number, string> = allRegions.reduce(
+  (acc, region) => {
+    acc[region.id] = region.name;
+    return acc;
+  },
+  {} as Record<number, string>
+);
