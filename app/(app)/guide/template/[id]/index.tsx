@@ -213,7 +213,7 @@ const ProductDetailScreen: React.FC = () => {
           <View style={styles.tagsRow}>
             {tagIds.map((tagId) => (
               <View key={tagId} style={styles.tagChip}>
-                <Text style={styles.tagText}>{INTEREST_TAGS[tagId]}</Text>
+                <Text style={styles.tagText}>{TAG_ID_TO_NAME_MAP[tagId]}</Text>
               </View>
             ))}
           </View>

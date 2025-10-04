@@ -80,17 +80,14 @@ const EditTemplateTagsScreen: React.FC = () => {
       </Text>
 
       <View className='flex-row flex-wrap justify-start w-4/5 mb-10'>
-        {INTEREST_TAGS.map((tag, index) => {
-          const tagId = index + 1;
-          return (
-            <InterestTag
-              key={tag}
-              tag={tag}
-              isSelected={selectedTags.includes(tagId)}
-              onPress={() => handleToggleTag(tagId)}
-            />
-          );
-        })}
+        {INTEREST_TAGS.map((tag) => (
+          <InterestTag
+            key={tag.id}
+            tag={tag.name}
+            isSelected={selectedTags.includes(tag.id)}
+            onPress={() => handleToggleTag(tag.id)}
+          />
+        ))}
       </View>
 
       <TouchableOpacity
