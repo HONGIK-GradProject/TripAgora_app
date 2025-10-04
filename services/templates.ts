@@ -165,3 +165,13 @@ export const getTemplateDetailsAll = async (id: number) => {
     console.error(error);
   }
 }
+
+export const deleteTemplate = async (id: number) => {
+  try {
+    const response = await templatesApi.deleteTemplate(id);
+    return response;
+
+  } catch (error) {
+    console.error(error);
+  }
+}

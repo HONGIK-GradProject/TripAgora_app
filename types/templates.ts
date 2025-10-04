@@ -113,19 +113,21 @@ interface TemplateSetItinerariesRequest {
 interface TemplateSetItinerariesData {}
 interface TemplateSetItinerariesResponse extends APIResponse<TemplateSetItinerariesData> {}
 
-// API에서 id를 추가하여 제공 할 예정. API 수정이 끝나는 대로 삭제
-type TemplateItineraryWithId = TemplateItinerary & { clientId : number };
+interface TemplateDeleteRequest {}
+interface TemplateDeleteData{}
+interface TemplateDeleteResponse extends APIResponse<TemplateDeleteData> {}
 
 export {
   TemplateCreateData,
   TemplateCreateRequest,
-  TemplateCreateResponse, TemplateDetails, TemplateGetData, TemplateGetItinerariesData,
+  TemplateCreateResponse, TemplateDeleteRequest,
+  TemplateDeleteResponse, TemplateDetails, TemplateGetData, TemplateGetItinerariesData,
   TemplateGetItinerariesRequest,
   TemplateGetItinerariesResponse,
   TemplateGetListData,
   TemplateGetListRequest,
   TemplateGetListResponse, TemplateGetRequest,
-  TemplateGetResponse, TemplateInfo, TemplateItinerary, TemplateItineraryWithId, TemplateSetContentData,
+  TemplateGetResponse, TemplateInfo, TemplateItinerary, TemplateSetContentData,
   TemplateSetContentRequest,
   TemplateSetContentResponse,
   TemplateSetImageUrlsData,

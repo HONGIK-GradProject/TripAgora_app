@@ -1,4 +1,4 @@
-import { TemplateCreateRequest, TemplateCreateResponse, TemplateGetItinerariesRequest, TemplateGetItinerariesResponse, TemplateGetListRequest, TemplateGetListResponse, TemplateGetRequest, TemplateGetResponse, TemplateItinerary, TemplateSetContentRequest, TemplateSetContentResponse, TemplateSetImageUrlsRequest, TemplateSetImageUrlsResponse, TemplateSetItinerariesRequest, TemplateSetItinerariesResponse, TemplateSetRegionsRequest, TemplateSetRegionsResponse, TemplateSetTagsRequest, TemplateSetTagsResponse, TemplateSetTitleRequest, TemplateSetTitleResponse, TemplateUpdateRequest, TemplateUpdateResponse } from "@/types/templates";
+import { TemplateCreateRequest, TemplateCreateResponse, TemplateDeleteRequest, TemplateDeleteResponse, TemplateGetItinerariesRequest, TemplateGetItinerariesResponse, TemplateGetListRequest, TemplateGetListResponse, TemplateGetRequest, TemplateGetResponse, TemplateItinerary, TemplateSetContentRequest, TemplateSetContentResponse, TemplateSetImageUrlsRequest, TemplateSetImageUrlsResponse, TemplateSetItinerariesRequest, TemplateSetItinerariesResponse, TemplateSetRegionsRequest, TemplateSetRegionsResponse, TemplateSetTagsRequest, TemplateSetTagsResponse, TemplateSetTitleRequest, TemplateSetTitleResponse, TemplateUpdateRequest, TemplateUpdateResponse } from "@/types/templates";
 import apiClient from "./client";
 
 const getTemplate = async (
@@ -133,6 +133,17 @@ const setItineraries = async (
   return response.data;
 };
 
+const deleteTemplate = async (
+  id: number
+): Promise<TemplateDeleteResponse> => {
+  const requestData: TemplateDeleteRequest = {};
+  const response = await apiClient.delete<TemplateDeleteResponse>(
+    `/templates/${id}`,
+    requestData
+  );
+  return response.data;
+}
+
 export const templatesApi = {
   getTemplate,
   createTemplate,
@@ -144,5 +155,6 @@ export const templatesApi = {
   setRegions,
   setItineraries,
   getItineraries,
-  getTemplateList
+  getTemplateList,
+  deleteTemplate
 };

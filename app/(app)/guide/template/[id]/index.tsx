@@ -1,7 +1,7 @@
 import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { INTEREST_TAGS } from '@/constants/Tags';
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
-import { setTemplateContent, setTemplateTitle } from '@/services/templates';
+import { deleteTemplate, setTemplateContent, setTemplateTitle } from '@/services/templates';
 import { Ionicons } from '@expo/vector-icons';
 import {
   Redirect,
@@ -107,9 +107,9 @@ const ProductDetailScreen: React.FC = () => {
         {
           text: '삭제',
           style: 'destructive',
-          onPress: () => {
-            // TODO: 실제 삭제 API 호출 구현
-            console.log(`템플릿 삭제 처리: ${_id}`);
+          onPress: async () => {
+            await deleteTemplate(_id);
+            router.back();
           },
         },
       ]
