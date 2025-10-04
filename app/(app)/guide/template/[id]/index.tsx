@@ -207,13 +207,10 @@ const ProductDetailScreen: React.FC = () => {
                 .join(', ')}
             </Text>
           </View>
-          <View style={styles.metaRow}>
-            <Ionicons name='person-circle-outline' size={20} color='#8130FF' />
-          </View>
           <View style={styles.tagsRow}>
             {tagIds.map((tagId) => (
               <View key={tagId} style={styles.tagChip}>
-                <Text style={styles.tagText}>{TAG_ID_TO_NAME_MAP[tagId]}</Text>
+                <Text style={styles.tagText}># {TAG_ID_TO_NAME_MAP[tagId]}</Text>
               </View>
             ))}
           </View>
