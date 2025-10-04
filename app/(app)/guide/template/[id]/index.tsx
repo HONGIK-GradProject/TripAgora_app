@@ -11,6 +11,7 @@ import {
 } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  Alert,
   Image,
   RefreshControl,
   ScrollView,
@@ -94,6 +95,27 @@ const ProductDetailScreen: React.FC = () => {
 
   // Location and Tags will navigate to separate edit screens; no local edit state needed
 
+  const handleDeleteTemplate = () => {
+    Alert.alert(
+      '템플릿 삭제',
+      '정말 템플릿을 삭제하시겠습니까? \n삭제 후엔 복구할 수 없습니다.',
+      [
+        {
+          text: '취소',
+          style: 'cancel',
+        },
+        {
+          text: '삭제',
+          style: 'destructive',
+          onPress: () => {
+            // TODO: 실제 삭제 API 호출 구현
+            console.log(`템플릿 삭제 처리: ${_id}`);
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -133,7 +155,11 @@ const ProductDetailScreen: React.FC = () => {
           </View>
           <View style={styles.metaRow}>
             <Ionicons name='location-outline' size={20} color='#8130FF' />
-            <Text style={styles.metaText}>{regionIds.map(regionId => REGION_ID_TO_NAME_MAP[regionId]).join(', ')}</Text>
+            <Text style={styles.metaText}>
+              {regionIds
+                .map((regionId) => REGION_ID_TO_NAME_MAP[regionId])
+                .join(', ')}
+            </Text>
           </View>
           <View style={styles.metaRow}>
             <Ionicons name='person-circle-outline' size={20} color='#8130FF' />
@@ -263,14 +289,24 @@ const ProductDetailScreen: React.FC = () => {
           <Ionicons name='arrow-back' size={24} color='#000' />
         </TouchableOpacity>
         {/** 공유 및 찜 버튼은 여행자 쪽에서 세션을 볼 때 있어야 하는 아이콘입니다.
-         * 여행자 쪽에서 보는 양식을 참고하기 위해 추가해 둔 것으로, 이후 삭제해야 합니다.
+         * 여행자 쪽에서 보는 양식을 참고하기 위해 추가해 둔 것으로, 이후 여행자 쪽 화면으로 옮길 예정입니다.
          */}
-        <View style={styles.rightIcons}>
+        {/* <View style={styles.rightIcons}>
           <TouchableOpacity style={styles.iconCircle}>
             <Ionicons name='share-outline' size={20} color='#000' />
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconCircle}>
             <Ionicons name='heart-outline' size={20} color='#000' />
+          </TouchableOpacity>
+        </View> */}
+
+        {/* 삭제 버튼 */}
+        <View style={styles.rightIcons}>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={handleDeleteTemplate}
+          >
+            <Ionicons name='trash-outline' size={20} color='#FF3B30' />
           </TouchableOpacity>
         </View>
       </View>
@@ -353,6 +389,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 8,
+  },
+  deleteButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,59,48,0.3)',
   },
   section: {
     paddingHorizontal: 20,
