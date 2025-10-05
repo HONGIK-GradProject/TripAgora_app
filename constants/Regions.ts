@@ -304,3 +304,21 @@ export const REGION_DATA: RegionTree = {
     { id: 1702, name: '제주시' },
   ],
 };
+
+
+const allRegions = Object.values(REGION_DATA).flat();
+
+/**
+ * 지역 ID를 지역 이름에 매핑하는 객체입니다.
+ * `REGION_DATA`를 기반으로 생성되며, ID를 사용해 지역 이름을 O(1) 시간 복잡도로
+ * 효율적으로 조회하는 데 사용됩니다.
+ * @example
+ * REGION_ID_TO_NAME_MAP[101] // '강남구'
+ */
+export const REGION_ID_TO_NAME_MAP: Record<number, string> = allRegions.reduce(
+  (acc, region) => {
+    acc[region.id] = region.name;
+    return acc;
+  },
+  {} as Record<number, string>
+);

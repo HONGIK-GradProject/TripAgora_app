@@ -1,4 +1,5 @@
-import GuideProductList from '@/components/guide/product/GuideProductList';
+import GuideProductList from '@/components/guide/product/GuideTemplateList';
+import FullScreenLoader from '@/components/ui/FullScreenLoader';
 import { useTemplateList } from '@/hooks/templates/useTemplateList';
 import { createBlankTemplate } from '@/services/templates';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,6 +14,10 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+/**
+ * 가이드가 생성한 자신의 상품 템플릿 목록을 보여주는 화면 컴포넌트입니다.
+ * 템플릿 목록을 조회, 검색하고 새로 생성하는 기능을 제공합니다.
+ */
 const MyProductsScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
   const { products, isLoading, error, loadMore, refetch } = useTemplateList();
@@ -24,16 +29,22 @@ const MyProductsScreen: React.FC = () => {
     }, [refetch])
   );
 
+  /**
+   * 새로운 빈 템플릿을 생성하고, 생성된 템플릿의 상세 편집 화면으로 이동합니다.
+   */
   const handleCreateTemplate = async () => {
     try {
       const newTemplateId = await createBlankTemplate();
-      router.push(`/guide/product/${newTemplateId}`);
+      router.push(`/guide/template/${newTemplateId}`);
       console.log(newTemplateId);
     } catch (error) {
       console.log('템플릿 생성 실패: ', error);
     }
   };
 
+  /**
+   * 리스트의 끝에 도달하여 추가 데이터를 로딩할 때 표시될 푸터 컴포넌트를 렌더링합니다.
+   */
   const renderFooter = () => {
     // 추가 페이지 로딩 시에만 하단 로딩 아이콘 표시
     if (isLoading && products.length > 0) {
@@ -55,7 +66,7 @@ const MyProductsScreen: React.FC = () => {
 
       {/* 초기 로딩 처리 */}
       {isLoading && products.length === 0 ? (
-        <ActivityIndicator size='large' style={{ flex: 1 }} />
+        <FullScreenLoader />
       ) : error ? (
         <Text style={{ textAlign: 'center', marginTop: 50 }}>
           오류가 발생했습니다.

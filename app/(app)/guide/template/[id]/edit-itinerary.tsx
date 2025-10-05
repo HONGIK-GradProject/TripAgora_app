@@ -1,5 +1,5 @@
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
-import { TemplateItinerary, TemplateItineraryWithId } from '@/types/templates';
+import { TemplateItinerary } from '@/types/templates';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -15,29 +15,23 @@ import {
 } from 'react-native';
 import Toast from 'react-native-toast-message';
 
-const asdf: TemplateItinerary = {
-  day: 0,
-  title: '',
-  content: '',
-  startTime: '',
-  latitude: 0,
-  longitude: 0,
-};
-
-type ScheduleParamProps = {
+type ItineraryParamProps = {
   day: string;
   title: string;
   content: string;
   startTime: string;
   latitude: string;
   longitude: string;
-  clientId: string;
-  id: string;
+  itineraryId: string;
 };
 
-const AddScheduleItemScreen: React.FC = () => {
+/**
+ * 개별 상세 일정 항목의 내용을 편집하는 화면입니다.
+ * 장소명, 시간, 내용 등을 수정하여 로컬 상태를 업데이트합니다.
+ */
+const EditTemplateItineraryScreen: React.FC = () => {
   const router = useRouter();
-  const params = useLocalSearchParams<ScheduleParamProps>();
+  const params = useLocalSearchParams<ItineraryParamProps>();
   const { updateItinerary, setDay } = useTemplateDetails();
 
   // TextInput을 제어하기 위해 state를 사용합니다.
@@ -49,6 +43,14 @@ const AddScheduleItemScreen: React.FC = () => {
   const [latitude, setLatitude] = React.useState(params.latitude || '');
   const [longitude, setLongitude] = React.useState(params.longitude || '');
 
+  console.log(params.itineraryId);
+
+  /**
+   * 시간 문자열('HH:MM')을 `Date` 객체로 파싱합니다.
+   * `DateTimePicker`의 초기값으로 사용됩니다.
+   * @param timeStr - 파싱할 시간 문자열
+   * @returns 파싱된 `Date` 객체
+   */
   const parseStartTime = (timeStr: string) => {
     if (!timeStr) {
       const d = new Date();
@@ -68,6 +70,11 @@ const AddScheduleItemScreen: React.FC = () => {
   const [date, setDate] = React.useState(parseStartTime(params.startTime));
   const [showPicker, setShowPicker] = React.useState(false);
 
+  /**
+   * `DateTimePicker`에서 시간이 변경될 때 호출되는 이벤트 핸들러입니다.
+   * @param event - 이벤트 객체
+   * @param selectedDate - 선택된 날짜/시간 `Date` 객체
+   */
   const onTimeChange = (event: any, selectedDate?: Date) => {
     const isIOS = Platform.OS === 'ios';
     if (!isIOS) {
@@ -87,6 +94,9 @@ const AddScheduleItemScreen: React.FC = () => {
     }
   };
 
+  /**
+   * 수정된 일정 정보를 로컬 컨텍스트 상태에 업데이트하고 이전 화면으로 돌아갑니다.
+   */
   const handleEditSchedule = () => {
     if (!localDay || !title || !startTime || !latitude || !longitude) {
       Toast.show({
@@ -98,14 +108,14 @@ const AddScheduleItemScreen: React.FC = () => {
       return;
     }
     // 저장 시에는 state의 현재 값을 사용합니다.
-    const newSchedule: TemplateItineraryWithId = {
+    const newSchedule: TemplateItinerary = {
+      id: +params.itineraryId,
       day: +localDay,
       title: title,
       content: content,
       startTime: startTime,
       latitude: +latitude,
       longitude: +longitude,
-      clientId: +params.clientId, // clientId는 변경되지 않으므로 params 값을 그대로 사용
     };
 
     updateItinerary(newSchedule);
@@ -312,4 +322,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AddScheduleItemScreen;
+export default EditTemplateItineraryScreen;

@@ -1,7 +1,11 @@
 import { templatesApi } from "@/api/templates";
-import { TemplateItinerary } from "@/types/templates";
+import { TemplateItineraryWithoutId } from "@/types/templates";
 import { isAxiosError } from "axios";
 
+/**
+ * 새로운 빈 여행 템플릿을 생성하고 생성된 템플릿의 ID를 반환합니다.
+ * @returns 성공 시 생성된 템플릿의 ID, 실패 시 undefined
+ */
 export const createBlankTemplate = async () => {
   try {
     const response = await templatesApi.createTemplate();
@@ -16,6 +20,12 @@ export const createBlankTemplate = async () => {
   }
 }
 
+/**
+ * 특정 템플릿의 제목을 설정합니다.
+ * @param id - 제목을 설정할 템플릿의 ID
+ * @param title - 새로운 제목
+ * @returns 성공 시 업데이트된 제목, 실패 시 undefined
+ */
 export const setTemplateTitle = async (id: number, title: string) => {
   try {
     const response = await templatesApi.setTitle(id, title);
@@ -30,6 +40,12 @@ export const setTemplateTitle = async (id: number, title: string) => {
   }
 }
 
+/**
+ * 특정 템플릿의 내용을 설정합니다.
+ * @param id - 내용을 설정할 템플릿의 ID
+ * @param content - 새로운 내용
+ * @returns 성공 시 업데이트된 내용, 실패 시 undefined
+ */
 export const setTemplateContent = async (id: number, content: string) => {
   try {
     const response = await templatesApi.setContent(id, content);
@@ -44,6 +60,12 @@ export const setTemplateContent = async (id: number, content: string) => {
   }
 }
 
+/**
+ * 특정 템플릿의 이미지 URL 목록을 설정합니다.
+ * @param id - 이미지를 설정할 템플릿의 ID
+ * @param imageUrls - 새로운 이미지 URL 배열
+ * @returns 성공 시 업데이트된 이미지 URL 배열, 실패 시 undefined
+ */
 export const setTemplateImageUrls = async (id: number, imageUrls: string[]) => {
   try {
     const response = await templatesApi.setImageUrls(id, imageUrls);
@@ -58,12 +80,18 @@ export const setTemplateImageUrls = async (id: number, imageUrls: string[]) => {
   }
 }
 
+/**
+ * 특정 템플릿의 태그를 설정합니다.
+ * @param id - 태그를 설정할 템플릿의 ID
+ * @param tagIds - 새로운 태그 ID 배열
+ * @returns 성공 시 업데이트된 태그 ID 배열, 실패 시 undefined
+ */
 export const setTemplateTags = async (id: number, tagIds: number[]) => {
   try {
     const response = await templatesApi.setTags(id, tagIds);
 
     if (response && response.code === 200) {
-      return response.data?.tagNames;
+      return response.data?.tagIds;
     }
 
     throw new Error('템플릿 태그 수정 에러');
@@ -72,7 +100,13 @@ export const setTemplateTags = async (id: number, tagIds: number[]) => {
   }
 }
 
-export const setTemplateItineraries = async (id: number, itineraries: TemplateItinerary[]) => {
+/**
+ * 특정 템플릿의 상세 일정 목록 전체를 설정(덮어쓰기)합니다.
+ * @param id - 일정을 설정할 템플릿의 ID
+ * @param itineraries - 새로운 상세 일정 배열. ID가 없는 항목은 신규로 생성됩니다.
+ * @returns 성공 시 true, 실패 시 undefined
+ */
+export const setTemplateItineraries = async (id: number, itineraries: TemplateItineraryWithoutId[]) => {
   try {
     const response = await templatesApi.setItineraries(id, itineraries);
 
@@ -92,12 +126,18 @@ export const setTemplateItineraries = async (id: number, itineraries: TemplateIt
   }
 }
 
+/**
+ * 특정 템플릿의 지역을 설정합니다.
+ * @param id - 지역을 설정할 템플릿의 ID
+ * @param regionIds - 새로운 지역 ID 배열
+ * @returns 성공 시 업데이트된 지역 ID 배열, 실패 시 undefined
+ */
 export const setTemplateRegions = async (id: number, regionIds: number[]) => {
   try {
     const response = await templatesApi.setRegions(id, regionIds);
 
     if (response && response.code === 200) {
-      return response.data?.regionNames;
+      return response.data?.regionIds;
     }
 
     throw new Error('템플릿 지역 수정 에러');
@@ -106,6 +146,11 @@ export const setTemplateRegions = async (id: number, regionIds: number[]) => {
   }
 }
 
+/**
+ * 자신이 작성한 템플릿 목록을 페이지 단위로 가져옵니다.
+ * @param page - 가져올 페이지 번호
+ * @returns 성공 시 템플릿 목록 데이터, 실패 시 undefined
+ */
 export const getTemplateList = async (page: number) => {
   try {
     const response = await templatesApi.getTemplateList(page);
@@ -120,6 +165,11 @@ export const getTemplateList = async (page: number) => {
   }
 }
 
+/**
+ * 특정 템플릿에 속한 상세 일정 목록을 가져옵니다.
+ * @param id - 일정을 가져올 템플릿의 ID
+ * @returns 성공 시 상세 일정 데이터, 실패 시 undefined
+ */
 export const getItineraries = async (id: number) => {
   try {
     const response = await templatesApi.getItineraries(id);
@@ -134,6 +184,11 @@ export const getItineraries = async (id: number) => {
   }
 }
 
+/**
+ * 특정 템플릿의 기본 상세 정보(일정 제외)를 가져옵니다.
+ * @param id - 상세 정보를 가져올 템플릿의 ID
+ * @returns 성공 시 템플릿 상세 정보, 실패 시 undefined
+ */
 export const getTemplateDetails = async (id: string) => {
   try {
     const response = await templatesApi.getTemplate(id);
@@ -148,6 +203,11 @@ export const getTemplateDetails = async (id: string) => {
   }
 }
 
+/**
+ * 특정 템플릿의 모든 정보(기본 정보 및 상세 일정)를 한 번에 가져옵니다.
+ * @param id - 정보를 가져올 템플릿의 ID
+ * @returns 성공 시 통합된 템플릿 전체 정보, 실패 시 undefined
+ */
 export const getTemplateDetailsAll = async (id: number) => {
   try {
     const details = await getTemplateDetails(id.toString());
@@ -161,6 +221,21 @@ export const getTemplateDetailsAll = async (id: number) => {
     }
     
     throw new Error('템플릿의 모든 정보 로드 에러');
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+/**
+ * 특정 템플릿을 삭제합니다.
+ * @param id - 삭제할 템플릿의 ID
+ * @returns 성공 시 API 응답, 실패 시 undefined
+ */
+export const deleteTemplate = async (id: number) => {
+  try {
+    const response = await templatesApi.deleteTemplate(id);
+    return response;
+
   } catch (error) {
     console.error(error);
   }

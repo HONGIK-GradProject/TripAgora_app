@@ -1,3 +1,4 @@
+import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { TemplateInfo } from '@/types/templates';
 import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
@@ -11,23 +12,21 @@ import {
   View,
 } from 'react-native';
 
-type ProductInfo = TemplateInfo;
-
 // ProductListProps가 FlatList의 모든 속성을 받도록 확장합니다.
 // 단, data와 renderItem은 내부적으로 처리하므로 Omit으로 제외합니다.
-interface ProductListProps
-  extends Omit<FlatListProps<ProductInfo>, 'data' | 'renderItem'> {
-  products: ProductInfo[];
+interface TemplateListProps
+  extends Omit<FlatListProps<TemplateInfo>, 'data' | 'renderItem'> {
+  products: TemplateInfo[];
 }
 
-const GuideProductList: React.FC<ProductListProps> = ({
+const GuideTemplateList: React.FC<TemplateListProps> = ({
   products,
   ...rest
 }) => {
-  const renderItem = ({ item }: { item: ProductInfo }) => (
+  const renderItem = ({ item }: { item: TemplateInfo }) => (
     <Link
       href={{
-        pathname: '/guide/product/[id]',
+        pathname: '/guide/template/[id]',
         params: {
           id: item.templateId,
         },
@@ -44,7 +43,7 @@ const GuideProductList: React.FC<ProductListProps> = ({
           <Text className='text-2xl font-bold mb-1'>{item.title}</Text>
           <Text className='text-lg text-gray-600'>
             {/* regionNames 배열을 공백으로 구분된 문자열로 변환합니다. */}
-            {item.regionNames.join(', ')}
+            {item.regionIds.map(id => REGION_ID_TO_NAME_MAP[id]).join(', ')}
           </Text>
         </View>
         <Ionicons name='chevron-forward' size={20} color={'#9CA3AF'} />
@@ -63,4 +62,4 @@ const GuideProductList: React.FC<ProductListProps> = ({
   );
 };
 
-export default GuideProductList;
+export default GuideTemplateList;

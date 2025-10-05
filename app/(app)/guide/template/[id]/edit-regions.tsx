@@ -1,44 +1,73 @@
-import { REGION_DATA, Region } from '@/constants/Regions';
+import { Region, REGION_DATA, REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
+import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import { setTemplateRegions } from '@/services/templates';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import Toast from 'react-native-toast-message';
 
-const EditTemplateRegionScreen: React.FC = () => {
+/**
+ * 여행 템플릿에 적용될 지역을 선택하고 편집하는 화면입니다.
+ */
+const EditTemplateRegionsScreen: React.FC = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { regionIds, setRegionIds } = useTemplateDetails();
+
   const parents = useMemo(() => Object.keys(REGION_DATA), []);
   const [selectedParent, setSelectedParent] = useState<string>(parents[0]);
-  const [selectedRegionIds, setSelectedRegionIds] = useState<number[]>([]);
+  const [selectedRegionIds, setSelectedRegionIds] = useState<number[]>(regionIds);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const showToast = () => {
+    Toast.show({
+      type: 'error',
+      text1: '지역 수정 중 오류가 발생했습니다.',
+      position: 'bottom',
+      bottomOffset: 100,
+    });
+  };
 
   const children = useMemo<Region[]>(
     () => (selectedParent ? REGION_DATA[selectedParent] : []),
     [selectedParent]
   );
 
-  // For displaying selected tags, we need the full region objects
-  const allChildren = useMemo(() => Object.values(REGION_DATA).flat(), []);
+  // For displaying selected tags, use the efficient ID-to-name map
   const selectedRegions = useMemo(
-    () => allChildren.filter((c) => selectedRegionIds.includes(c.id)),
-    [selectedRegionIds, allChildren]
+    () =>
+      selectedRegionIds.map((id) => ({
+        id,
+        name: REGION_ID_TO_NAME_MAP[id],
+      })),
+    [selectedRegionIds]
   );
 
+  /**
+   * 특정 지역 ID를 선택 목록에 추가하거나 제거합니다 (토글).
+   * @param id - 토글할 지역의 ID
+   */
   const toggleRegionId = (id: number) => {
     setSelectedRegionIds((prev) =>
       prev.includes(id) ? prev.filter((rid) => rid !== id) : [...prev, id]
     );
   };
 
+  /**
+   * 선택된 지역 목록을 서버에 저장하고, 로컬 컨텍스트 상태를 업데이트합니다.
+   */
   const handleSave = async () => {
-    // TODO: 선택된 지역 ID들(selectedRegionIds)을 템플릿에 반영하는 로직 연결
-    // 예: await updateTemplateRegions({ templateId: id, regionIds: selectedRegionIds })
+    setIsSaving(true);
     const _id : number = +id;
     try {
       await setTemplateRegions(_id, selectedRegionIds);
+      setRegionIds(selectedRegionIds);
+      router.back();
     } catch (error) {
       console.error(error);
+      showToast();
     } finally {
-      router.back();
+      setIsSaving(false);
     }
   };
 
@@ -137,13 +166,13 @@ const EditTemplateRegionScreen: React.FC = () => {
             selectedRegionIds.length > 0 ? 'bg-primary' : 'bg-[#E5E5EA]'
           }`}
           onPress={handleSave}
-          disabled={selectedRegionIds.length === 0}
+          disabled={selectedRegionIds.length === 0 || isSaving}
         >
-          <Text className='text-white text-base font-bold'>저장</Text>
+          {isSaving ? <ActivityIndicator color="#fff" /> : <Text className='text-white text-base font-bold'>저장</Text>}
         </TouchableOpacity>
       </View>
     </View>
   );
 };
 
-export default EditTemplateRegionScreen;
+export default EditTemplateRegionsScreen;
