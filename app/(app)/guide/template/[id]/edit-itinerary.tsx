@@ -4,8 +4,9 @@ import { TemplateItinerary } from '@/types/templates';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  BackHandler,
   Dimensions,
   LayoutAnimation,
   Platform,
@@ -53,6 +54,23 @@ const EditTemplateItineraryScreen: React.FC = () => {
   const [longitude, setLongitude] = useState(params.longitude || '126.9780');
 
   const [isMapExpanded, setIsMapExpanded] = useState(false);
+
+  useEffect(() => {
+    const backAction = () => {
+      if (isMapExpanded) {
+        toggleMapExpansion(false);
+        return true;
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, [isMapExpanded]);
 
   const parseStartTime = (timeStr: string) => {
     if (!timeStr) {
