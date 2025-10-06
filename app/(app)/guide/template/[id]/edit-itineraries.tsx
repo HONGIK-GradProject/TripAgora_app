@@ -1,11 +1,13 @@
 import GuideItineraryList from '@/components/guide/product/GuideItineraryList';
+import { InteractiveMapView } from '@/components/map/InteractiveMapView';
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import { setTemplateItineraries } from '@/services/templates';
 import { TemplateItinerary } from '@/types/templates';
 import { flattenItineraries } from '@/utils/Itineraries';
 import { Ionicons } from '@expo/vector-icons';
+import { ClusterMarkerProp } from '@mj-studio/react-native-naver-map';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -104,13 +106,31 @@ const EditTemplateItinerariesScreen: React.FC = () => {
     .map(Number)
     .sort((a, b) => a - b);
 
+  const clusterMarkers: ClusterMarkerProp[] = useMemo(() => {
+    const allItineraries = itineraries[day];
+    return allItineraries.map((itinerary) => ({
+      identifier: itinerary.id.toString(),
+      latitude: itinerary.latitude,
+      longitude: itinerary.longitude,
+      image: { symbol: 'blue' },
+    }));
+  }, [itineraries]);
+
   // FlatList의 헤더 컴포넌트
   const ListHeader = (
     <>
       <View style={styles.mapContainer}>
-        <View style={styles.mapPlaceholder}>
-          <Ionicons name='map' size={40} color='#949494' />
-        </View>
+        <InteractiveMapView
+          cameraPosition={{
+            latitude: 37.5665,
+            longitude: 126.978,
+            zoom: 10
+          }}
+          clusterMarkers={clusterMarkers}
+          options={{
+            currentLocationButton: true
+          }}
+        />
       </View>
 
       <View style={styles.daySelection}>
