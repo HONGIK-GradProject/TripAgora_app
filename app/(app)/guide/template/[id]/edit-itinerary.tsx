@@ -43,7 +43,7 @@ const EditTemplateItineraryScreen: React.FC = () => {
   const [latitude, setLatitude] = React.useState(params.latitude || '');
   const [longitude, setLongitude] = React.useState(params.longitude || '');
 
-  console.log(params.itineraryId);
+  // console.log(params.itineraryId);
 
   /**
    * 시간 문자열('HH:MM')을 `Date` 객체로 파싱합니다.

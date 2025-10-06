@@ -292,7 +292,11 @@ const ProductDetailScreen: React.FC = () => {
           </View>
         </View>
 
-        <View style={styles.daySelection}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.daySelection}
+        >
           {availableDays.map((dayNumber) => (
             <TouchableOpacity
               key={dayNumber}
@@ -312,7 +316,7 @@ const ProductDetailScreen: React.FC = () => {
               </Text>
             </TouchableOpacity>
           ))}
-        </View>
+        </ScrollView>
 
         <View style={[styles.section, { paddingTop: 0 }]}>
           {(itineraries[selectedDay] || [])
@@ -596,7 +600,6 @@ const styles = StyleSheet.create({
   },
   daySelection: {
     flexDirection: 'row',
-    justifyContent: 'center',
     paddingVertical: 10,
     backgroundColor: '#fff',
     paddingHorizontal: 20,

@@ -520,7 +520,11 @@ const RecruitmentDetailScreen: React.FC = () => {
           <Text style={styles.sectionTitle}>일정</Text>
         </View>
 
-        <View style={styles.daySelection}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.daySelection}
+        >
           {availableDays.map((dayNumber) => (
             <TouchableOpacity
               key={dayNumber}
@@ -540,7 +544,7 @@ const RecruitmentDetailScreen: React.FC = () => {
               </Text>
             </TouchableOpacity>
           ))}
-        </View>
+        </ScrollView>
 
         <View style={[styles.section, { paddingTop: 0 }]}>
           {((itineraries as any)[selectedDay] || [])
@@ -698,7 +702,6 @@ const styles = StyleSheet.create({
   },
   daySelection: {
     flexDirection: 'row',
-    justifyContent: 'center',
     paddingVertical: 10,
     backgroundColor: '#fff',
     paddingHorizontal: 20,
