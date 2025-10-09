@@ -1,9 +1,10 @@
+import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { TemplateDetailsProvider } from '@/contexts/TemplateDetailsProvider';
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Image,
   Platform,
@@ -18,8 +19,23 @@ const StartRecruitmentContent: React.FC = () => {
   const { id } = useLocalSearchParams<{ id?: string }>();
 
   // 템플릿 상세 정보 가져오기
-  const { title, regionNames, imageUrls } = useTemplateDetails();
+  const { title, regionIds, imageUrls, refetch } = useTemplateDetails();
 
+  // regionIds를 지역명으로 변환
+  const regionNames = regionIds
+    ? regionIds
+        .map((id) => REGION_ID_TO_NAME_MAP[id] || `지역 ${id}`)
+        .join(', ')
+    : '지역 정보 없음';
+
+  // 컴포넌트 마운트 시 템플릿 데이터 가져오기
+  useEffect(() => {
+    if (id) {
+      refetch();
+    }
+  }, [id, refetch]);
+
+  // 시작 일자만 백에 보내면 종료 일자는 알아서 처리된다고 합니다.
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [memberCount, setMemberCount] = useState(4);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -100,13 +116,7 @@ const StartRecruitmentContent: React.FC = () => {
               <Text className='text-lg font-bold text-black mb-2'>{title}</Text>
               <View className='flex-row items-center'>
                 <Ionicons name='location-outline' size={16} color='#999' />
-                <Text className='text-base text-black ml-2'>
-                  {regionNames &&
-                  Array.isArray(regionNames) &&
-                  regionNames.length > 0
-                    ? regionNames.join(', ')
-                    : '지역 정보 없음'}
-                </Text>
+                <Text className='text-base text-black ml-2'>{regionNames}</Text>
               </View>
             </View>
           </View>
