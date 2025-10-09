@@ -74,15 +74,17 @@ const MyProductsScreen: React.FC = () => {
       ) : (
         <View className='px-5'>
           <Text className='text-3xl font-bold mb-5'>내 상품 템플릿</Text>
-          <GuideProductList
-            products={products}
-            onEndReached={loadMore}
-            onEndReachedThreshold={0.5}
-            ListFooterComponent={renderFooter}
-            onRefresh={refetch}
-            refreshing={isLoading}
-            contentContainerStyle={{ paddingBottom: 108 + bottom }}
-          />
+          <View className='bg-gray-50 rounded-2xl p-4'>
+            <GuideProductList
+              products={products}
+              onEndReached={loadMore}
+              onEndReachedThreshold={0.5}
+              ListFooterComponent={renderFooter}
+              onRefresh={refetch}
+              refreshing={isLoading}
+              contentContainerStyle={{ paddingBottom: 108 + bottom }}
+            />
+          </View>
         </View>
       )}
 

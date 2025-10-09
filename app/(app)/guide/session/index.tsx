@@ -172,7 +172,7 @@ const GuideTripListScreen: React.FC = () => {
           {filteredTrips.map((trip) => (
             <TouchableOpacity
               key={trip.id}
-              className='bg-white rounded-2xl p-5 shadow-sm border border-gray-100'
+              className='bg-white rounded-2xl mb-2 p-5 shadow-sm border border-gray-100'
               onPress={() =>
                 router.push(`/guide/session/recruitmentDetail?id=${trip.id}`)
               }
