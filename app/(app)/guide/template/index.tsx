@@ -88,11 +88,16 @@ const MyProductsScreen: React.FC = () => {
 
       {/* Floating action button - bottom right above bottom navbar */}
       <TouchableOpacity
-        className='absolute right-5 w-16 h-16 rounded-full bg-[#613EEA] items-center justify-center'
-        style={{ elevation: 8, bottom: insets.bottom + 20 }}
+        className='absolute right-6 w-16 h-16 rounded-full bg-white items-center justify-center'
+        style={{
+          elevation: 8,
+          bottom: insets.bottom + 20,
+        }}
         onPress={handleCreateTemplate}
       >
-        <Ionicons name='add' size={32} color={'#fff'} />
+        <View style={{ marginLeft: -6, marginTop: -6 }}>
+          <Ionicons name='add-circle' size={68} color={'#613eea'} />
+        </View>
       </TouchableOpacity>
     </View>
   );
