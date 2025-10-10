@@ -23,8 +23,13 @@ export const MapView = forwardRef<NaverMapViewRef, MapViewProps>(
       }
     ], [clusterMarkers]);
     
+    /**
+     * key={Date.now()}로 설정해서 매번 렌더링 됩니다.
+     * 따라서 성능 문제가 있을 수 있습니다.
+     */
     return (
       <NaverMapView
+        key={Date.now()}
         ref={ref}
         style={style ?? StyleSheet.absoluteFill}
         initialCamera={cameraPosition}
