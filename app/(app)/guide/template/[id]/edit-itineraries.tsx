@@ -108,13 +108,17 @@ const EditTemplateItinerariesScreen: React.FC = () => {
 
   const clusterMarkers: ClusterMarkerProp[] = useMemo(() => {
     const allItineraries = itineraries[day];
+    if (!allItineraries) {
+      return [];
+    }
+    
     return allItineraries.map((itinerary) => ({
       identifier: itinerary.id.toString(),
       latitude: itinerary.latitude,
       longitude: itinerary.longitude,
       image: { symbol: 'blue' },
     }));
-  }, [itineraries]);
+  }, [itineraries, day]);
 
   // FlatList의 헤더 컴포넌트
   const ListHeader = (
