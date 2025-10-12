@@ -83,7 +83,9 @@ const useTemplateDetailsLogic = (id: string) => {
         const updatedList = flatList.map((item) =>
           item.id === updatedItinerary.id ? updatedItinerary : item
         );
-        return groupItinerariesByDay(updatedList);
+        const newItineraries = groupItinerariesByDay(updatedList);
+        // Ensure a new object reference is created to trigger re-renders
+        return { ...newItineraries };
       });
     },
     []

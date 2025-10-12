@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { Tabs, useSegments } from 'expo-router';
 import React from 'react';
 import { Platform, Pressable, View } from 'react-native';
 
@@ -15,6 +15,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const GuideTabLayout: React.FC = () => {
   const colorScheme = useColorScheme();
   const { bottom } = useSafeAreaInsets();
+
+  const segment = useSegments();
+  const page = segment[segment.length - 1];
+  const pagesToHide = ['edit-itinerary', 'edit-itineraries', 'edit-regions', 'edit-tags'];
   return (
     <Tabs
       screenOptions={{
@@ -30,6 +34,7 @@ const GuideTabLayout: React.FC = () => {
           default: {
             height: 70 + bottom,
             paddingTop: 5,
+            display: pagesToHide.includes(page) ? 'none' : 'flex',
           },
         }),
       }}

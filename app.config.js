@@ -54,6 +54,7 @@ export default {
           android: {
             extraMavenRepos: [
               'https://devrepo.kakao.com/nexus/content/groups/public/',
+              'https://repository.map.naver.com/archive/maven'
             ],
             usesCleartextTraffic: true,
           },
@@ -63,6 +64,24 @@ export default {
         },
       ],
       'expo-secure-store',
+      [
+        '@mj-studio/react-native-naver-map',
+        {
+          client_id: process.env.EXPO_PUBLIC_NAVER_API_ID,
+          android: {
+            ACCESS_FINE_LOCATION: true,
+            ACCESS_COARSE_LOCATION: true,
+            ACCESS_BACKGROUND_LOCATION: true
+          },
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location.",
+          "locationWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location while you are using the app."
+        }
+      ]
     ],
     experiments: {
       typedRoutes: true,

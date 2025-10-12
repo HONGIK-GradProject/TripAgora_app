@@ -7,6 +7,8 @@ import SearchBar from './SearchBar';
  * @description SearchWithAutoComplete 컴포넌트의 props를 정의합니다.
  */
 interface SearchWithAutoCompleteProps {
+  query: string;
+  onQueryChange: (query: string) => void;
   /**
    * 사용자가 입력한 검색어(query)를 기반으로 자동완성 추천 목록을 비동기적으로 가져오는 함수입니다.
    * @param query - 사용자가 입력한 현재 검색어 문자열입니다.
@@ -38,6 +40,8 @@ interface SearchWithAutoCompleteProps {
  * @example
  * ```tsx
  * <SearchWithAutoComplete
+ *   query={searchQuery}
+ *   onQueryChange={setSearchQuery}
  *   fetchSuggestions={mySuggestionFetcher}
  *   onSearch={handleFinalSearch}
  *   placeholder="도시, 장소 등을 검색해보세요"
@@ -48,21 +52,20 @@ interface SearchWithAutoCompleteProps {
  * @returns {React.ReactElement} 자동완성 기능이 포함된 검색창 컴포넌트입니다.
  */
 const SearchWithAutoComplete: React.FC<SearchWithAutoCompleteProps> = ({
+  query,
+  onQueryChange,
   fetchSuggestions,
   onSearch,
   placeholder,
 }) => {
   return (
     <AutoComplete
+      query={query}
+      onQueryChange={onQueryChange}
       fetchSuggestions={fetchSuggestions}
       onSearch={onSearch}
     >
-      {(props) => (
-        <SearchBar
-          {...props}
-          placeholder={placeholder}
-        />
-      )}
+      {(props) => <SearchBar {...props} placeholder={placeholder} />}
     </AutoComplete>
   );
 };
