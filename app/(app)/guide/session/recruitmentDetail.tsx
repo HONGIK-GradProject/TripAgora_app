@@ -465,6 +465,13 @@ const RecruitmentDetailScreen: React.FC = () => {
     );
   };
 
+  /**
+   * 모집 정보 수정 화면으로 이동합니다.
+   */
+  const handleEditRecruitment = () => {
+    router.push(`/guide/session/edit-recruitment?id=${id}`);
+  };
+
   if (isInitialLoading) {
     return <FullScreenLoader />;
   }
@@ -580,6 +587,12 @@ const RecruitmentDetailScreen: React.FC = () => {
         <View style={styles.rightIcons}>
           <TouchableOpacity style={styles.iconCircle}>
             <Ionicons name='share-outline' size={20} color='#000' />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.iconCircle}
+            onPress={handleEditRecruitment}
+          >
+            <Ionicons name='create-outline' size={20} color='#000' />
           </TouchableOpacity>
         </View>
       </View>
