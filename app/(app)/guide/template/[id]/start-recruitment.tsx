@@ -1,18 +1,22 @@
 import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { TemplateDetailsProvider } from '@/contexts/TemplateDetailsProvider';
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
+import { createSession } from '@/services/sessions';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
   Platform,
   ScrollView,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 const StartRecruitmentContent: React.FC = () => {
   const router = useRouter();
@@ -40,13 +44,19 @@ const StartRecruitmentContent: React.FC = () => {
   const [memberCount, setMemberCount] = useState(4);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [hasImageError, setHasImageError] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
 
   const handleIncreaseMembers = () => {
-    setMemberCount((prev) => Math.min(prev + 1, 10));
+    setMemberCount((prev) => prev + 1);
   };
 
   const handleDecreaseMembers = () => {
     setMemberCount((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleMemberCountChange = (text: string) => {
+    const value = parseInt(text) || 1;
+    setMemberCount(Math.max(value, 1));
   };
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
@@ -59,19 +69,80 @@ const StartRecruitmentContent: React.FC = () => {
     setShowDatePicker(true);
   };
 
-  const handleStartRecruitment = () => {
-    // TODO: 모집 시작 로직 구현
-    console.log('모집 시작:', {
-      templateId: id,
-      selectedDate,
-      memberCount,
-    });
-    // 모집 완료 후 적절한 페이지로 이동
-    router.back();
+  const handleStartRecruitment = async () => {
+    if (!id) {
+      showErrorToast('템플릿 ID가 없습니다.');
+      return;
+    }
+
+    // 날짜 유효성 검사
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (selectedDate < today) {
+      showErrorToast('시작 날짜는 오늘 이후여야 합니다.');
+      return;
+    }
+
+    setIsCreating(true);
+
+    try {
+      const templateId = parseInt(id);
+      const startDate = formatDateForAPI(selectedDate);
+
+      console.log('모집 시작 요청:', {
+        templateId,
+        maxParticipants: memberCount,
+        startDate,
+      });
+
+      const sessionId = await createSession(templateId, memberCount, startDate);
+
+      if (sessionId) {
+        showSuccessToast();
+        console.log('세션 생성 성공:', sessionId);
+
+        // 성공 시 세션 상세 페이지로 이동
+        router.replace(`/guide/session/recruitmentDetail?id=${sessionId}`);
+      } else {
+        throw new Error('세션 생성에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('모집 시작 에러:', error);
+      showErrorToast('모집 시작 중 오류가 발생했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const formatDate = (date: Date) => {
     return `${date.getMonth() + 1}월 ${date.getDate()}일`;
+  };
+
+  const formatDateForAPI = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const showErrorToast = (message: string) => {
+    Toast.show({
+      type: 'error',
+      text1: '모집 시작 실패',
+      text2: message,
+      position: 'bottom',
+      bottomOffset: 100,
+    });
+  };
+
+  const showSuccessToast = () => {
+    Toast.show({
+      type: 'success',
+      text1: '모집이 시작되었습니다!',
+      text2: '여행자들이 참여할 수 있습니다.',
+      position: 'bottom',
+      bottomOffset: 100,
+    });
   };
 
   return (
@@ -134,9 +205,13 @@ const StartRecruitmentContent: React.FC = () => {
             >
               <Ionicons name='remove' size={24} color='#613EEA' />
             </TouchableOpacity>
-            <Text className='text-lg font-semibold text-black min-w-[40px] text-center'>
-              {memberCount}
-            </Text>
+            <TextInput
+              className='text-lg font-semibold text-black min-w-[60px] text-center border border-gray-300 rounded-lg py-2'
+              value={memberCount.toString()}
+              onChangeText={handleMemberCountChange}
+              keyboardType='numeric'
+              selectTextOnFocus
+            />
             <TouchableOpacity
               className='w-12 h-12 rounded-full bg-[#F3ECFF] items-center justify-center'
               onPress={handleIncreaseMembers}
@@ -185,10 +260,26 @@ const StartRecruitmentContent: React.FC = () => {
       {/* 하단 버튼 */}
       <View className='absolute bottom-0 left-0 right-0 px-5 pt-[10px] pb-5 bg-white border-t border-[#E9E9E9]'>
         <TouchableOpacity
-          className='h-[52px] rounded-lg items-center justify-center bg-[#8130FF]'
+          className={`h-[52px] rounded-lg items-center justify-center ${
+            isCreating ? 'bg-gray-400' : 'bg-[#8130FF]'
+          }`}
           onPress={handleStartRecruitment}
+          disabled={isCreating}
         >
-          <Text className='text-lg font-bold text-white'>모집 시작하기!</Text>
+          {isCreating ? (
+            <View className='flex-row items-center'>
+              <ActivityIndicator
+                size='small'
+                color='white'
+                style={{ marginRight: 8 }}
+              />
+              <Text className='text-lg font-bold text-white'>
+                모집 시작 중...
+              </Text>
+            </View>
+          ) : (
+            <Text className='text-lg font-bold text-white'>모집 시작하기!</Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>

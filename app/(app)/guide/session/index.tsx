@@ -1,74 +1,132 @@
+import { useSessionList } from '@/hooks/sessions/useSessionList';
+import { SessionInfo } from '@/types/sessions';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React from 'react';
-import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-
-// 여행 데이터 타입 정의
-interface TripData {
-  id: string;
-  title: string;
-  date: string;
-  location: string;
-  participants: number;
-  status: 'ongoing' | 'completed';
-  imageUrl: string;
-}
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  FlatList,
+  Image,
+  RefreshControl,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 const GuideTripListScreen: React.FC = () => {
-  const [activeTab, setActiveTab] = React.useState('ongoing');
+  const [activeTab, setActiveTab] = useState<'ongoing' | 'completed'>(
+    'ongoing'
+  );
   const router = useRouter();
 
-  // 임시 데이터 (나중에 API에서 가져올 예정)
-  const tripData: TripData[] = [
-    {
-      id: '1',
-      title: '홍대 1박2일 모임',
-      date: '2025.03.31 - 04.01',
-      location: '홍대',
-      participants: 4,
-      status: 'ongoing',
-      imageUrl: 'https://via.placeholder.com/90',
+  const { sessions, isLoading, error, loadMore, refetch } = useSessionList();
+
+  // 탭 변경 시 데이터 새로고침
+  const handleTabChange = useCallback(
+    (tab: 'ongoing' | 'completed') => {
+      setActiveTab(tab);
+      const statuses =
+        tab === 'ongoing'
+          ? ['RECRUITING', 'RECRUITMENT_CLOSED', 'IN_PROGRESS']
+          : ['COMPLETED', 'IN_PROGRESS'];
+      refetch(statuses);
     },
-    {
-      id: '2',
-      title: '후쿠오카 놀러가실분',
-      date: '2025.05.16 - 05.21',
-      location: '후쿠오카',
-      participants: 4,
-      status: 'ongoing',
-      imageUrl: 'https://via.placeholder.com/90',
-    },
-    {
-      id: '3',
-      title: '제주도 힐링 여행',
-      date: '2025.06.10 - 06.12',
-      location: '제주도',
-      participants: 6,
-      status: 'completed',
-      imageUrl: 'https://via.placeholder.com/90',
-    },
-    {
-      id: '4',
-      title: '부산 바다 여행',
-      date: '2025.07.15 - 07.17',
-      location: '부산',
-      participants: 8,
-      status: 'ongoing',
-      imageUrl: 'https://via.placeholder.com/90',
-    },
-    {
-      id: '5',
-      title: '강릉 바다 여행',
-      date: '2025.05.01 - 05.03',
-      location: '강릉',
-      participants: 5,
-      status: 'completed',
-      imageUrl: 'https://via.placeholder.com/90',
-    },
-  ];
+    [refetch]
+  );
 
   // 현재 탭에 따른 데이터 필터링
-  const filteredTrips = tripData.filter((trip) => trip.status === activeTab);
+  const filteredSessions = useMemo(() => {
+    if (activeTab === 'ongoing') {
+      // 모집 중 탭에서는 진행 중인 여행(IN_PROGRESS) 제외
+      return sessions.filter((session) =>
+        ['RECRUITING', 'RECRUITMENT_CLOSED'].includes(session.status)
+      );
+    } else {
+      return sessions.filter((session) => session.status === 'COMPLETED');
+    }
+  }, [sessions, activeTab]);
+
+  // 현재 진행 중인 세션 (IN_PROGRESS 상태)
+  const currentSession = useMemo(() => {
+    return sessions.find((session) => session.status === 'IN_PROGRESS');
+  }, [sessions]);
+
+  // 화면 포커스 시 데이터 새로고침
+  useFocusEffect(
+    useCallback(() => {
+      const statuses =
+        activeTab === 'ongoing'
+          ? ['RECRUITING', 'RECRUITMENT_CLOSED', 'IN_PROGRESS']
+          : ['COMPLETED', 'IN_PROGRESS'];
+      refetch(statuses);
+    }, [activeTab, refetch])
+  );
+
+  /**
+   * 리스트의 끝에 도달하여 추가 데이터를 로딩할 때 표시될 푸터 컴포넌트를 렌더링합니다.
+   */
+  const renderFooter = () => {
+    // 추가 페이지 로딩 시에만 하단 로딩 아이콘 표시
+    if (isLoading && filteredSessions.length > 0) {
+      return <ActivityIndicator style={{ marginVertical: 20 }} />;
+    }
+    return null;
+  };
+
+  /**
+   * 세션 아이템을 렌더링하는 함수
+   */
+  const renderSessionItem = ({ item: session }: { item: SessionInfo }) => (
+    <TouchableOpacity
+      className='bg-white rounded-2xl mb-2 p-5 shadow-sm border border-gray-100'
+      onPress={() =>
+        router.push(`/guide/session/${session.sessionId.toString()}` as any)
+      }
+    >
+      <View className='flex-row items-center'>
+        <Image
+          source={{ uri: session.firstImageUrl }}
+          className='w-20 h-20 rounded-xl mr-4'
+        />
+        <View className='flex-1'>
+          <Text className='text-lg font-semibold text-gray-900 mb-1'>
+            {session.title}
+          </Text>
+          <Text className='text-gray-600 mb-2'>
+            {session.startDate} - {session.endDate}
+          </Text>
+          <View className='flex-row items-center'>
+            <MaterialIcons name='person-outline' size={16} color='#6B7280' />
+            <Text className='text-gray-600 ml-1 mr-4'>
+              {session.currentParticipants}/{session.maxParticipants}명
+            </Text>
+            <Ionicons name='location-outline' size={16} color='#6B7280' />
+            <Text className='text-gray-600 ml-1'>
+              {session.regionNames.join(', ')}
+            </Text>
+          </View>
+        </View>
+        <View
+          className={`px-3 py-1 rounded-full ${
+            session.status === 'COMPLETED' ? 'bg-green-100' : 'bg-gray-100'
+          }`}
+        >
+          <Text
+            className={`text-sm ${
+              session.status === 'COMPLETED'
+                ? 'text-green-700'
+                : 'text-gray-600'
+            }`}
+          >
+            {session.status === 'RECRUITING' && '모집중'}
+            {session.status === 'RECRUITMENT_CLOSED' && '모집마감'}
+            {session.status === 'IN_PROGRESS' && '진행중'}
+            {session.status === 'COMPLETED' && '완료'}
+          </Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
     <View className='flex-1 bg-gray-50'>
@@ -78,59 +136,65 @@ const GuideTripListScreen: React.FC = () => {
       </View>
 
       {/* 현재 진행 중인 여행 섹션 */}
-      <View className='px-6 py-4'>
-        <Text className='text-xl font-semibold text-gray-800 mb-3'>
-          현재 진행 중인 여행
-        </Text>
+      {currentSession && (
+        <View className='px-6 py-4'>
+          <Text className='text-xl font-semibold text-gray-800 mb-3'>
+            현재 진행 중인 여행
+          </Text>
 
-        {tripData
-          .filter((trip) => trip.status === 'ongoing')
-          .slice(0, 1)
-          .map((trip) => (
-            <TouchableOpacity
-              key={trip.id}
-              className='bg-purple-500 rounded-2xl p-5'
-              onPress={() =>
-                router.push(`/guide/session/recruitmentDetail?id=${trip.id}`)
-              }
-            >
-              <View className='flex-row items-center'>
-                <Image
-                  source={{ uri: trip.imageUrl }}
-                  className='w-20 h-20 rounded-xl mr-4'
-                />
-                <View className='flex-1'>
-                  <View className='flex-row items-center mb-2'>
-                    <View className='bg-white/20 px-3 py-1 rounded-full mr-2'>
-                      <Text className='text-sm font-semibold text-white'>
-                        Day 2
-                      </Text>
-                    </View>
-                    <View className='bg-white/20 px-2 py-1 rounded-full'>
-                      <Text className='text-xs text-white'>진행중</Text>
-                    </View>
-                  </View>
-                  <Text className='text-xl font-bold text-white mb-1'>
-                    {trip.title}
-                  </Text>
-                  <Text className='text-white/90 mb-2'>{trip.date}</Text>
-                  <View className='flex-row items-center'>
-                    <MaterialIcons
-                      name='person-outline'
-                      size={16}
-                      color='white'
-                    />
-                    <Text className='text-white/90 ml-1 mr-4'>
-                      {trip.participants}명
+          <TouchableOpacity
+            className='bg-purple-500 rounded-2xl p-5'
+            onPress={() =>
+              router.push(
+                `/guide/session/${currentSession.sessionId.toString()}` as any
+              )
+            }
+          >
+            <View className='flex-row items-center'>
+              <Image
+                source={{ uri: currentSession.firstImageUrl }}
+                className='w-20 h-20 rounded-xl mr-4'
+              />
+              <View className='flex-1'>
+                <View className='flex-row items-center mb-2'>
+                  <View className='bg-white/20 px-3 py-1 rounded-full mr-2'>
+                    <Text className='text-sm font-semibold text-white'>
+                      진행중
                     </Text>
-                    <Ionicons name='location-outline' size={16} color='white' />
-                    <Text className='text-white/90 ml-1'>{trip.location}</Text>
+                  </View>
+                  <View className='bg-white/20 px-2 py-1 rounded-full'>
+                    <Text className='text-xs text-white'>
+                      {currentSession.currentParticipants}/
+                      {currentSession.maxParticipants}명
+                    </Text>
                   </View>
                 </View>
+                <Text className='text-xl font-bold text-white mb-1'>
+                  {currentSession.title}
+                </Text>
+                <Text className='text-white/90 mb-2'>
+                  {currentSession.startDate} - {currentSession.endDate}
+                </Text>
+                <View className='flex-row items-center'>
+                  <MaterialIcons
+                    name='person-outline'
+                    size={16}
+                    color='white'
+                  />
+                  <Text className='text-white/90 ml-1 mr-4'>
+                    {currentSession.currentParticipants}/
+                    {currentSession.maxParticipants}명
+                  </Text>
+                  <Ionicons name='location-outline' size={16} color='white' />
+                  <Text className='text-white/90 ml-1'>
+                    {currentSession.regionNames.join(', ')}
+                  </Text>
+                </View>
               </View>
-            </TouchableOpacity>
-          ))}
-      </View>
+            </View>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* 탭 메뉴 */}
       <View className='bg-white px-6 py-2 border-b border-gray-200'>
@@ -139,7 +203,7 @@ const GuideTripListScreen: React.FC = () => {
             className={`flex-1 py-3 rounded-lg ${
               activeTab === 'ongoing' ? 'bg-white' : ''
             }`}
-            onPress={() => setActiveTab('ongoing')}
+            onPress={() => handleTabChange('ongoing')}
           >
             <Text
               className={`text-center font-medium ${
@@ -153,7 +217,7 @@ const GuideTripListScreen: React.FC = () => {
             className={`flex-1 py-3 rounded-lg ${
               activeTab === 'completed' ? 'bg-white' : ''
             }`}
-            onPress={() => setActiveTab('completed')}
+            onPress={() => handleTabChange('completed')}
           >
             <Text
               className={`text-center font-medium ${
@@ -167,73 +231,55 @@ const GuideTripListScreen: React.FC = () => {
       </View>
 
       {/* 여행 목록 */}
-      <ScrollView contentContainerClassName='px-6 py-4 pb-24'>
-        <View className='space-y-4'>
-          {filteredTrips.map((trip) => (
-            <TouchableOpacity
-              key={trip.id}
-              className='bg-white rounded-2xl mb-2 p-5 shadow-sm border border-gray-100'
-              onPress={() =>
-                router.push(`/guide/session/recruitmentDetail?id=${trip.id}`)
-              }
-            >
-              <View className='flex-row items-center'>
-                <Image
-                  source={{ uri: trip.imageUrl }}
-                  className='w-20 h-20 rounded-xl mr-4'
-                />
-                <View className='flex-1'>
-                  <Text className='text-lg font-semibold text-gray-900 mb-1'>
-                    {trip.title}
-                  </Text>
-                  <Text className='text-gray-600 mb-2'>{trip.date}</Text>
-                  <View className='flex-row items-center'>
-                    <MaterialIcons
-                      name='person-outline'
-                      size={16}
-                      color='#6B7280'
-                    />
-                    <Text className='text-gray-600 ml-1 mr-4'>
-                      {trip.participants}명
-                    </Text>
-                    <Ionicons
-                      name='location-outline'
-                      size={16}
-                      color='#6B7280'
-                    />
-                    <Text className='text-gray-600 ml-1'>{trip.location}</Text>
-                  </View>
-                </View>
-                <View
-                  className={`px-3 py-1 rounded-full ${
-                    trip.status === 'ongoing' ? 'bg-gray-100' : 'bg-green-100'
-                  }`}
-                >
-                  <Text
-                    className={`text-sm ${
-                      trip.status === 'ongoing'
-                        ? 'text-gray-600'
-                        : 'text-green-700'
-                    }`}
-                  >
-                    {trip.status === 'ongoing' ? '모집중' : '완료'}
-                  </Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
-
-          {filteredTrips.length === 0 && (
-            <View className='flex-1 items-center justify-center py-20'>
-              <Text className='text-gray-500 text-lg'>
-                {activeTab === 'ongoing'
-                  ? '모집 중인 여행이 없습니다.'
-                  : '완료된 여행이 없습니다.'}
-              </Text>
-            </View>
-          )}
-        </View>
-      </ScrollView>
+      <View className='flex-1 px-6 py-4'>
+        {isLoading && filteredSessions.length === 0 ? (
+          <View className='flex-1 items-center justify-center py-20'>
+            <ActivityIndicator size='large' color='#8130FF' />
+            <Text className='text-gray-500 text-lg mt-4'>로딩 중...</Text>
+          </View>
+        ) : error ? (
+          <View className='flex-1 items-center justify-center py-20'>
+            <Text className='text-red-500 text-lg'>오류가 발생했습니다.</Text>
+          </View>
+        ) : filteredSessions.length === 0 ? (
+          <View className='flex-1 items-center justify-center py-20'>
+            <Text className='text-gray-500 text-lg'>
+              {activeTab === 'ongoing'
+                ? '모집 중인 여행이 없습니다.'
+                : '완료된 여행이 없습니다.'}
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={filteredSessions}
+            renderItem={renderSessionItem}
+            keyExtractor={(item) => item.sessionId.toString()}
+            showsVerticalScrollIndicator={false}
+            onEndReached={() => {
+              const statuses =
+                activeTab === 'ongoing'
+                  ? ['RECRUITING', 'RECRUITMENT_CLOSED', 'IN_PROGRESS']
+                  : ['COMPLETED', 'IN_PROGRESS'];
+              loadMore(statuses);
+            }}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={renderFooter}
+            refreshControl={
+              <RefreshControl
+                refreshing={isLoading && filteredSessions.length > 0}
+                onRefresh={() => {
+                  const statuses =
+                    activeTab === 'ongoing'
+                      ? ['RECRUITING', 'RECRUITMENT_CLOSED', 'IN_PROGRESS']
+                      : ['COMPLETED', 'IN_PROGRESS'];
+                  refetch(statuses);
+                }}
+              />
+            }
+            contentContainerStyle={{ paddingBottom: 24 }}
+          />
+        )}
+      </View>
     </View>
   );
 };

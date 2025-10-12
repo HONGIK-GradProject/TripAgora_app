@@ -206,7 +206,7 @@ const ProductDetailScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
           <View style={styles.metaRow}>
-            <Ionicons name='location-outline' size={20} color='#8130FF' />
+            <Ionicons name='location-outline' size={20} color='#6B7280' />
             <Text style={styles.metaText}>
               {regionIds
                 .map((regionId) => REGION_ID_TO_NAME_MAP[regionId])
@@ -487,7 +487,7 @@ const styles = StyleSheet.create({
   metaText: {
     fontSize: 16,
     marginLeft: 8,
-    color: '#000',
+    color: '#6B7280',
   },
   tagsRow: {
     flexDirection: 'row',

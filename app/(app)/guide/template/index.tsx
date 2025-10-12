@@ -59,7 +59,7 @@ const MyProductsScreen: React.FC = () => {
         <Ionicons name='search' size={20} color='#999' />
         <TextInput
           className='flex-1 text-base text-gray-700 ml-2'
-          placeholder='템플릿명으로 검색하기'
+          placeholder='템플릿명으로 검색하기 (미구현)'
           placeholderTextColor={'#9CA3AF'}
         />
       </View>
