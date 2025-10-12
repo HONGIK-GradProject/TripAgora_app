@@ -274,30 +274,6 @@ const EditTemplateItineraryScreen: React.FC = () => {
               />
             )}
           </View>
-
-          <View style={styles.formSection}>
-            <Text style={styles.label}>위도</Text>
-            <TextInput
-              value={latitude}
-              onChangeText={setLatitude}
-              placeholder='위도'
-              placeholderTextColor={'#9A9A9A'}
-              style={styles.input}
-              keyboardType='decimal-pad'
-            />
-          </View>
-
-          <View style={styles.formSection}>
-            <Text style={styles.label}>경도</Text>
-            <TextInput
-              value={longitude}
-              onChangeText={setLongitude}
-              placeholder='경도'
-              placeholderTextColor={'#9A9A9A'}
-              style={styles.input}
-              keyboardType='decimal-pad'
-            />
-          </View>
         </ScrollView>
       )}
     </View>
