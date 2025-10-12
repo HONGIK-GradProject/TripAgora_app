@@ -1,7 +1,10 @@
+import { fetchKakaoPlaceSearch } from '@/services/search';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AutoCompleteElement } from '../search-bar/AutoComplete';
+import SearchWithAutoComplete from '../search-bar/SearchWithAutoComplete';
 import { MapOverlayOptions } from './InteractiveMapView';
 
 // --- Component Props ---
@@ -9,11 +12,35 @@ import { MapOverlayOptions } from './InteractiveMapView';
 interface MapOverlayOptionProps {
   options?: MapOverlayOptions;
   onCenterToCurrentLocation?: () => void;
-  // Add props for search bar state management
-  searchQuery?: string;
-  onSearchChange?: (text: string) => void;
-  onSearchClear?: () => void;
+  searchQuery: string;
+  onSearchChange: (text: string) => void;
+  onSearch: (query: string) => void;
 }
+
+const fetchPlaceSuggestions = async (
+  query: string
+): Promise<AutoCompleteElement[]> => {
+  try {
+    const response = await fetchKakaoPlaceSearch(query);
+
+    if (response && response.documents && response.documents.length > 0) {
+      const places = response.documents.map(
+        (doc: any) =>
+          ({
+            title: doc.place_name,
+            description: doc.address_name,
+          } as AutoCompleteElement)
+      );
+
+      return places;
+    }
+
+    return [];
+  } catch (error) {
+    console.error('장소 검색 중 에러 발생', error);
+    return [];
+  }
+};
 
 // --- Sub-components ---
 
@@ -33,14 +60,22 @@ export const MapOverlay = ({
   onCenterToCurrentLocation,
   searchQuery,
   onSearchChange,
-  onSearchClear,
+  onSearch,
 }: MapOverlayOptionProps) => {
   return (
     <View style={styles.container} pointerEvents="box-none">
       <SafeAreaView style={styles.safeArea} pointerEvents="box-none">
         {/* Top-aligned elements */}
         <View style={styles.topContainer}>
-          { /* options.searchBar => 검색바 추가... */ }
+          {options?.searchBar && (
+            <SearchWithAutoComplete
+              query={searchQuery}
+              onQueryChange={onSearchChange}
+              fetchSuggestions={fetchPlaceSuggestions}
+              onSearch={onSearch}
+              placeholder="장소 검색..."
+            />
+          )}
         </View>
 
         {/* Bottom-aligned elements */}

@@ -4,7 +4,7 @@ import { TemplateItinerary } from '@/types/templates';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   BackHandler,
   Dimensions,
@@ -54,6 +54,26 @@ const EditTemplateItineraryScreen: React.FC = () => {
   const [longitude, setLongitude] = useState(params.longitude || '126.9780');
 
   const [isMapExpanded, setIsMapExpanded] = useState(false);
+
+  const cameraPosition = useMemo(
+    () => ({
+      latitude: parseFloat(latitude) || 37.5665,
+      longitude: parseFloat(longitude) || 126.978,
+      zoom: isMapExpanded ? 14 : 10,
+    }),
+    [latitude, longitude, isMapExpanded]
+  );
+
+  const clusterMarkers = useMemo(
+    () => [
+      {
+        identifier: 'my-location',
+        latitude: parseFloat(latitude) || 37.5665,
+        longitude: parseFloat(longitude) || 126.978,
+      },
+    ],
+    [latitude, longitude]
+  );
 
   useEffect(() => {
     const backAction = () => {
@@ -131,6 +151,13 @@ const EditTemplateItineraryScreen: React.FC = () => {
     setIsMapExpanded(expand);
   };
 
+  const handlePlaceSelect = (place: { latitude: number; longitude: number }) => {
+    setLatitude(place.latitude.toString());
+    setLongitude(place.longitude.toString());
+    // Optional: close map after selection
+    toggleMapExpansion(false);
+  };
+
   return (
     <View style={styles.container}>
       {!isMapExpanded && (
@@ -155,22 +182,13 @@ const EditTemplateItineraryScreen: React.FC = () => {
         style={[styles.mapContainer, isMapExpanded && styles.mapContainerExpanded]}
       >
         <InteractiveMapView
-          cameraPosition={{
-            latitude: parseFloat(latitude) || 37.5665,
-            longitude: parseFloat(longitude) || 126.978,
-            zoom: isMapExpanded ? 14 : 10,
-          }}
-          clusterMarkers={[
-            {
-              identifier: 'my-location',
-              latitude: parseFloat(latitude) || 37.5665,
-              longitude: parseFloat(longitude) || 126.978,
-            },
-          ]}
+          cameraPosition={cameraPosition}
+          clusterMarkers={clusterMarkers}
           options={{
             searchBar: isMapExpanded,
             currentLocationButton: true,
           }}
+          onPlaceSelect={handlePlaceSelect}
         />
 
         {/* This overlay captures the press to expand, only when not expanded */}
