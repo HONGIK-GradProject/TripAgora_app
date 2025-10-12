@@ -6,8 +6,8 @@ import { TemplateItinerary } from '@/types/templates';
 import { flattenItineraries } from '@/utils/Itineraries';
 import { Ionicons } from '@expo/vector-icons';
 import { ClusterMarkerProp } from '@mj-studio/react-native-naver-map';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -24,10 +24,18 @@ const EditTemplateItinerariesScreen: React.FC = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [isSaving, setIsSaving] = useState(false);
+  const [mapKey, setMapKey] = useState(0);
 
   // useTemplateDetails 훅에서 여정 데이터 및 관리 함수들을 가져옵니다.
   const { itineraries, day, deleteItinerary, addItinerary, setDay } =
     useTemplateDetails();
+
+  useFocusEffect(
+    useCallback(() => {
+      // 화면이 포커스될 때마다 mapKey를 변경하여 지도를 강제로 다시 렌더링합니다.
+      setMapKey((prevKey) => prevKey + 1);
+    }, [])
+  );
 
   /**
    * 선택된 일정 항목의 편집 화면으로 이동합니다.
@@ -111,7 +119,7 @@ const EditTemplateItinerariesScreen: React.FC = () => {
     if (!allItineraries) {
       return [];
     }
-    
+
     return allItineraries.map((itinerary) => ({
       identifier: itinerary.id.toString(),
       latitude: itinerary.latitude,
@@ -120,19 +128,24 @@ const EditTemplateItinerariesScreen: React.FC = () => {
     }));
   }, [itineraries, day]);
 
+  const cameraPosition = useMemo(
+    () => ({
+      latitude: 37.5665,
+      longitude: 126.978,
+      zoom: 10,
+    }),
+    []
+  );
+
   // FlatList의 헤더 컴포넌트
   const ListHeader = (
     <>
-      <View style={styles.mapContainer}>
+      <View style={styles.mapContainer} key={mapKey}>
         <InteractiveMapView
-          cameraPosition={{
-            latitude: 37.5665,
-            longitude: 126.978,
-            zoom: 10
-          }}
+          cameraPosition={cameraPosition}
           clusterMarkers={clusterMarkers}
           options={{
-            currentLocationButton: true
+            currentLocationButton: true,
           }}
         />
       </View>
