@@ -102,7 +102,7 @@ const StartRecruitmentContent: React.FC = () => {
         console.log('세션 생성 성공:', sessionId);
 
         // 성공 시 세션 상세 페이지로 이동
-        router.replace(`/guide/session/recruitmentDetail?id=${sessionId}`);
+        router.replace(`/guide/session/${sessionId}`);
       } else {
         throw new Error('세션 생성에 실패했습니다.');
       }
