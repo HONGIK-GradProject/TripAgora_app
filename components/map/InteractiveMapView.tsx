@@ -1,0 +1,124 @@
+import { useLocationPermission } from '@/hooks/useLocationPermission';
+import { fetchKakaoPlaceSearch } from '@/services/search';
+import {
+  Camera,
+  ClusterMarkerProp,
+  NaverMapViewRef,
+} from '@mj-studio/react-native-naver-map';
+import * as Location from 'expo-location';
+import React, { memo, useRef, useState } from 'react';
+import { Alert, StyleSheet, View } from 'react-native';
+import { MapOverlay } from './MapOverlay';
+import { MapView } from './MapView';
+
+export interface MapOverlayOptions {
+  searchBar?: boolean;
+  currentLocationButton?: boolean;
+}
+
+interface InteractiveMapViewProps {
+  cameraPosition: Camera;
+  clusterMarkers: ClusterMarkerProp[];
+  children?: React.ReactNode;
+  options?: MapOverlayOptions;
+  onPlaceSelect?: (place: { latitude: number; longitude: number }) => void;
+}
+
+export const InteractiveMapView = memo(
+  ({
+    cameraPosition,
+    clusterMarkers,
+    children,
+    options,
+    onPlaceSelect,
+  }: InteractiveMapViewProps) => {
+    const mapViewRef = useRef<NaverMapViewRef>(null);
+    const { status, requestPermission } = useLocationPermission();
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const handleSearch = async (query: string) => {
+      try {
+        const data = await fetchKakaoPlaceSearch(query);
+        if (data && data.documents.length > 0) {
+          const { x, y } = data.documents[0];
+          const latitude = parseFloat(y);
+          const longitude = parseFloat(x);
+
+          mapViewRef.current?.animateCameraTo({
+            latitude,
+            longitude,
+            zoom: 15,
+            duration: 1000,
+          });
+
+          // Notify the parent component of the selected place
+          if (onPlaceSelect) {
+            onPlaceSelect({ latitude, longitude });
+          }
+        } else {
+          Alert.alert('검색 결과 없음', `'${query}'에 대한 결과가 없습니다.`);
+        }
+      } catch (error) {
+        console.error('장소 검색 실패', error);
+        Alert.alert('오류', '장소 검색 중 오류가 발생했습니다.');
+      }
+    };
+
+    const handleCenterToCurrentLocation = async () => {
+      let currentStatus = status;
+
+      if (currentStatus !== Location.PermissionStatus.GRANTED) {
+        currentStatus = await requestPermission();
+      }
+
+      if (currentStatus !== Location.PermissionStatus.GRANTED) {
+        Alert.alert(
+          '권한 필요',
+          '현재 위치 기능을 사용하려면 위치 정보 접근 권한이 필요합니다.'
+        );
+        return;
+      }
+
+      try {
+        const location = await Location.getCurrentPositionAsync({});
+        const { latitude, longitude } = location.coords;
+        mapViewRef.current?.animateCameraTo({
+          latitude,
+          longitude,
+          zoom: 14,
+          duration: 1000,
+          easing: 'EaseOut',
+        });
+      } catch (error) {
+        console.error('Failed to get current location:', error);
+        Alert.alert('오류', '현재 위치를 가져오는 데 실패했습니다.');
+      }
+    };
+
+    return (
+      <View style={styles.container}>
+        <MapView
+          ref={mapViewRef}
+          cameraPosition={cameraPosition}
+          clusterMarkers={clusterMarkers}
+        >
+          {children}
+        </MapView>
+        <MapOverlay
+          options={options}
+          onCenterToCurrentLocation={handleCenterToCurrentLocation}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onSearch={handleSearch}
+        />
+      </View>
+    );
+  }
+);
+
+const styles = StyleSheet.create({
+  container: {
+    width: '100%',
+    height: '100%',
+  },
+});

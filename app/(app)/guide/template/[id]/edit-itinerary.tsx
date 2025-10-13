@@ -1,19 +1,35 @@
+import { InteractiveMapView } from '@/components/map/InteractiveMapView';
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import { TemplateItinerary } from '@/types/templates';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
+  BackHandler,
+  Dimensions,
+  LayoutAnimation,
   Platform,
+  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
+  UIManager,
   View,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
+
+// Enable LayoutAnimation for Android
+if (
+  Platform.OS === 'android' &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 type ItineraryParamProps = {
   day: string;
@@ -25,32 +41,57 @@ type ItineraryParamProps = {
   itineraryId: string;
 };
 
-/**
- * 개별 상세 일정 항목의 내용을 편집하는 화면입니다.
- * 장소명, 시간, 내용 등을 수정하여 로컬 상태를 업데이트합니다.
- */
 const EditTemplateItineraryScreen: React.FC = () => {
   const router = useRouter();
   const params = useLocalSearchParams<ItineraryParamProps>();
   const { updateItinerary, setDay } = useTemplateDetails();
 
-  // TextInput을 제어하기 위해 state를 사용합니다.
-  // useLocalSearchParams에서 받은 값을 초기값으로 설정합니다.
-  const [title, setTitle] = React.useState(params.title || '');
-  const [localDay, setLocalDay] = React.useState(params.day || '');
-  const [content, setContent] = React.useState(params.content || '');
-  const [startTime, setStartTime] = React.useState(params.startTime || '09:00');
-  const [latitude, setLatitude] = React.useState(params.latitude || '');
-  const [longitude, setLongitude] = React.useState(params.longitude || '');
+  const [title, setTitle] = useState(params.title || '');
+  const [localDay, setLocalDay] = useState(params.day || '');
+  const [content, setContent] = useState(params.content || '');
+  const [startTime, setStartTime] = useState(params.startTime || '09:00');
+  const [latitude, setLatitude] = useState(params.latitude || '37.5665');
+  const [longitude, setLongitude] = useState(params.longitude || '126.9780');
 
-  // console.log(params.itineraryId);
+  const [isMapExpanded, setIsMapExpanded] = useState(false);
 
-  /**
-   * 시간 문자열('HH:MM')을 `Date` 객체로 파싱합니다.
-   * `DateTimePicker`의 초기값으로 사용됩니다.
-   * @param timeStr - 파싱할 시간 문자열
-   * @returns 파싱된 `Date` 객체
-   */
+  const cameraPosition = useMemo(
+    () => ({
+      latitude: parseFloat(latitude) || 37.5665,
+      longitude: parseFloat(longitude) || 126.978,
+      zoom: isMapExpanded ? 14 : 10,
+    }),
+    [latitude, longitude, isMapExpanded]
+  );
+
+  const clusterMarkers = useMemo(
+    () => [
+      {
+        identifier: 'my-location',
+        latitude: parseFloat(latitude) || 37.5665,
+        longitude: parseFloat(longitude) || 126.978,
+      },
+    ],
+    [latitude, longitude]
+  );
+
+  useEffect(() => {
+    const backAction = () => {
+      if (isMapExpanded) {
+        toggleMapExpansion(false);
+        return true;
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, [isMapExpanded]);
+
   const parseStartTime = (timeStr: string) => {
     if (!timeStr) {
       const d = new Date();
@@ -67,36 +108,19 @@ const EditTemplateItineraryScreen: React.FC = () => {
     return date;
   };
 
-  const [date, setDate] = React.useState(parseStartTime(params.startTime));
-  const [showPicker, setShowPicker] = React.useState(false);
+  const [date, setDate] = useState(parseStartTime(params.startTime));
+  const [showPicker, setShowPicker] = useState(false);
 
-  /**
-   * `DateTimePicker`에서 시간이 변경될 때 호출되는 이벤트 핸들러입니다.
-   * @param event - 이벤트 객체
-   * @param selectedDate - 선택된 날짜/시간 `Date` 객체
-   */
   const onTimeChange = (event: any, selectedDate?: Date) => {
-    const isIOS = Platform.OS === 'ios';
-    if (!isIOS) {
-      setShowPicker(false);
-    }
-
-    if (event.type === 'set' && selectedDate) {
-      if (isIOS) {
-        setShowPicker(false);
-      }
+    setShowPicker(Platform.OS === 'ios');
+    if (selectedDate) {
       setDate(selectedDate);
       const hours = selectedDate.getHours().toString().padStart(2, '0');
       const minutes = selectedDate.getMinutes().toString().padStart(2, '0');
       setStartTime(`${hours}:${minutes}`);
-    } else if (event.type === 'dismissed') {
-      setShowPicker(false);
     }
   };
 
-  /**
-   * 수정된 일정 정보를 로컬 컨텍스트 상태에 업데이트하고 이전 화면으로 돌아갑니다.
-   */
   const handleEditSchedule = () => {
     if (!localDay || !title || !startTime || !latitude || !longitude) {
       Toast.show({
@@ -107,7 +131,6 @@ const EditTemplateItineraryScreen: React.FC = () => {
       });
       return;
     }
-    // 저장 시에는 state의 현재 값을 사용합니다.
     const newSchedule: TemplateItinerary = {
       id: +params.itineraryId,
       day: +localDay,
@@ -123,115 +146,136 @@ const EditTemplateItineraryScreen: React.FC = () => {
     router.back();
   };
 
+  const toggleMapExpansion = (expand: boolean) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setIsMapExpanded(expand);
+  };
+
+  const handlePlaceSelect = (place: { latitude: number; longitude: number }) => {
+    setLatitude(place.latitude.toString());
+    setLongitude(place.longitude.toString());
+    // Optional: close map after selection
+    toggleMapExpansion(false);
+  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name='arrow-back' size={24} color='#000' />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>일정 수정</Text>
-        <TouchableOpacity
-          style={styles.saveButton}
-          onPress={handleEditSchedule}
-        >
-          <Text style={styles.saveButtonText}>저장</Text>
-        </TouchableOpacity>
+      {!isMapExpanded && (
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Ionicons name='arrow-back' size={24} color='#000' />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>일정 수정</Text>
+          <TouchableOpacity
+            style={styles.saveButton}
+            onPress={handleEditSchedule}
+          >
+            <Text style={styles.saveButtonText}>저장</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      <View
+        style={[styles.mapContainer, isMapExpanded && styles.mapContainerExpanded]}
+      >
+        <InteractiveMapView
+          cameraPosition={cameraPosition}
+          clusterMarkers={clusterMarkers}
+          options={{
+            searchBar: isMapExpanded,
+            currentLocationButton: true,
+          }}
+          onPlaceSelect={handlePlaceSelect}
+        />
+
+        {/* This overlay captures the press to expand, only when not expanded */}
+        {!isMapExpanded && (
+          <TouchableOpacity
+            style={[StyleSheet.absoluteFill, { backgroundColor: 'transparent' }]}
+            onPress={() => toggleMapExpansion(true)}
+          />
+        )}
+
+        {isMapExpanded && (
+          <SafeAreaView
+            style={styles.expandedMapOverlayContainer}
+            pointerEvents="box-none"
+          >
+            <TouchableOpacity
+              onPress={() => toggleMapExpansion(false)}
+              style={styles.closeButton}
+            >
+              <Ionicons name="close" size={28} color="#fff" />
+            </TouchableOpacity>
+          </SafeAreaView>
+        )}
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        <View style={styles.mapContainer}>
-          <View style={styles.mapPlaceholder}>
-            <Ionicons name='map' size={40} color='#949494' />
-            <Text style={styles.mapPlaceholderText}>
-              지도가 들어갈 영역 (추후 구현)
-            </Text>
-          </View>
-        </View>
-        <View style={styles.formSection}>
-          <Text style={styles.label}>장소명 또는 일정명</Text>
-          <TextInput
-            value={title}
-            onChangeText={setTitle}
-            placeholder='장소명 또는 일정명을 입력하세요'
-            placeholderTextColor={'#9A9A9A'}
-            style={styles.input}
-          />
-        </View>
-
-        <View style={styles.formSection}>
-          <Text style={styles.label}>Day</Text>
-          <TextInput
-            value={localDay}
-            onChangeText={setLocalDay}
-            placeholder='Day'
-            placeholderTextColor={'#9A9A9A'}
-            style={styles.input}
-            keyboardType='number-pad'
-          />
-        </View>
-
-        <View style={styles.formSection}>
-          <Text style={styles.label}>일정 내용</Text>
-          <TextInput
-            value={content}
-            onChangeText={setContent}
-            placeholder='설명을 입력하세요'
-            placeholderTextColor={'#9A9A9A'}
-            style={[styles.input, styles.multiline]}
-            multiline
-            textAlignVertical='top'
-          />
-        </View>
-
-        <View style={styles.formSection}>
-          <Text style={styles.label}>시작 시간</Text>
-          <TouchableOpacity
-            onPress={() => setShowPicker(true)}
-            style={styles.input}
-          >
-            <View style={styles.timeInputContainer}>
-              <Text style={styles.timeText}>{startTime.substring(0, 5)}</Text>
-              <Ionicons name='time-outline' size={20} color='#8130FF' />
-            </View>
-          </TouchableOpacity>
-          {showPicker && (
-            <DateTimePicker
-              value={date}
-              mode={'time'}
-              is24Hour={true}
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={onTimeChange}
+      {!isMapExpanded && (
+        <ScrollView contentContainerStyle={styles.scrollViewContent}>
+          <View style={styles.formSection}>
+            <Text style={styles.label}>장소명 또는 일정명</Text>
+            <TextInput
+              value={title}
+              onChangeText={setTitle}
+              placeholder='장소명 또는 일정명을 입력하세요'
+              placeholderTextColor={'#9A9A9A'}
+              style={styles.input}
             />
-          )}
-        </View>
+          </View>
 
-        <View style={styles.formSection}>
-          <Text style={styles.label}>위도</Text>
-          <TextInput
-            value={latitude}
-            onChangeText={setLatitude}
-            placeholder='위도'
-            placeholderTextColor={'#9A9A9A'}
-            style={styles.input}
-            keyboardType='decimal-pad'
-          />
-        </View>
+          {/* Other form sections... */}
+          <View style={styles.formSection}>
+            <Text style={styles.label}>Day</Text>
+            <TextInput
+              value={localDay}
+              onChangeText={setLocalDay}
+              placeholder='Day'
+              placeholderTextColor={'#9A9A9A'}
+              style={styles.input}
+              keyboardType='number-pad'
+            />
+          </View>
 
-        <View style={styles.formSection}>
-          <Text style={styles.label}>경도</Text>
-          <TextInput
-            value={longitude}
-            onChangeText={setLongitude}
-            placeholder='경도'
-            placeholderTextColor={'#9A9A9A'}
-            style={styles.input}
-            keyboardType='decimal-pad'
-          />
-        </View>
-      </ScrollView>
+          <View style={styles.formSection}>
+            <Text style={styles.label}>일정 내용</Text>
+            <TextInput
+              value={content}
+              onChangeText={setContent}
+              placeholder='설명을 입력하세요'
+              placeholderTextColor={'#9A9A9A'}
+              style={[styles.input, styles.multiline]}
+              multiline
+              textAlignVertical='top'
+            />
+          </View>
+
+          <View style={styles.formSection}>
+            <Text style={styles.label}>시작 시간</Text>
+            <TouchableOpacity
+              onPress={() => setShowPicker(true)}
+              style={styles.input}
+            >
+              <View style={styles.timeInputContainer}>
+                <Text style={styles.timeText}>{startTime.substring(0, 5)}</Text>
+                <Ionicons name='time-outline' size={20} color='#8130FF' />
+              </View>
+            </TouchableOpacity>
+            {showPicker && (
+              <DateTimePicker
+                value={date}
+                mode={'time'}
+                is24Hour={true}
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={onTimeChange}
+              />
+            )}
+          </View>
+        </ScrollView>
+      )}
     </View>
   );
 };
@@ -275,19 +319,34 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 200,
     backgroundColor: '#D9D9D9',
-    justifyContent: 'center',
-    alignItems: 'center',
     marginBottom: 20,
   },
-  mapPlaceholder: {
-    width: '100%',
-    height: '100%',
+  mapContainerExpanded: {
+    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: screenWidth,
+    height: screenHeight,
+    marginBottom: 0,
+    zIndex: 10, // Make sure map is on top
+  },
+  expandedMapOverlayContainer: {
+    flex: 1,
+    justifyContent: 'space-between',
+    paddingTop: 40, // Safe area for status bar
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 20,
+    width: 40,
+    height: 40,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  mapPlaceholderText: {
-    marginTop: 8,
-    color: '#6B6B6B',
+    zIndex: 20, // Ensure close button is on top of everything
   },
   formSection: {
     marginBottom: 20,
