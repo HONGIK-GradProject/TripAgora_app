@@ -97,7 +97,7 @@ const RecruitmentDetailContent: React.FC = () => {
                 type: 'success',
                 text1: '모집이 취소되었습니다.',
               });
-              router.back();
+              router.push('/guide/session');
             } else {
               Toast.show({
                 type: 'error',
@@ -232,7 +232,7 @@ const RecruitmentDetailContent: React.FC = () => {
       <View style={[styles.topBar, { top: insets.top + 10 }]}>
         <TouchableOpacity
           style={styles.iconButton}
-          onPress={() => router.back()}
+          onPress={() => router.push('/guide/session')}
         >
           <Ionicons name='arrow-back' size={24} color='#000' />
         </TouchableOpacity>
