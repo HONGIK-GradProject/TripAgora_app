@@ -34,16 +34,31 @@ const GuideTripListScreen: React.FC = () => {
     [refetch]
   );
 
-  // 현재 탭에 따른 데이터 필터링
+  // 현재 탭에 따른 데이터 필터링 및 정렬
   const filteredSessions = useMemo(() => {
+    let filtered = [];
+
     if (activeTab === 'ongoing') {
       // 모집 중 탭에서는 진행 중인 여행(IN_PROGRESS) 제외
-      return sessions.filter((session) =>
+      filtered = sessions.filter((session) =>
         ['RECRUITING', 'RECRUITMENT_CLOSED'].includes(session.status)
       );
+
+      // 모집마감 > 모집중 순서로 정렬
+      filtered.sort((a, b) => {
+        if (a.status === 'RECRUITMENT_CLOSED' && b.status === 'RECRUITING') {
+          return -1; // a가 b보다 앞에 와야 함
+        }
+        if (a.status === 'RECRUITING' && b.status === 'RECRUITMENT_CLOSED') {
+          return 1; // b가 a보다 앞에 와야 함
+        }
+        return 0; // 같은 상태면 순서 유지
+      });
     } else {
-      return sessions.filter((session) => session.status === 'COMPLETED');
+      filtered = sessions.filter((session) => session.status === 'COMPLETED');
     }
+
+    return filtered;
   }, [sessions, activeTab]);
 
   // 현재 진행 중인 세션 (IN_PROGRESS 상태)
