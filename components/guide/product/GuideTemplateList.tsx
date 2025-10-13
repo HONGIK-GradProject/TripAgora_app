@@ -43,9 +43,18 @@ const GuideTemplateList: React.FC<TemplateListProps> = ({
             <Text className='text-lg font-semibold text-gray-900 mb-1'>
               {item.title}
             </Text>
-            <View className='flex-row items-center'>
-              <Ionicons name='location-outline' size={16} color='#6B7280' />
-              <Text className='text-gray-600 ml-1'>
+            <View className='flex-row items-start'>
+              <Ionicons
+                name='location-outline'
+                size={16}
+                color='#6B7280'
+                style={{ marginTop: 2 }}
+              />
+              <Text
+                className='text-gray-600 ml-1 flex-1'
+                numberOfLines={2}
+                ellipsizeMode='tail'
+              >
                 {item.regionIds
                   .map((id) => REGION_ID_TO_NAME_MAP[id])
                   .join(', ')}

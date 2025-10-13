@@ -101,14 +101,16 @@ const StartRecruitmentContent: React.FC = () => {
         showSuccessToast();
         console.log('세션 생성 성공:', sessionId);
 
-        // 성공 시 세션 상세 페이지로 이동
-        router.replace(`/guide/session/${sessionId}`);
+        // 성공 시 세션 목록 페이지로 이동
+        router.replace('/guide/session');
       } else {
         throw new Error('세션 생성에 실패했습니다.');
       }
     } catch (error) {
       console.error('모집 시작 에러:', error);
-      showErrorToast('모집 시작 중 오류가 발생했습니다. 다시 시도해주세요.');
+      showErrorToast(
+        '이미 해당 날짜에 여행을 모집하고 있지 않은지 확인해 주세요.'
+      );
     } finally {
       setIsCreating(false);
     }

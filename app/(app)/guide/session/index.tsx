@@ -93,15 +93,29 @@ const GuideTripListScreen: React.FC = () => {
             {session.title}
           </Text>
           <Text className='text-gray-600 mb-2'>
-            {session.startDate} - {session.endDate}
+            {session.startDate} ~ {session.endDate}
           </Text>
-          <View className='flex-row items-center'>
-            <MaterialIcons name='person-outline' size={16} color='#6B7280' />
+          <View className='flex-row items-start'>
+            <MaterialIcons
+              name='person-outline'
+              size={16}
+              color='#6B7280'
+              style={{ marginTop: 2 }}
+            />
             <Text className='text-gray-600 ml-1 mr-4'>
               {session.currentParticipants}/{session.maxParticipants}명
             </Text>
-            <Ionicons name='location-outline' size={16} color='#6B7280' />
-            <Text className='text-gray-600 ml-1'>
+            <Ionicons
+              name='location-outline'
+              size={16}
+              color='#6B7280'
+              style={{ marginTop: 2 }}
+            />
+            <Text
+              className='text-gray-600 ml-1 flex-1'
+              numberOfLines={2}
+              ellipsizeMode='tail'
+            >
               {session.regionNames.join(', ')}
             </Text>
           </View>
@@ -162,31 +176,35 @@ const GuideTripListScreen: React.FC = () => {
                       진행중
                     </Text>
                   </View>
-                  <View className='bg-white/20 px-2 py-1 rounded-full'>
-                    <Text className='text-xs text-white'>
-                      {currentSession.currentParticipants}/
-                      {currentSession.maxParticipants}명
-                    </Text>
-                  </View>
                 </View>
                 <Text className='text-xl font-bold text-white mb-1'>
                   {currentSession.title}
                 </Text>
                 <Text className='text-white/90 mb-2'>
-                  {currentSession.startDate} - {currentSession.endDate}
+                  {currentSession.startDate} ~ {currentSession.endDate}
                 </Text>
-                <View className='flex-row items-center'>
+                <View className='flex-row items-start'>
                   <MaterialIcons
                     name='person-outline'
                     size={16}
                     color='white'
+                    style={{ marginTop: 2 }}
                   />
                   <Text className='text-white/90 ml-1 mr-4'>
                     {currentSession.currentParticipants}/
                     {currentSession.maxParticipants}명
                   </Text>
-                  <Ionicons name='location-outline' size={16} color='white' />
-                  <Text className='text-white/90 ml-1'>
+                  <Ionicons
+                    name='location-outline'
+                    size={16}
+                    color='white'
+                    style={{ marginTop: 2 }}
+                  />
+                  <Text
+                    className='text-white/90 ml-1 flex-1'
+                    numberOfLines={2}
+                    ellipsizeMode='tail'
+                  >
                     {currentSession.regionNames.join(', ')}
                   </Text>
                 </View>
