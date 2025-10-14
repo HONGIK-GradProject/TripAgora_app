@@ -104,10 +104,6 @@ const EditTemplateItinerariesScreen: React.FC = () => {
       const result = await setTemplateItineraries(+id, newItineraries);
 
       if (result?.success) {
-        Toast.show({
-          type: 'success',
-          text1: '일정이 성공적으로 저장되었습니다.',
-        });
         router.back();
       } else {
         // 에러가 발생한 경우 - 이전 화면으로 돌아가지 않음

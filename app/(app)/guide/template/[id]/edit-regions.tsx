@@ -1,10 +1,20 @@
-import { Region, REGION_DATA, REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
+import {
+  Region,
+  REGION_DATA,
+  REGION_ID_TO_NAME_MAP,
+} from '@/constants/Regions';
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import { setTemplateRegions } from '@/services/templates';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import Toast from 'react-native-toast-message';
 
 /**
@@ -16,7 +26,8 @@ const EditTemplateRegionsScreen: React.FC = () => {
 
   const parents = useMemo(() => Object.keys(REGION_DATA), []);
   const [selectedParent, setSelectedParent] = useState<string>(parents[0]);
-  const [selectedRegionIds, setSelectedRegionIds] = useState<number[]>(regionIds);
+  const [selectedRegionIds, setSelectedRegionIds] =
+    useState<number[]>(regionIds);
   const [isSaving, setIsSaving] = useState(false);
 
   const showToast = () => {
@@ -58,7 +69,7 @@ const EditTemplateRegionsScreen: React.FC = () => {
    */
   const handleSave = async () => {
     setIsSaving(true);
-    const _id : number = +id;
+    const _id: number = +id;
     try {
       await setTemplateRegions(_id, selectedRegionIds);
       setRegionIds(selectedRegionIds);
@@ -168,7 +179,11 @@ const EditTemplateRegionsScreen: React.FC = () => {
           onPress={handleSave}
           disabled={selectedRegionIds.length === 0 || isSaving}
         >
-          {isSaving ? <ActivityIndicator color="#fff" /> : <Text className='text-white text-base font-bold'>저장</Text>}
+          {isSaving ? (
+            <ActivityIndicator color='#fff' />
+          ) : (
+            <Text className='text-white text-base font-bold'>저장</Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>
