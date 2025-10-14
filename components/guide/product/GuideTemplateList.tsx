@@ -33,20 +33,36 @@ const GuideTemplateList: React.FC<TemplateListProps> = ({
       }}
       asChild
     >
-      <TouchableOpacity className='flex-row bg-white border border-gray-200 rounded-3xl p-4 mb-4 items-center shadow-sm'>
-        <Text>{item.templateId}</Text>
-        <Image
-          source={{ uri: item.firstImageUrl }}
-          className='w-24 h-24 rounded-xl mr-4'
-        />
-        <View className='flex-1'>
-          <Text className='text-2xl font-bold mb-1'>{item.title}</Text>
-          <Text className='text-lg text-gray-600'>
-            {/* regionNames 배열을 공백으로 구분된 문자열로 변환합니다. */}
-            {item.regionIds.map(id => REGION_ID_TO_NAME_MAP[id]).join(', ')}
-          </Text>
+      <TouchableOpacity className='bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-2'>
+        <View className='flex-row items-center'>
+          <Image
+            source={{ uri: item.firstImageUrl }}
+            className='w-20 h-20 rounded-xl mr-4'
+          />
+          <View className='flex-1'>
+            <Text className='text-lg font-semibold text-gray-900 mb-1'>
+              {item.title}
+            </Text>
+            <View className='flex-row items-start'>
+              <Ionicons
+                name='location-outline'
+                size={16}
+                color='#6B7280'
+                style={{ marginTop: 2 }}
+              />
+              <Text
+                className='text-gray-600 ml-1 flex-1'
+                numberOfLines={2}
+                ellipsizeMode='tail'
+              >
+                {item.regionIds
+                  .map((id) => REGION_ID_TO_NAME_MAP[id])
+                  .join(', ')}
+              </Text>
+            </View>
+          </View>
+          <Ionicons name='chevron-forward' size={20} color={'#9CA3AF'} />
         </View>
-        <Ionicons name='chevron-forward' size={20} color={'#9CA3AF'} />
       </TouchableOpacity>
     </Link>
   );

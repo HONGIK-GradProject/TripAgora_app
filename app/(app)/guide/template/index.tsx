@@ -59,7 +59,7 @@ const MyProductsScreen: React.FC = () => {
         <Ionicons name='search' size={20} color='#999' />
         <TextInput
           className='flex-1 text-base text-gray-700 ml-2'
-          placeholder='템플릿명으로 검색하기'
+          placeholder='템플릿명으로 검색하기 (미구현)'
           placeholderTextColor={'#9CA3AF'}
         />
       </View>
@@ -72,27 +72,39 @@ const MyProductsScreen: React.FC = () => {
           오류가 발생했습니다.
         </Text>
       ) : (
-        <View className='px-5'>
-          <Text className='text-3xl font-bold mb-5'>내 상품 템플릿</Text>
-          <GuideProductList
-            products={products}
-            onEndReached={loadMore}
-            onEndReachedThreshold={0.5}
-            ListFooterComponent={renderFooter}
-            onRefresh={refetch}
-            refreshing={isLoading}
-            contentContainerStyle={{ paddingBottom: 108 + bottom }}
-          />
-        </View>
+        <>
+          <View className='px-5'>
+            <Text className='text-3xl font-bold mb-5'>내 상품 템플릿</Text>
+          </View>
+          <View
+            className='bg-gray-50 rounded-2xl p-4'
+            style={{ marginBottom: 16 + bottom }}
+          >
+            <GuideProductList
+              products={products}
+              onEndReached={loadMore}
+              onEndReachedThreshold={0.5}
+              ListFooterComponent={renderFooter}
+              onRefresh={refetch}
+              refreshing={isLoading}
+              contentContainerStyle={{ paddingBottom: 108 + bottom }}
+            />
+          </View>
+        </>
       )}
 
       {/* Floating action button - bottom right above bottom navbar */}
       <TouchableOpacity
-        className='absolute right-5 w-16 h-16 rounded-full bg-[#613EEA] items-center justify-center'
-        style={{ elevation: 8, bottom: insets.bottom + 20 }}
+        className='absolute right-6 w-16 h-16 rounded-full bg-white items-center justify-center'
+        style={{
+          elevation: 8,
+          bottom: insets.bottom + 20,
+        }}
         onPress={handleCreateTemplate}
       >
-        <Ionicons name='add' size={32} color={'#fff'} />
+        <View style={{ marginLeft: -6, marginTop: -6 }}>
+          <Ionicons name='add-circle' size={68} color={'#613eea'} />
+        </View>
       </TouchableOpacity>
     </View>
   );

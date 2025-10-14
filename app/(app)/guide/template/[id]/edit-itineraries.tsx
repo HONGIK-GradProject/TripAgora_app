@@ -1,5 +1,8 @@
 import GuideItineraryList from '@/components/guide/product/GuideItineraryList';
-import { InteractiveMapView } from '@/components/map/InteractiveMapView';
+import {
+  InteractiveMapView,
+  InteractiveMapViewRef,
+} from '@/components/map/InteractiveMapView';
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import { setTemplateItineraries } from '@/services/templates';
 import { TemplateItinerary } from '@/types/templates';
@@ -7,14 +10,17 @@ import { flattenItineraries } from '@/utils/Itineraries';
 import { Ionicons } from '@expo/vector-icons';
 import { ClusterMarkerProp } from '@mj-studio/react-native-naver-map';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+
+import Toast from 'react-native-toast-message';
 
 /**
  * 여행 템플릿의 상세 일정 목록을 편집하는 화면입니다.
@@ -25,6 +31,7 @@ const EditTemplateItinerariesScreen: React.FC = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [isSaving, setIsSaving] = useState(false);
   const [mapKey, setMapKey] = useState(0);
+  const mapViewRef = useRef<InteractiveMapViewRef>(null);
 
   // useTemplateDetails 훅에서 여정 데이터 및 관리 함수들을 가져옵니다.
   const { itineraries, day, deleteItinerary, addItinerary, setDay } =
@@ -64,6 +71,22 @@ const EditTemplateItinerariesScreen: React.FC = () => {
   };
 
   /**
+   * 일정 항목을 터치했을 때 지도를 해당 위치로 이동시킵니다.
+   * @param item - 터치된 일정 항목
+   */
+  const handleItemPress = (item: TemplateItinerary) => {
+    if (item.latitude && item.longitude) {
+      mapViewRef.current?.animateCameraTo({
+        latitude: item.latitude,
+        longitude: item.longitude,
+        zoom: 16,
+        duration: 500,
+        easing: 'EaseOut',
+      });
+    }
+  };
+
+  /**
    * 새로운 빈 일정 항목을 로컬 상태에 추가하고, 해당 항목의 편집 화면으로 즉시 이동합니다.
    */
   const handleAdd = () => {
@@ -97,13 +120,28 @@ const EditTemplateItinerariesScreen: React.FC = () => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const newItineraries: TemplateItinerary[] = flattenItineraries(itineraries);
+      const newItineraries: TemplateItinerary[] =
+        flattenItineraries(itineraries);
 
-      await setTemplateItineraries(+id, newItineraries);
-      router.back();
+      const result = await setTemplateItineraries(+id, newItineraries);
+
+      if (result?.success) {
+        router.back();
+      } else {
+        // 에러가 발생한 경우 - 이전 화면으로 돌아가지 않음
+        Toast.show({
+          type: 'error',
+          text1: '일정 저장 실패',
+          text2: result?.error || '일정 저장 중 오류가 발생했습니다.',
+        });
+      }
     } catch (error) {
       console.error(error);
-      // TODO: 사용자에게 에러 토스트 메시지 보여주기
+      Toast.show({
+        type: 'error',
+        text1: '일정 저장 실패',
+        text2: '일정 저장 중 오류가 발생했습니다.',
+      });
     } finally {
       setIsSaving(false);
     }
@@ -120,11 +158,22 @@ const EditTemplateItinerariesScreen: React.FC = () => {
       return [];
     }
 
-    return allItineraries.map((itinerary) => ({
+    // 시간순으로 정렬
+    const sortedItineraries = [...allItineraries].sort((a, b) =>
+      a.startTime.localeCompare(b.startTime)
+    );
+
+    return sortedItineraries.map((itinerary, index) => ({
       identifier: itinerary.id.toString(),
       latitude: itinerary.latitude,
       longitude: itinerary.longitude,
-      image: { symbol: 'blue' },
+      image: {
+        symbol: 'blue',
+        size: 20, // 마커 크기 축소
+      },
+      caption: (index + 1).toString(), // 순서 번호 표시
+      captionSize: 12,
+      captionColor: '#FFFFFF',
     }));
   }, [itineraries, day]);
 
@@ -142,34 +191,38 @@ const EditTemplateItinerariesScreen: React.FC = () => {
     <>
       <View style={styles.mapContainer} key={mapKey}>
         <InteractiveMapView
+          ref={mapViewRef}
           cameraPosition={cameraPosition}
           clusterMarkers={clusterMarkers}
-          options={{
-            currentLocationButton: true,
-          }}
         />
       </View>
 
-      <View style={styles.daySelection}>
-        {availableDays.map((dayNumber) => (
-          <TouchableOpacity
-            key={dayNumber}
-            style={[
-              styles.dayButton,
-              day === dayNumber && styles.dayButtonActive,
-            ]}
-            onPress={() => setDay(dayNumber)}
-          >
-            <Text
+      <View style={styles.daySelectionContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.daySelection}
+        >
+          {availableDays.map((dayNumber) => (
+            <TouchableOpacity
+              key={dayNumber}
               style={[
-                styles.dayButtonText,
-                day === dayNumber && styles.dayButtonTextActive,
+                styles.dayButton,
+                day === dayNumber && styles.dayButtonActive,
               ]}
+              onPress={() => setDay(dayNumber)}
             >
-              {dayNumber}일차
-            </Text>
-          </TouchableOpacity>
-        ))}
+              <Text
+                style={[
+                  styles.dayButtonText,
+                  day === dayNumber && styles.dayButtonTextActive,
+                ]}
+              >
+                {dayNumber}일차
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
       <Text style={styles.listTitle}>상세 일정</Text>
     </>
@@ -192,7 +245,7 @@ const EditTemplateItinerariesScreen: React.FC = () => {
           disabled={isSaving}
         >
           {isSaving ? (
-            <ActivityIndicator color="#8130FF" />
+            <ActivityIndicator color='#8130FF' />
           ) : (
             <Text style={styles.saveButtonText}>저장</Text>
           )}
@@ -205,34 +258,43 @@ const EditTemplateItinerariesScreen: React.FC = () => {
         itineraries={itineraries[day] || []}
         onUpdate={handleUpdate}
         onDelete={handleDelete}
+        onItemPress={handleItemPress}
         ListHeaderComponent={ListHeader}
         contentContainerStyle={styles.scrollViewContent}
       />
 
-      <TouchableOpacity style={styles.addItineraryButton} onPress={handleAdd}>
-        <Ionicons name='add-circle' size={30} color='#8130FF' />
-        <Text style={styles.addItineraryButtonText}>일정 추가</Text>
-      </TouchableOpacity>
+      <View style={styles.addButtonContainer}>
+        <TouchableOpacity style={styles.addItineraryButton} onPress={handleAdd}>
+          <Ionicons name='add-circle' size={24} color='#fff' />
+          <Text style={styles.addItineraryButtonText}>일정 추가</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  addButtonContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#E9E9E9',
+  },
   addItineraryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fff',
-    borderColor: '#949494',
-    borderWidth: 1,
-    borderRadius: 25,
-    paddingVertical: 10,
-    marginTop: 20,
+    backgroundColor: '#8130FF',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
   },
   addItineraryButtonText: {
     fontSize: 16,
-    color: '#8130FF',
-    marginLeft: 10,
+    color: '#fff',
+    fontWeight: '600',
+    marginLeft: 8,
   },
   container: {
     flex: 1,
@@ -253,8 +315,9 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
+    color: '#111827',
   },
   saveButton: {
     marginLeft: 10,
@@ -265,7 +328,7 @@ const styles = StyleSheet.create({
     color: '#8130FF',
   },
   scrollViewContent: {
-    paddingBottom: 20,
+    paddingBottom: 80, // 하단 버튼 공간 확보
   },
   mapContainer: {
     width: '100%',
@@ -284,11 +347,14 @@ const styles = StyleSheet.create({
     marginTop: 8,
     color: '#6B6B6B',
   },
+  daySelectionContainer: {
+    backgroundColor: '#fff',
+    marginBottom: 0,
+  },
   daySelection: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    paddingVertical: 20,
-    backgroundColor: '#fff',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
   },
   dayButton: {
     paddingVertical: 10,
@@ -296,7 +362,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     borderColor: '#949494',
     borderWidth: 1,
-    marginHorizontal: 5,
+    marginRight: 12,
   },
   dayButtonActive: {
     backgroundColor: '#8130FF',
@@ -313,9 +379,11 @@ const styles = StyleSheet.create({
   listTitle: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#111827',
     paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 10,
+    paddingTop: 8,
+    paddingBottom: 12,
+    marginBottom: 12,
     backgroundColor: '#fff',
   },
 });

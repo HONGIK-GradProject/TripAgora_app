@@ -51,7 +51,7 @@ const EditTemplateTagsScreen: React.FC = () => {
       const _id = +id;
       await setTemplateTags(_id, selectedTags);
       setTagIds(selectedTags);
-      
+
       console.log(`Saved tags for template ${id}:`, selectedTags);
       router.back();
     } catch (error) {
@@ -96,7 +96,7 @@ const EditTemplateTagsScreen: React.FC = () => {
         disabled={isSaving}
       >
         {isSaving ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color='#fff' />
         ) : (
           <Text className='text-xl font-bold text-white'>저장</Text>
         )}
