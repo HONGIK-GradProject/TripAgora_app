@@ -122,6 +122,36 @@ interface SessionGetResponse extends APIResponse<SessionGetData> {
   // APIResponse의 모든 속성을 상속받습니다.
 }
 
+/**
+ * 세션 일정 정보 타입
+ */
+interface SessionItinerary {
+  id: number;
+  day: number;
+  title: string;
+  content: string;
+  startTime: string; // HH:mm:ss 형식
+  latitude: number;
+  longitude: number;
+}
+
+/**
+ * 세션 일정 조회 요청 데이터 (빈 데이터)
+ */
+interface SessionGetItinerariesRequest {}
+
+/**
+ * 세션 일정 조회 응답 데이터
+ */
+interface SessionGetItinerariesData {
+  itineraries: SessionItinerary[];
+}
+
+interface SessionGetItinerariesResponse
+  extends APIResponse<SessionGetItinerariesData> {
+  // APIResponse의 모든 속성을 상속받습니다.
+}
+
 export {
   SessionCreateData,
   SessionCreateRequest,
@@ -130,12 +160,16 @@ export {
   SessionDeleteRequest,
   SessionDeleteResponse,
   SessionGetData,
+  SessionGetItinerariesData,
+  SessionGetItinerariesRequest,
+  SessionGetItinerariesResponse,
   SessionGetListData,
   SessionGetListRequest,
   SessionGetListResponse,
   SessionGetRequest,
   SessionGetResponse,
   SessionInfo,
+  SessionItinerary,
   SessionStatus,
   SessionUpdateData,
   SessionUpdateRequest,

@@ -1,4 +1,5 @@
-import { getSession } from '@/services/sessions';
+import { getSession, getSessionItineraries } from '@/services/sessions';
+import { SessionItinerary } from '@/types/sessions';
 import React, { createContext, ReactNode, useCallback, useState } from 'react';
 
 /**
@@ -19,6 +20,9 @@ const useSessionDetailsLogic = (id: string) => {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [status, setStatus] = useState<string>('');
+  const [itineraries, setItineraries] = useState<{
+    [key: number]: SessionItinerary[];
+  }>({});
 
   /**
    * 서버에서 세션 상세 정보를 비동기적으로 가져와 상태를 업데이트합니다.
@@ -27,19 +31,34 @@ const useSessionDetailsLogic = (id: string) => {
     if (!id) return;
     setIsLoading(true);
     try {
-      const response = await getSession(+id);
+      const [sessionResponse, itinerariesResponse] = await Promise.all([
+        getSession(+id),
+        getSessionItineraries(+id),
+      ]);
 
-      if (response) {
-        setTitle(response.title);
-        setContent(response.content);
-        setRegionIds(response.regionIds);
-        setTagIds(response.tagIds);
-        setImageUrls(response.imageUrls);
-        setMaxParticipants(response.maxParticipants);
-        setCurrentParticipants(response.currentParticipants);
-        setStartDate(response.startDate);
-        setEndDate(response.endDate);
-        setStatus(response.status);
+      if (sessionResponse) {
+        setTitle(sessionResponse.title);
+        setContent(sessionResponse.content);
+        setRegionIds(sessionResponse.regionIds);
+        setTagIds(sessionResponse.tagIds);
+        setImageUrls(sessionResponse.imageUrls);
+        setMaxParticipants(sessionResponse.maxParticipants);
+        setCurrentParticipants(sessionResponse.currentParticipants);
+        setStartDate(sessionResponse.startDate);
+        setEndDate(sessionResponse.endDate);
+        setStatus(sessionResponse.status);
+      }
+
+      if (itinerariesResponse) {
+        // 일정을 날짜별로 그룹화
+        const groupedItineraries: { [key: number]: SessionItinerary[] } = {};
+        itinerariesResponse.itineraries.forEach((itinerary) => {
+          if (!groupedItineraries[itinerary.day]) {
+            groupedItineraries[itinerary.day] = [];
+          }
+          groupedItineraries[itinerary.day].push(itinerary);
+        });
+        setItineraries(groupedItineraries);
       }
     } catch (error) {
       console.log(error);
@@ -60,6 +79,7 @@ const useSessionDetailsLogic = (id: string) => {
     startDate,
     endDate,
     status,
+    itineraries,
     setTitle,
     setContent,
     setRegionIds,
@@ -70,6 +90,7 @@ const useSessionDetailsLogic = (id: string) => {
     setStartDate,
     setEndDate,
     setStatus,
+    setItineraries,
     refetch: fetchSessionDetails,
   };
 };

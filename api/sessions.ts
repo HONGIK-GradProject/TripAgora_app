@@ -3,6 +3,8 @@ import {
   SessionCreateResponse,
   SessionDeleteRequest,
   SessionDeleteResponse,
+  SessionGetItinerariesRequest,
+  SessionGetItinerariesResponse,
   SessionGetListRequest,
   SessionGetListResponse,
   SessionGetRequest,
@@ -114,6 +116,22 @@ const getSession = async (sessionId: number): Promise<SessionGetResponse> => {
 };
 
 /**
+ * 특정 세션의 일정 목록을 조회합니다.
+ * @param sessionId - 조회할 세션의 ID
+ * @returns 세션 일정 목록을 담은 Promise
+ */
+const getSessionItineraries = async (
+  sessionId: number
+): Promise<SessionGetItinerariesResponse> => {
+  const requestData: SessionGetItinerariesRequest = {};
+  const response = await apiClient.get<SessionGetItinerariesResponse>(
+    `/sessions/${sessionId}/itineraries`,
+    requestData
+  );
+  return response.data;
+};
+
+/**
  * 세션 관련 API 함수들을 모아놓은 객체입니다.
  */
 export const sessionsApi = {
@@ -122,4 +140,5 @@ export const sessionsApi = {
   deleteSession,
   getSessionList,
   getSession,
+  getSessionItineraries,
 };

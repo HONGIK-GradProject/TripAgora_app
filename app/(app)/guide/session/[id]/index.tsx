@@ -6,7 +6,7 @@ import { useSessionDetails } from '@/hooks/sessions/useSessionDetails';
 import { deleteSession } from '@/services/sessions';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Image,
@@ -43,6 +43,7 @@ const RecruitmentDetailContent: React.FC = () => {
     startDate = '',
     endDate = '',
     status = '',
+    itineraries = {},
     isLoading = true,
     refetch = () => {},
   } = sessionDetails || {};
@@ -66,6 +67,25 @@ const RecruitmentDetailContent: React.FC = () => {
       (id: number) => TAG_ID_TO_NAME_MAP[id] || '알 수 없는 태그'
     );
   }, [tagIds]);
+
+  // 일정 관련 상태
+  const availableDays = useMemo(
+    () =>
+      Object.keys(itineraries)
+        .map(Number)
+        .sort((a, b) => a - b),
+    [itineraries]
+  );
+
+  const [selectedDay, setSelectedDay] = useState(
+    availableDays.length > 0 ? availableDays[0] : 1
+  );
+
+  useEffect(() => {
+    if (availableDays.length > 0 && !availableDays.includes(selectedDay)) {
+      setSelectedDay(availableDays[0]);
+    }
+  }, [availableDays, selectedDay]);
 
   // 날짜 포맷팅
   const formatDate = (dateString: string) => {
@@ -224,6 +244,63 @@ const RecruitmentDetailContent: React.FC = () => {
           <Text style={styles.sectionTitle}>여행 소개</Text>
           <Text style={styles.description}>{content}</Text>
         </View>
+
+        <View style={styles.divider} />
+
+        {/* 일정 섹션 */}
+        {availableDays.length > 0 && (
+          <>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>일정</Text>
+            </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.daySelection}
+            >
+              {availableDays.map((dayNumber) => (
+                <TouchableOpacity
+                  key={dayNumber}
+                  style={[
+                    styles.dayButton,
+                    selectedDay === dayNumber && styles.dayButtonActive,
+                  ]}
+                  onPress={() => setSelectedDay(dayNumber)}
+                >
+                  <Text
+                    style={[
+                      styles.dayButtonText,
+                      selectedDay === dayNumber && styles.dayButtonTextActive,
+                    ]}
+                  >
+                    {dayNumber}일차
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <View style={[styles.section, { paddingTop: 0 }]}>
+              {(itineraries[selectedDay] || [])
+                .sort((a, b) => a.startTime.localeCompare(b.startTime))
+                .map((item) => (
+                  <View key={item.id} style={styles.itineraryItem}>
+                    <View style={styles.itineraryTime}>
+                      <Text style={styles.itineraryTimeText}>
+                        {item.startTime.substring(0, 5)}
+                      </Text>
+                    </View>
+                    <View style={styles.itineraryContent}>
+                      <Text style={styles.itineraryTitle}>{item.title}</Text>
+                      {item.content ? (
+                        <Text style={styles.itineraryDesc}>{item.content}</Text>
+                      ) : null}
+                    </View>
+                  </View>
+                ))}
+            </View>
+          </>
+        )}
 
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -432,7 +509,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 10,
   },
   description: {
     fontSize: 16,
@@ -533,6 +609,58 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 16,
     color: '#6B7280',
+  },
+  daySelection: {
+    flexDirection: 'row',
+    paddingBottom: 10,
+    backgroundColor: '#fff',
+    paddingHorizontal: 20,
+  },
+  dayButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    borderColor: '#949494',
+    borderWidth: 1,
+    marginHorizontal: 5,
+  },
+  dayButtonActive: {
+    backgroundColor: '#8130FF',
+    borderColor: '#8130FF',
+  },
+  dayButtonText: {
+    fontSize: 16,
+    color: '#8130FF',
+  },
+  dayButtonTextActive: {
+    fontSize: 16,
+    color: '#fff',
+  },
+  itineraryItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingVertical: 12,
+  },
+  itineraryTime: {
+    width: 70,
+  },
+  itineraryTimeText: {
+    fontSize: 14,
+    color: '#8130FF',
+    fontWeight: 'bold',
+  },
+  itineraryContent: {
+    flex: 1,
+  },
+  itineraryTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  itineraryDesc: {
+    fontSize: 14,
+    color: '#444',
+    lineHeight: 20,
   },
 });
 

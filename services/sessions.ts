@@ -118,3 +118,22 @@ export const getSession = async (sessionId: number) => {
     console.error(error);
   }
 };
+
+/**
+ * 특정 세션의 일정 목록을 조회합니다.
+ * @param sessionId - 조회할 세션의 ID
+ * @returns 성공 시 세션 일정 목록, 실패 시 undefined
+ */
+export const getSessionItineraries = async (sessionId: number) => {
+  try {
+    const response = await sessionsApi.getSessionItineraries(sessionId);
+
+    if (response && response.code === 200) {
+      return response.data;
+    }
+
+    throw new Error('세션 일정 조회 에러');
+  } catch (error) {
+    console.error(error);
+  }
+};
