@@ -194,7 +194,15 @@ const RecruitmentDetailContent: React.FC = () => {
                 status === 'COMPLETED' && styles.statusCompleted,
               ]}
             >
-              <Text style={styles.statusText}>
+              <Text
+                style={[
+                  styles.statusText,
+                  status === 'RECRUITING' && { color: '#7C3AED' }, // purple-700
+                  status === 'RECRUITMENT_CLOSED' && { color: '#C2410C' }, // orange-700
+                  status === 'IN_PROGRESS' && { color: '#FFFFFF' }, // white
+                  status === 'COMPLETED' && { color: '#15803D' }, // green-700
+                ]}
+              >
                 {status === 'RECRUITING' && '모집중'}
                 {status === 'RECRUITMENT_CLOSED' && '모집마감'}
                 {status === 'IN_PROGRESS' && '진행중'}
@@ -456,19 +464,18 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   statusRecruiting: {
-    backgroundColor: '#8130FF',
+    backgroundColor: '#DDD6FE', // purple-100
   },
   statusClosed: {
-    backgroundColor: '#F59E0B',
+    backgroundColor: '#FED7AA', // orange-100
   },
   statusInProgress: {
     backgroundColor: '#10B981',
   },
   statusCompleted: {
-    backgroundColor: '#6B7280',
+    backgroundColor: '#BBF7D0', // green-100
   },
   statusText: {
-    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
   },

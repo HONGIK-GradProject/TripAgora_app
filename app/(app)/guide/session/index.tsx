@@ -137,12 +137,22 @@ const GuideTripListScreen: React.FC = () => {
         </View>
         <View
           className={`px-3 py-1 rounded-full ${
-            session.status === 'COMPLETED' ? 'bg-green-100' : 'bg-gray-100'
+            session.status === 'RECRUITING'
+              ? 'bg-purple-100'
+              : session.status === 'RECRUITMENT_CLOSED'
+              ? 'bg-orange-100'
+              : session.status === 'COMPLETED'
+              ? 'bg-green-100'
+              : 'bg-gray-100'
           }`}
         >
           <Text
             className={`text-sm ${
-              session.status === 'COMPLETED'
+              session.status === 'RECRUITING'
+                ? 'text-purple-700'
+                : session.status === 'RECRUITMENT_CLOSED'
+                ? 'text-orange-700'
+                : session.status === 'COMPLETED'
                 ? 'text-green-700'
                 : 'text-gray-600'
             }`}
