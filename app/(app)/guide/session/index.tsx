@@ -206,8 +206,7 @@ const GuideTripListScreen: React.FC = () => {
                     style={{ marginTop: 2 }}
                   />
                   <Text className='text-white/90 ml-1 mr-4'>
-                    {currentSession.currentParticipants}/
-                    {currentSession.maxParticipants}명
+                    {currentSession.currentParticipants}명
                   </Text>
                   <Ionicons
                     name='location-outline'
