@@ -1,6 +1,6 @@
-import { templatesApi } from "@/api/templates";
-import { TemplateItineraryWithoutId } from "@/types/templates";
-import { isAxiosError } from "axios";
+import { templatesApi } from '@/api/templates';
+import { TemplateItineraryWithoutId } from '@/types/templates';
+import { isAxiosError } from 'axios';
 
 /**
  * 새로운 빈 여행 템플릿을 생성하고 생성된 템플릿의 ID를 반환합니다.
@@ -18,7 +18,7 @@ export const createBlankTemplate = async () => {
   } catch (error) {
     console.error(error);
   }
-}
+};
 
 /**
  * 특정 템플릿의 제목을 설정합니다.
@@ -38,7 +38,7 @@ export const setTemplateTitle = async (id: number, title: string) => {
   } catch (error) {
     console.error(error);
   }
-}
+};
 
 /**
  * 특정 템플릿의 내용을 설정합니다.
@@ -58,7 +58,7 @@ export const setTemplateContent = async (id: number, content: string) => {
   } catch (error) {
     console.error(error);
   }
-}
+};
 
 /**
  * 특정 템플릿의 이미지 URL 목록을 설정합니다.
@@ -78,7 +78,7 @@ export const setTemplateImageUrls = async (id: number, imageUrls: string[]) => {
   } catch (error) {
     console.error(error);
   }
-}
+};
 
 /**
  * 특정 템플릿의 태그를 설정합니다.
@@ -98,33 +98,38 @@ export const setTemplateTags = async (id: number, tagIds: number[]) => {
   } catch (error) {
     console.error(error);
   }
-}
+};
 
 /**
  * 특정 템플릿의 상세 일정 목록 전체를 설정(덮어쓰기)합니다.
  * @param id - 일정을 설정할 템플릿의 ID
  * @param itineraries - 새로운 상세 일정 배열. ID가 없는 항목은 신규로 생성됩니다.
- * @returns 성공 시 true, 실패 시 undefined
+ * @returns 성공 시 { success: true }, 실패 시 { success: false, error: string }
  */
-export const setTemplateItineraries = async (id: number, itineraries: TemplateItineraryWithoutId[]) => {
+export const setTemplateItineraries = async (
+  id: number,
+  itineraries: TemplateItineraryWithoutId[]
+) => {
   try {
     const response = await templatesApi.setItineraries(id, itineraries);
 
     if (response && response.code === 200) {
-      return true;
+      return { success: true };
     }
 
     throw new Error('템플릿 일정 수정 에러');
   } catch (error) {
     if (isAxiosError(error)) {
       console.error(error.response?.data);
-    }
-    else {
+      const errorMessage =
+        error.response?.data?.message || '일정 저장 중 오류가 발생했습니다.';
+      return { success: false, error: errorMessage };
+    } else {
       console.error(error);
+      return { success: false, error: '일정 저장 중 오류가 발생했습니다.' };
     }
-    
   }
-}
+};
 
 /**
  * 특정 템플릿의 지역을 설정합니다.
@@ -144,7 +149,7 @@ export const setTemplateRegions = async (id: number, regionIds: number[]) => {
   } catch (error) {
     console.error(error);
   }
-}
+};
 
 /**
  * 자신이 작성한 템플릿 목록을 페이지 단위로 가져옵니다.
@@ -163,7 +168,7 @@ export const getTemplateList = async (page: number) => {
   } catch (error) {
     console.error(error);
   }
-}
+};
 
 /**
  * 특정 템플릿에 속한 상세 일정 목록을 가져옵니다.
@@ -182,7 +187,7 @@ export const getItineraries = async (id: number) => {
   } catch (error) {
     console.error(error);
   }
-}
+};
 
 /**
  * 특정 템플릿의 기본 상세 정보(일정 제외)를 가져옵니다.
@@ -201,7 +206,7 @@ export const getTemplateDetails = async (id: string) => {
   } catch (error) {
     console.error(error);
   }
-}
+};
 
 /**
  * 특정 템플릿의 모든 정보(기본 정보 및 상세 일정)를 한 번에 가져옵니다.
@@ -216,15 +221,15 @@ export const getTemplateDetailsAll = async (id: number) => {
     if (details && itineraries) {
       return {
         ...details,
-        ...itineraries
+        ...itineraries,
       };
     }
-    
+
     throw new Error('템플릿의 모든 정보 로드 에러');
   } catch (error) {
     console.error(error);
   }
-}
+};
 
 /**
  * 특정 템플릿을 삭제합니다.
@@ -235,8 +240,7 @@ export const deleteTemplate = async (id: number) => {
   try {
     const response = await templatesApi.deleteTemplate(id);
     return response;
-
   } catch (error) {
     console.error(error);
   }
-}
+};

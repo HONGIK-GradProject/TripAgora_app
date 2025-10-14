@@ -15,6 +15,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 /**
  * 여행 템플릿의 상세 일정 목록을 편집하는 화면입니다.
@@ -97,13 +98,32 @@ const EditTemplateItinerariesScreen: React.FC = () => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const newItineraries: TemplateItinerary[] = flattenItineraries(itineraries);
+      const newItineraries: TemplateItinerary[] =
+        flattenItineraries(itineraries);
 
-      await setTemplateItineraries(+id, newItineraries);
-      router.back();
+      const result = await setTemplateItineraries(+id, newItineraries);
+
+      if (result?.success) {
+        Toast.show({
+          type: 'success',
+          text1: '일정이 성공적으로 저장되었습니다.',
+        });
+        router.back();
+      } else {
+        // 에러가 발생한 경우 - 이전 화면으로 돌아가지 않음
+        Toast.show({
+          type: 'error',
+          text1: '일정 저장 실패',
+          text2: result?.error || '일정 저장 중 오류가 발생했습니다.',
+        });
+      }
     } catch (error) {
       console.error(error);
-      // TODO: 사용자에게 에러 토스트 메시지 보여주기
+      Toast.show({
+        type: 'error',
+        text1: '일정 저장 실패',
+        text2: '일정 저장 중 오류가 발생했습니다.',
+      });
     } finally {
       setIsSaving(false);
     }
@@ -192,7 +212,7 @@ const EditTemplateItinerariesScreen: React.FC = () => {
           disabled={isSaving}
         >
           {isSaving ? (
-            <ActivityIndicator color="#8130FF" />
+            <ActivityIndicator color='#8130FF' />
           ) : (
             <Text style={styles.saveButtonText}>저장</Text>
           )}
