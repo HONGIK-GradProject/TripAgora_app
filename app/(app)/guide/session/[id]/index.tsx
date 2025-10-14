@@ -318,17 +318,19 @@ const RecruitmentDetailContent: React.FC = () => {
           <TouchableOpacity style={styles.iconCircle}>
             <Ionicons name='share-outline' size={20} color='#000' />
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.iconCircle}
-            onPress={() => {
-              router.push({
-                pathname: '/guide/session/[id]/edit-recruitment',
-                params: { id },
-              });
-            }}
-          >
-            <Ionicons name='create-outline' size={20} color='#000' />
-          </TouchableOpacity>
+          {status === 'RECRUITING' && (
+            <TouchableOpacity
+              style={styles.iconCircle}
+              onPress={() => {
+                router.push({
+                  pathname: '/guide/session/[id]/edit-recruitment',
+                  params: { id },
+                });
+              }}
+            >
+              <Ionicons name='create-outline' size={20} color='#000' />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
