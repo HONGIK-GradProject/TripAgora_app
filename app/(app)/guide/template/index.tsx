@@ -72,8 +72,10 @@ const MyProductsScreen: React.FC = () => {
           오류가 발생했습니다.
         </Text>
       ) : (
-        <View className='px-5'>
-          <Text className='text-3xl font-bold mb-5'>내 상품 템플릿</Text>
+        <>
+          <View className='px-5'>
+            <Text className='text-3xl font-bold mb-5'>내 상품 템플릿</Text>
+          </View>
           <View
             className='bg-gray-50 rounded-2xl p-4'
             style={{ marginBottom: 16 + bottom }}
@@ -88,7 +90,7 @@ const MyProductsScreen: React.FC = () => {
               contentContainerStyle={{ paddingBottom: 108 + bottom }}
             />
           </View>
-        </View>
+        </>
       )}
 
       {/* Floating action button - bottom right above bottom navbar */}
