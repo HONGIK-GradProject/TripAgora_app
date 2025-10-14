@@ -2,7 +2,9 @@ import { useLocationPermission } from '@/hooks/useLocationPermission';
 import { fetchKakaoPlaceSearch } from '@/services/search';
 import {
   Camera,
+  CameraMoveBaseParams,
   ClusterMarkerProp,
+  Coord,
   NaverMapViewRef,
 } from '@mj-studio/react-native-naver-map';
 import * as Location from 'expo-location';
@@ -31,13 +33,7 @@ interface InteractiveMapViewProps {
 }
 
 export interface InteractiveMapViewRef {
-  animateCameraTo: (camera: {
-    latitude: number;
-    longitude: number;
-    zoom?: number;
-    duration?: number;
-    easing?: string;
-  }) => void;
+  animateCameraTo: (camera: CameraMoveBaseParams & Coord) => void;
 }
 
 export const InteractiveMapView = memo(
