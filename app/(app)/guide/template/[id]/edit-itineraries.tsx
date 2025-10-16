@@ -8,9 +8,9 @@ import { setTemplateItineraries } from '@/services/templates';
 import { TemplateItinerary } from '@/types/templates';
 import { flattenItineraries } from '@/utils/Itineraries';
 import { Ionicons } from '@expo/vector-icons';
-import { ClusterMarkerProp } from '@mj-studio/react-native-naver-map';
+import { CameraAnimationEasing, ClusterMarkerProp } from '@mj-studio/react-native-naver-map';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
@@ -43,6 +43,58 @@ const EditTemplateItinerariesScreen: React.FC = () => {
       setMapKey((prevKey) => prevKey + 1);
     }, [])
   );
+
+  useEffect(() => {
+    handleCameraMove();
+  }, [day, mapKey]);
+
+  const handleCameraMove = () => {
+    if (itineraries[day].length === 0) return;
+    if (itineraries[day].length === 1) {
+      const firstItinerary = itineraries[day][0];
+      mapViewRef.current?.animateCameraTo({
+        latitude: firstItinerary.latitude,
+        longitude: firstItinerary.longitude,
+        zoom: 16,
+        easing: 'EaseIn',
+      });
+
+      return;
+    }
+
+    const boundary = itineraries[day].reduce(
+      (prev, cur) => {
+        return {
+          minLat: Math.min(prev.minLat, cur.latitude),
+          maxLat: Math.max(prev.maxLat, cur.latitude),
+          minLng: Math.min(prev.minLng, cur.longitude),
+          maxLng: Math.max(prev.maxLng, cur.longitude),
+        };
+      },
+      {
+        minLat: Infinity,
+        maxLat: -Infinity,
+        minLng: Infinity,
+        maxLng: -Infinity,
+      }
+    );
+
+    const padFactor = 0.4;
+    const latDelta = (boundary.maxLat - boundary.minLat);
+    const lngDelta = (boundary.maxLng - boundary.minLng);
+    const latPadding = latDelta * padFactor;
+    const lngPadding = lngDelta * padFactor;
+
+    const camera = {
+      latitude: boundary.minLat - latPadding / 2,
+      longitude: boundary.minLng - lngPadding / 2,
+      latitudeDelta: latDelta + latPadding,
+      longitudeDelta: lngDelta + lngPadding,
+      easing: 'EaseIn' as CameraAnimationEasing,
+    };
+
+    mapViewRef.current?.animateRegionTo(camera);
+  }
 
   /**
    * 선택된 일정 항목의 편집 화면으로 이동합니다.

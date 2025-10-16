@@ -6,6 +6,7 @@ import {
   ClusterMarkerProp,
   Coord,
   NaverMapViewRef,
+  Region,
 } from '@mj-studio/react-native-naver-map';
 import * as Location from 'expo-location';
 import React, {
@@ -33,7 +34,8 @@ interface InteractiveMapViewProps {
 }
 
 export interface InteractiveMapViewRef {
-  animateCameraTo: (camera: CameraMoveBaseParams & Coord) => void;
+  animateCameraTo: (camera: CameraMoveBaseParams & Coord & { zoom: number }) => void
+  animateRegionTo: (camera: CameraMoveBaseParams & Region) => void;
 }
 
 export const InteractiveMapView = memo(
@@ -51,6 +53,9 @@ export const InteractiveMapView = memo(
         animateCameraTo: (camera) => {
           mapViewRef.current?.animateCameraTo(camera);
         },
+        animateRegionTo: (camera) => {
+          mapViewRef.current?.animateRegionTo(camera);
+        }
       }));
 
       const handleSearch = async (query: string) => {
@@ -64,7 +69,7 @@ export const InteractiveMapView = memo(
             mapViewRef.current?.animateCameraTo({
               latitude,
               longitude,
-              zoom: 15,
+              zoom: 12,
               duration: 1000,
             });
 
