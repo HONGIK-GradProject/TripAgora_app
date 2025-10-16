@@ -28,7 +28,6 @@ export interface MapOverlayOptions {
 interface InteractiveMapViewProps {
   cameraPosition: Camera;
   clusterMarkers: ClusterMarkerProp[];
-  children?: React.ReactNode;
   options?: MapOverlayOptions;
   onPlaceSelect?: (place: { latitude: number; longitude: number }) => void;
 }
@@ -41,7 +40,7 @@ export interface InteractiveMapViewRef {
 export const InteractiveMapView = memo(
   forwardRef<InteractiveMapViewRef, InteractiveMapViewProps>(
     (
-      { cameraPosition, clusterMarkers, children, options, onPlaceSelect },
+      { cameraPosition, clusterMarkers, options, onPlaceSelect },
       ref
     ) => {
       const mapViewRef = useRef<NaverMapViewRef>(null);
@@ -124,7 +123,6 @@ export const InteractiveMapView = memo(
             cameraPosition={cameraPosition}
             clusterMarkers={clusterMarkers}
           >
-            {children}
           </MapView>
           <MapOverlay
             options={options}
