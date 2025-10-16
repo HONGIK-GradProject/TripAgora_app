@@ -147,8 +147,8 @@ const EditTemplateItinerariesScreen: React.FC = () => {
       title: '',
       content: '',
       startTime: '00:00',
-      latitude: 0,
-      longitude: 0,
+      latitude: 37.5665,
+      longitude: 126.9780,
       id: Date.now(), // 임시 ID
     };
 
