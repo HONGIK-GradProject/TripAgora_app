@@ -32,6 +32,7 @@ interface InteractiveMapViewProps {
   clusterMarkers: ClusterMarkerProp[];
   options?: MapOverlayOptions;
   onPlaceSelect?: (place: { latitude: number; longitude: number }) => void;
+  onMarkerClick?: (markerIdentifier: string) => void;
 }
 
 interface MapPathViewProps {
@@ -62,7 +63,7 @@ const MapPathView = ({ coords }: MapPathViewProps) => {
 export const InteractiveMapView = memo(
   forwardRef<InteractiveMapViewRef, InteractiveMapViewProps>(
     (
-      { cameraPosition, clusterMarkers, options, onPlaceSelect },
+      { cameraPosition, clusterMarkers, options, onPlaceSelect, onMarkerClick },
       ref
     ) => {
       const mapViewRef = useRef<NaverMapViewRef>(null);
@@ -144,6 +145,7 @@ export const InteractiveMapView = memo(
             ref={mapViewRef}
             cameraPosition={cameraPosition}
             clusterMarkers={clusterMarkers}
+            onMarkerClick={onMarkerClick}
           >
           {options?.drawPath && 
           <MapPathView

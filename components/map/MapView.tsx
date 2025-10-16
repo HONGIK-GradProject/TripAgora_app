@@ -12,10 +12,11 @@ interface MapViewProps {
   cameraPosition: Camera;
   clusterMarkers: ClusterMarkerProp[];
   children?: React.ReactNode;
+  onMarkerClick?: (markerIdentifier: string) => void;
 }
 
 export const MapView = forwardRef<NaverMapViewRef, MapViewProps>(
-  ({ style, cameraPosition, clusterMarkers, children }, ref) => {
+  ({ style, cameraPosition, clusterMarkers, children, onMarkerClick }, ref) => {
     const clusters = useMemo(
       () => [
         {
@@ -37,6 +38,11 @@ export const MapView = forwardRef<NaverMapViewRef, MapViewProps>(
         style={style ?? StyleSheet.absoluteFill}
         initialCamera={cameraPosition}
         clusters={clusters}
+        onTapClusterLeaf={({ markerIdentifier }) => {
+          if (onMarkerClick && markerIdentifier) {
+            onMarkerClick(markerIdentifier);
+          }
+        }}
       >
         {children}
       </NaverMapView>
