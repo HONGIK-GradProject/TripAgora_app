@@ -5,6 +5,7 @@ import {
   CameraMoveBaseParams,
   ClusterMarkerProp,
   Coord,
+  NaverMapPathOverlay,
   NaverMapViewRef,
   Region,
 } from '@mj-studio/react-native-naver-map';
@@ -23,6 +24,7 @@ import { MapView } from './MapView';
 export interface MapOverlayOptions {
   searchBar?: boolean;
   currentLocationButton?: boolean;
+  drawPath?: boolean;
 }
 
 interface InteractiveMapViewProps {
@@ -32,10 +34,30 @@ interface InteractiveMapViewProps {
   onPlaceSelect?: (place: { latitude: number; longitude: number }) => void;
 }
 
+interface MapPathViewProps {
+  coords: Coord[];
+}
+
 export interface InteractiveMapViewRef {
   animateCameraTo: (camera: CameraMoveBaseParams & Coord & { zoom: number }) => void
   animateRegionTo: (camera: CameraMoveBaseParams & Region) => void;
 }
+
+const MapPathView = ({ coords }: MapPathViewProps) => {
+  if (coords.length < 2) {
+    return <></>;
+  }
+
+  return (
+    <NaverMapPathOverlay
+      coords={coords}
+      width={8}
+      color="#8130FF"
+      outlineWidth={2}
+      outlineColor="#dbc7ff10"
+    />
+  );
+};
 
 export const InteractiveMapView = memo(
   forwardRef<InteractiveMapViewRef, InteractiveMapViewProps>(
@@ -123,6 +145,14 @@ export const InteractiveMapView = memo(
             cameraPosition={cameraPosition}
             clusterMarkers={clusterMarkers}
           >
+          {options?.drawPath && 
+          <MapPathView
+            coords={clusterMarkers.map(markers => ({
+              longitude: markers.longitude,
+              latitude: markers.latitude
+            } as Coord))}
+          />
+          }
           </MapView>
           <MapOverlay
             options={options}

@@ -246,6 +246,9 @@ const EditTemplateItinerariesScreen: React.FC = () => {
           ref={mapViewRef}
           cameraPosition={cameraPosition}
           clusterMarkers={clusterMarkers}
+          options={{
+            drawPath: true,
+          }}
         />
       </View>
 
