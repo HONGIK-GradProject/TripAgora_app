@@ -37,6 +37,7 @@ interface InteractiveMapViewProps {
 
 interface MapPathViewProps {
   coords: Coord[];
+  drawPath: boolean;
 }
 
 export interface InteractiveMapViewRef {
@@ -44,11 +45,10 @@ export interface InteractiveMapViewRef {
   animateRegionTo: (camera: CameraMoveBaseParams & Region) => void;
 }
 
-const MapPathView = ({ coords }: MapPathViewProps) => {
-  if (coords.length < 2) {
-    return <></>;
+const MapPathView = ({ coords, drawPath }: MapPathViewProps) => {
+  if (!drawPath || coords.length < 2) {
+    return (<></>);
   }
-
   return (
     <NaverMapPathOverlay
       coords={coords}
@@ -144,17 +144,19 @@ export const InteractiveMapView = memo(
           <MapView
             ref={mapViewRef}
             cameraPosition={cameraPosition}
-            clusterMarkers={clusterMarkers}
+            clusterMarkers={clusterMarkers.length > 0 ? clusterMarkers : undefined}
             onMarkerClick={onMarkerClick}
           >
-          {options?.drawPath && 
-          <MapPathView
-            coords={clusterMarkers.map(markers => ({
-              longitude: markers.longitude,
-              latitude: markers.latitude
-            } as Coord))}
-          />
-          }
+            <MapPathView
+              coords={clusterMarkers.map(
+                (marker) =>
+                  ({
+                    longitude: marker.longitude,
+                    latitude: marker.latitude,
+                  } as Coord)
+              )}
+              drawPath={options?.drawPath ? true : false}
+            />
           </MapView>
           <MapOverlay
             options={options}
