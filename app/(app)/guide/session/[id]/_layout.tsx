@@ -5,6 +5,11 @@ export default function SessionLayout() {
   return (
     <Stack>
       <Stack.Screen name='index' options={{ headerShown: false }} />
+      <Stack.Screen
+        name='GuideTripDetailScreen'
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen name='edit-recruitment' options={{ headerShown: false }} />
       <Stack.Screen name='session-room' options={{ headerShown: false }} />
       <Stack.Screen name='announce' options={{ headerShown: false }} />
     </Stack>
