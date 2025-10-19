@@ -94,9 +94,14 @@ const GuideTripListScreen: React.FC = () => {
   const renderSessionItem = ({ item: session }: { item: SessionInfo }) => (
     <TouchableOpacity
       className='bg-white rounded-2xl mb-2 p-5 shadow-sm border border-gray-100'
-      onPress={() =>
-        router.push(`/guide/session/${session.sessionId.toString()}` as any)
-      }
+      onPress={() => {
+        // 진행 중인 여행은 세션 룸으로, 나머지는 상세 페이지로
+        const route =
+          session.status === 'IN_PROGRESS'
+            ? `/guide/session/${session.sessionId.toString()}/session-room`
+            : `/guide/session/${session.sessionId.toString()}`;
+        router.push(route as any);
+      }}
     >
       <View className='flex-row items-center'>
         <Image
@@ -185,7 +190,7 @@ const GuideTripListScreen: React.FC = () => {
             className='bg-purple-500 rounded-2xl p-5'
             onPress={() =>
               router.push(
-                `/guide/session/${currentSession.sessionId.toString()}` as any
+                `/guide/session/${currentSession.sessionId.toString()}/session-room` as any
               )
             }
           >
