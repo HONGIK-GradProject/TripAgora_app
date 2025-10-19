@@ -12,7 +12,7 @@ import {
   UserSwitchToGuideResponse,
   UserSwitchToTravelerResponse
 } from '@/types/users';
-import { createDataFormFromImageUri } from '@/utils/files';
+import { createFileFromImageUri } from '@/utils/files';
 import apiClient, { apiClientMultipart } from './client';
 
 /**
@@ -60,7 +60,8 @@ const switchToTraveler = async (): Promise<UserSwitchToTravelerResponse> => {
 };
 
 const setProfileImage = async (uri: string): Promise<UserSetProfileImageResponse> => {
-  const requestForm = createDataFormFromImageUri(uri);
+  const requestForm = new FormData();
+  requestForm.append('imageFile', createFileFromImageUri(uri));
   const response = await apiClientMultipart.patch<UserSetProfileImageResponse>(
     '/users/me/profile-image',
     requestForm,

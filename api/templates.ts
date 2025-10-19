@@ -1,5 +1,6 @@
-import { TemplateCreateRequest, TemplateCreateResponse, TemplateDeleteRequest, TemplateDeleteResponse, TemplateGetItinerariesRequest, TemplateGetItinerariesResponse, TemplateGetListRequest, TemplateGetListResponse, TemplateGetRequest, TemplateGetResponse, TemplateItineraryWithoutId, TemplateSetContentRequest, TemplateSetContentResponse, TemplateSetImageUrlsRequest, TemplateSetImageUrlsResponse, TemplateSetItinerariesRequest, TemplateSetItinerariesResponse, TemplateSetRegionsRequest, TemplateSetRegionsResponse, TemplateSetTagsRequest, TemplateSetTagsResponse, TemplateSetTitleRequest, TemplateSetTitleResponse, TemplateUpdateRequest, TemplateUpdateResponse } from "@/types/templates";
-import apiClient from "./client";
+import { TemplateCreateRequest, TemplateCreateResponse, TemplateDeleteRequest, TemplateDeleteResponse, TemplateGetItinerariesRequest, TemplateGetItinerariesResponse, TemplateGetListRequest, TemplateGetListResponse, TemplateGetRequest, TemplateGetResponse, TemplateItineraryWithoutId, TemplateSetContentRequest, TemplateSetContentResponse, TemplateSetImagesRequest, TemplateSetImagesResponse, TemplateSetItinerariesRequest, TemplateSetItinerariesResponse, TemplateSetRegionsRequest, TemplateSetRegionsResponse, TemplateSetTagsRequest, TemplateSetTagsResponse, TemplateSetTitleRequest, TemplateSetTitleResponse, TemplateUpdateRequest, TemplateUpdateResponse } from "@/types/templates";
+import { createFileFromImageUri } from "@/utils/files";
+import apiClient, { apiClientMultipart } from "./client";
 
 /**
  * 특정 여행 템플릿의 상세 정보를 조회합니다.
@@ -130,12 +131,18 @@ const setContent = async (
  * @param imageUrls - 새로운 이미지 URL 목록
  * @returns 수정 결과를 담은 Promise
  */
-const setImageUrls = async (
+const setImages = async (
   id: number,
   imageUrls: string[],
-): Promise<TemplateSetImageUrlsResponse> => {
-  const requestData: TemplateSetImageUrlsRequest = { imageUrls };
-  const response = await apiClient.patch<TemplateSetImageUrlsResponse>(
+): Promise<TemplateSetImagesResponse> => {
+  const requestData: TemplateSetImagesRequest = new FormData();
+  
+  imageUrls.forEach(url => {
+    const file = createFileFromImageUri(url);
+    requestData.append('images', file);
+  });
+
+  const response = await apiClientMultipart.patch<TemplateSetImagesResponse>(
     `/templates/${id}/images`,
     requestData
   );
@@ -221,7 +228,7 @@ export const templatesApi = {
   updateTemplate,
   setTitle,
   setContent,
-  setImageUrls,
+  setImages,
   setTags,
   setRegions,
   setItineraries,

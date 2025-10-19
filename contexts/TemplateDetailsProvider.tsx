@@ -120,6 +120,7 @@ const useTemplateDetailsLogic = (id: string) => {
     setTitle,
     setContent,
     setRegionIds,
+    setImageUrls,
     setItineraries,
     setIsEditingTitle,
     setIsEditingContent,

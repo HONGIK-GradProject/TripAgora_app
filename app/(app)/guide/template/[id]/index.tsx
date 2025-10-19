@@ -1,10 +1,12 @@
 import FullScreenLoader from '@/components/ui/FullScreenLoader';
+import MultipleImagePicker from '@/components/ui/MultipleImagePicker';
 import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { TAG_ID_TO_NAME_MAP } from '@/constants/Tags';
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import {
   deleteTemplate,
   setTemplateContent,
+  setTemplateImageUrls,
   setTemplateTitle,
 } from '@/services/templates';
 import { Ionicons } from '@expo/vector-icons';
@@ -46,10 +48,13 @@ const ProductDetailScreen: React.FC = () => {
     setIsEditingTitle,
     setTitle,
     setContent,
+    setImageUrls,
     itineraries,
     isLoading,
     refetch,
   } = useTemplateDetails();
+
+  const [images, setImages] = useState<string[]>([]);
 
   // 로딩 상태 추가
   const [isSavingTitle, setIsSavingTitle] = useState(false);
@@ -156,6 +161,18 @@ const ProductDetailScreen: React.FC = () => {
     );
   };
 
+  const handleSetImages = async (uris: string[]) => {
+    try {
+      const newImageUrls = await setTemplateImageUrls(_id, uris);
+      if (newImageUrls) {
+        setImageUrls(newImageUrls);
+        console.log(newImageUrls);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   if (isInitialLoading) {
     return <FullScreenLoader />;
   }
@@ -168,13 +185,18 @@ const ProductDetailScreen: React.FC = () => {
           <RefreshControl refreshing={isLoading} onRefresh={refetch} />
         }
       >
-        <View style={styles.coverContainer}>
-          {/* 배경 이미지 */}
-          {imageUrls[0] && (
-            <Image source={{ uri: imageUrls[0] }} style={styles.coverImage} />
-          )}
-          {/* 이미지가 없을 땐 이대로 그냥 회색 배경? 아니면 default 이미지를 만들까? */}
-        </View>
+        <MultipleImagePicker
+          onImagesSelected={handleSetImages}
+        > 
+          <View style={styles.coverContainer}>
+            {/* 배경 이미지 */}
+            {imageUrls[0] && (
+              <Image source={{ uri: imageUrls[0] }} style={styles.coverImage} />
+            )}
+            {/* 이미지가 없을 땐 이대로 그냥 회색 배경? 아니면 default 이미지를 만들까? */}
+          </View>
+        </MultipleImagePicker>
+        
 
         <View style={styles.section}>
           <View style={styles.rowBetween}>
