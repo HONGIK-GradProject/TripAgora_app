@@ -6,12 +6,14 @@
 import {
   UserSetNicknameRequest,
   UserSetNicknameResponse,
+  UserSetProfileImageResponse,
   UserSetTagsRequest,
   UserSetTagsResponse,
   UserSwitchToGuideResponse,
   UserSwitchToTravelerResponse
 } from '@/types/users';
-import apiClient from './client';
+import { createDataFormFromImageUri } from '@/utils/files';
+import apiClient, { apiClientMultipart } from './client';
 
 /**
  * 사용자의 닉네임을 설정합니다.
@@ -57,10 +59,20 @@ const switchToTraveler = async (): Promise<UserSwitchToTravelerResponse> => {
   return response.data;
 };
 
+const setProfileImage = async (uri: string): Promise<UserSetProfileImageResponse> => {
+  const requestForm = createDataFormFromImageUri(uri);
+  const response = await apiClientMultipart.patch<UserSetProfileImageResponse>(
+    '/users/me/profile-image',
+    requestForm,
+  );
+  return response.data;
+}
+
 export const usersApi = {
   setNickname,
   setTags,
   switchToGuide,
   switchToTraveler,
+  setProfileImage,
 };
 

@@ -28,18 +28,25 @@ interface UserSwitchToGuideResponse extends APIResponse<UserSwitchToGuideData> {
 type UserSwitchToTravelerRequest = UserSwitchToGuideRequest;
 type UserSwitchToTravelerResponse = UserSwitchToGuideResponse;
 
+type UserSetProfileImageRequest = FormData;
+interface UserSetProfileImageData {
+  profileImageUrl: string;
+}
+interface UserSetProfileImageResponse extends APIResponse<UserSetProfileImageData> {}
+
 export {
   UserRole,
   UserSetNicknameData,
   UserSetNicknameRequest,
-  UserSetNicknameResponse,
-  UserSetTagsData,
+  UserSetNicknameResponse, UserSetProfileImageData,
+  UserSetProfileImageRequest,
+  UserSetProfileImageResponse, UserSetTagsData,
   UserSetTagsRequest,
   UserSetTagsResponse,
   UserSwitchToGuideData,
   UserSwitchToGuideRequest,
   UserSwitchToGuideResponse,
   UserSwitchToTravelerRequest,
-  UserSwitchToTravelerResponse,
+  UserSwitchToTravelerResponse
 };
 

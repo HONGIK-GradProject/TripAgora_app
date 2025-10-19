@@ -60,3 +60,11 @@ export const switchRoleToGuide = async () => {
 export const switchRoleToTraveler = async () => {
   return handleRoleSwitch(usersApi.switchToTraveler, '여행자');
 };
+
+export const setProfileImage = async (uri: string) => {
+  try {
+    return (await usersApi.setProfileImage(uri)).data?.profileImageUrl;
+  } catch (error) {
+    throw error;
+  }
+}
