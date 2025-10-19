@@ -1,4 +1,5 @@
 import { authApi } from '@/api/auth';
+import CustomImagePicker from '@/components/ui/ImagePicker';
 import { useAuth } from '@/hooks/useAuth';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -21,9 +22,14 @@ const GuideMyPageScreen: React.FC = () => {
     <View className='flex-1 bg-white'>
       <View className='items-center px-5 pt-12 pb-5 border-b border-gray-200'>
         <View className='items-center mb-2.5'>
-          <View className='w-24 h-24 rounded-full bg-gray-300 justify-center items-center'>
-            <Ionicons name='person-circle-outline' size={96} color='#999' />
-          </View>
+          <CustomImagePicker
+            onImageSelected={(uri) => console.log(uri)}
+          >
+            <View className='w-24 h-24 rounded-full bg-gray-300 justify-center items-center'>
+              <Ionicons name='person-circle-outline' size={96} color='#999' />
+            </View>
+          </CustomImagePicker>
+          
           <Text className='text-4xl font-bold mt-2.5'>김 홍익</Text>
         </View>
         <Text className='text-2xl text-gray-500 mb-2.5'>
