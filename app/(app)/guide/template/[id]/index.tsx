@@ -10,13 +10,13 @@ import {
   setTemplateTitle,
 } from '@/services/templates';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   Dimensions,
-  Image,
   Modal,
   RefreshControl,
   ScrollView,

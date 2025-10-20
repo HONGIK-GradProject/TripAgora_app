@@ -4,9 +4,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { setProfileImage } from '@/services/users';
 import { Ionicons } from '@expo/vector-icons';
 import { isAxiosError } from 'axios';
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 const GuideMyPageScreen: React.FC = () => {
   const { switchUserRole } = useAuth();
