@@ -5,11 +5,16 @@
 
 import { usersApi } from '@/api/users';
 import { saveTokens } from '@/lib/tokenStorage';
-import { UserSwitchToGuideResponse, UserSwitchToTravelerResponse } from '@/types/users';
+import {
+  UserSwitchToGuideResponse,
+  UserSwitchToTravelerResponse,
+} from '@/types/users';
 import axios from 'axios';
 
 // API 응답 타입의 공통 부분을 포함하는 유니온 타입 정의
-type RoleSwitchApiResponse = UserSwitchToGuideResponse | UserSwitchToTravelerResponse;
+type RoleSwitchApiResponse =
+  | UserSwitchToGuideResponse
+  | UserSwitchToTravelerResponse;
 
 /**
  * 역할 전환의 공통 로직을 처리하는 헬퍼 함수입니다.
@@ -32,12 +37,16 @@ const handleRoleSwitch = async (
   } catch (error) {
     if (axios.isAxiosError(error)) {
       if (error.status === 400) {
-        console.error(`${roleName}(으)로 역할 전환 실패 (Axios Error):`, error.response?.data.message);
+        console.error(
+          `${roleName}(으)로 역할 전환 실패 (Axios Error):`,
+          error.response?.data.message
+        );
+      } else {
+        console.error(
+          `${roleName}(으)로 역할 전환 실패 (Axios Error):`,
+          error.toJSON()
+        );
       }
-      else {
-        console.error(`${roleName}(으)로 역할 전환 실패 (Axios Error):`, error.toJSON());
-      }
-      
     } else {
       console.error(`${roleName}(으)로 역할 전환 실패 (Unknown Error):`, error);
     }
@@ -67,4 +76,27 @@ export const setProfileImage = async (uri: string) => {
   } catch (error) {
     throw error;
   }
-}
+};
+
+/**
+ * 현재 로그인한 사용자의 정보를 조회합니다.
+ * @returns 성공 시 사용자 정보를, 실패 시 undefined를 반환합니다.
+ */
+export const getUserInfo = async () => {
+  try {
+    const response = await usersApi.getMe();
+    if (response.data && response.code === 200) {
+      return response.data;
+    }
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error(
+        '사용자 정보 조회 실패 (Axios Error):',
+        error.response?.data?.message || error.message
+      );
+    } else {
+      console.error('사용자 정보 조회 실패 (Unknown Error):', error);
+    }
+  }
+  return undefined;
+};

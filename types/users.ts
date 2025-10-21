@@ -1,4 +1,4 @@
-import APIResponse from "./apiResponse";
+import APIResponse from './apiResponse';
 
 type UserRole = 'traveler' | 'guide';
 
@@ -23,7 +23,8 @@ interface UserSwitchToGuideData {
   accessToken: string;
   refreshToken: string;
 }
-interface UserSwitchToGuideResponse extends APIResponse<UserSwitchToGuideData> {}
+interface UserSwitchToGuideResponse
+  extends APIResponse<UserSwitchToGuideData> {}
 
 type UserSwitchToTravelerRequest = UserSwitchToGuideRequest;
 type UserSwitchToTravelerResponse = UserSwitchToGuideResponse;
@@ -32,21 +33,32 @@ type UserSetProfileImageRequest = FormData;
 interface UserSetProfileImageData {
   profileImageUrl: string;
 }
-interface UserSetProfileImageResponse extends APIResponse<UserSetProfileImageData> {}
+interface UserSetProfileImageResponse
+  extends APIResponse<UserSetProfileImageData> {}
+
+interface UserGetMeData {
+  nickname: string;
+  role: string;
+  profileImageUrl: string;
+}
+interface UserGetMeResponse extends APIResponse<UserGetMeData> {}
 
 export {
+  UserGetMeData,
+  UserGetMeResponse,
   UserRole,
   UserSetNicknameData,
   UserSetNicknameRequest,
-  UserSetNicknameResponse, UserSetProfileImageData,
+  UserSetNicknameResponse,
+  UserSetProfileImageData,
   UserSetProfileImageRequest,
-  UserSetProfileImageResponse, UserSetTagsData,
+  UserSetProfileImageResponse,
+  UserSetTagsData,
   UserSetTagsRequest,
   UserSetTagsResponse,
   UserSwitchToGuideData,
   UserSwitchToGuideRequest,
   UserSwitchToGuideResponse,
   UserSwitchToTravelerRequest,
-  UserSwitchToTravelerResponse
+  UserSwitchToTravelerResponse,
 };
-
