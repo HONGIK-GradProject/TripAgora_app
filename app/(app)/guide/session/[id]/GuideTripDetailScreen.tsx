@@ -1,6 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import React from 'react';
-import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 const GuideTripDetailScreen: React.FC = () => {
   return (
@@ -44,7 +45,13 @@ const GuideTripDetailScreen: React.FC = () => {
                   source={{
                     uri: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100',
                   }}
-                  className='w-12 h-12 rounded-full mr-4'
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 24,
+                    marginRight: 16,
+                  }}
+                  contentFit='cover'
                 />
                 <View className='flex-1'>
                   <Text className='text-base font-semibold text-gray-900'>

@@ -67,8 +67,12 @@ export const setTemplateContent = async (id: number, content: string) => {
  * @returns 성공 시 업데이트된 이미지 URL 배열, 실패 시 undefined
  */
 export const setTemplateImageUrls = async (id: number, imageUrls: string[]) => {
+  if (imageUrls.length < 1) {
+    return;
+  }
+  
   try {
-    const response = await templatesApi.setImageUrls(id, imageUrls);
+    const response = await templatesApi.setImages(id, imageUrls);
 
     if (response && response.code === 200) {
       return response.data?.imageUrls;

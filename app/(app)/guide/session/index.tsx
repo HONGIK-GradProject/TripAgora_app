@@ -1,12 +1,12 @@
 import { useSessionList } from '@/hooks/sessions/useSessionList';
 import { SessionInfo } from '@/types/sessions';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
-  Image,
   RefreshControl,
   Text,
   TouchableOpacity,
@@ -101,7 +101,8 @@ const GuideTripListScreen: React.FC = () => {
       <View className='flex-row items-center'>
         <Image
           source={{ uri: session.firstImageUrl }}
-          className='w-20 h-20 rounded-xl mr-4'
+          style={{ width: 80, height: 80, borderRadius: 12, marginRight: 16 }}
+          contentFit='cover'
         />
         <View className='flex-1'>
           <Text className='text-lg font-semibold text-gray-900 mb-1'>
@@ -192,7 +193,13 @@ const GuideTripListScreen: React.FC = () => {
             <View className='flex-row items-center'>
               <Image
                 source={{ uri: currentSession.firstImageUrl }}
-                className='w-20 h-20 rounded-xl mr-4'
+                style={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: 12,
+                  marginRight: 16,
+                }}
+                contentFit='cover'
               />
               <View className='flex-1'>
                 <View className='flex-row items-center mb-2'>

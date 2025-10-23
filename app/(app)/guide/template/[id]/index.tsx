@@ -1,19 +1,23 @@
 import FullScreenLoader from '@/components/ui/FullScreenLoader';
+import MultipleImagePicker from '@/components/ui/MultipleImagePicker';
 import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { TAG_ID_TO_NAME_MAP } from '@/constants/Tags';
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import {
   deleteTemplate,
   setTemplateContent,
+  setTemplateImageUrls,
   setTemplateTitle,
 } from '@/services/templates';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Image,
+  Dimensions,
+  Modal,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -46,6 +50,7 @@ const ProductDetailScreen: React.FC = () => {
     setIsEditingTitle,
     setTitle,
     setContent,
+    setImageUrls,
     itineraries,
     isLoading,
     refetch,
@@ -55,6 +60,15 @@ const ProductDetailScreen: React.FC = () => {
   const [isSavingTitle, setIsSavingTitle] = useState(false);
   const [isSavingContent, setIsSavingContent] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // 이미지 뷰어 상태
+  const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
+  // 이미지 캐러셀 상태
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [scrollViewRef, setScrollViewRef] = useState<ScrollView | null>(null);
+  const screenWidth = Dimensions.get('window').width;
 
   // 초기 로딩과 새로고침을 구분하기 위한 변수
   // 데이터가 전혀 없을 때의 로딩만 전체 화면 로딩으로 간주
@@ -77,6 +91,50 @@ const ProductDetailScreen: React.FC = () => {
       setSelectedDay(availableDays[0]);
     }
   }, [availableDays, selectedDay]);
+
+  // 이미지가 변경될 때 현재 인덱스 초기화
+  useEffect(() => {
+    if (imageUrls.length > 0) {
+      setCurrentImageIndex(0);
+    }
+  }, [imageUrls]);
+
+  // 스크롤 이벤트 핸들러
+  const handleMomentumScrollEnd = (event: any) => {
+    if (imageUrls.length <= 1) return;
+
+    const contentOffsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(contentOffsetX / screenWidth);
+
+    setCurrentImageIndex(index);
+  };
+
+  // 좌우 스와이프 제스처로 이미지 전환
+  const goToNextImage = () => {
+    if (imageUrls.length <= 1) return;
+    const nextIndex = (currentImageIndex + 1) % imageUrls.length;
+    scrollViewRef?.scrollTo({ x: nextIndex * screenWidth, animated: true });
+    setCurrentImageIndex(nextIndex);
+  };
+
+  const goToPreviousImage = () => {
+    if (imageUrls.length <= 1) return;
+    const prevIndex =
+      currentImageIndex === 0 ? imageUrls.length - 1 : currentImageIndex - 1;
+    scrollViewRef?.scrollTo({ x: prevIndex * screenWidth, animated: true });
+    setCurrentImageIndex(prevIndex);
+  };
+
+  // 이미지 뷰어 열기
+  const openImageViewer = (index: number) => {
+    setSelectedImageIndex(index);
+    setIsImageViewerVisible(true);
+  };
+
+  // 이미지 뷰어 닫기
+  const closeImageViewer = () => {
+    setIsImageViewerVisible(false);
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -156,6 +214,18 @@ const ProductDetailScreen: React.FC = () => {
     );
   };
 
+  const handleSetImages = async (uris: string[]) => {
+    try {
+      const newImageUrls = await setTemplateImageUrls(_id, uris);
+      if (newImageUrls) {
+        setImageUrls(newImageUrls);
+        console.log(newImageUrls);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   if (isInitialLoading) {
     return <FullScreenLoader />;
   }
@@ -169,11 +239,67 @@ const ProductDetailScreen: React.FC = () => {
         }
       >
         <View style={styles.coverContainer}>
-          {/* 배경 이미지 */}
-          {imageUrls[0] && (
-            <Image source={{ uri: imageUrls[0] }} style={styles.coverImage} />
+          {/* 배경 이미지 캐러셀 */}
+          {imageUrls.length > 0 ? (
+            <>
+              <ScrollView
+                ref={setScrollViewRef}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                onMomentumScrollEnd={handleMomentumScrollEnd}
+                style={styles.imageScrollView}
+                decelerationRate='fast'
+                bounces={false}
+              >
+                {imageUrls.map((imageUrl, index) => (
+                  <Image
+                    key={index}
+                    source={{ uri: imageUrl }}
+                    style={styles.coverImage}
+                  />
+                ))}
+              </ScrollView>
+
+              {/* 좌우 네비게이션 버튼 */}
+              {imageUrls.length > 1 && (
+                <>
+                  <TouchableOpacity
+                    style={styles.navButton}
+                    onPress={goToPreviousImage}
+                  >
+                    <Ionicons name='chevron-back' size={24} color='#fff' />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.navButton, styles.navButtonRight]}
+                    onPress={goToNextImage}
+                  >
+                    <Ionicons name='chevron-forward' size={24} color='#fff' />
+                  </TouchableOpacity>
+                </>
+              )}
+            </>
+          ) : (
+            <View style={styles.placeholderContainer}>
+              <Ionicons name='image-outline' size={48} color='#9CA3AF' />
+              <Text style={styles.placeholderText}>대표 이미지 없음</Text>
+            </View>
           )}
-          {/* 이미지가 없을 땐 이대로 그냥 회색 배경? 아니면 default 이미지를 만들까? */}
+
+          {/* 페이지 인디케이터 */}
+          {imageUrls.length > 1 && (
+            <View style={styles.paginationContainer}>
+              {imageUrls.map((_, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.paginationDot,
+                    currentImageIndex === index && styles.paginationDotActive,
+                  ]}
+                />
+              ))}
+            </View>
+          )}
         </View>
 
         <View style={styles.section}>
@@ -271,6 +397,45 @@ const ProductDetailScreen: React.FC = () => {
             />
           ) : (
             <Text style={styles.description}>{content}</Text>
+          )}
+        </View>
+
+        <View style={styles.divider} />
+
+        {/* 사진 섹션 */}
+        <View style={styles.section}>
+          <View style={styles.rowBetween}>
+            <Text style={[styles.sectionTitle, { flex: 1, marginBottom: 0 }]}>
+              사진
+            </Text>
+            <MultipleImagePicker onImagesSelected={handleSetImages}>
+              <View style={styles.editButton}>
+                <Text style={styles.editButtonText}>편집</Text>
+              </View>
+            </MultipleImagePicker>
+          </View>
+
+          {/* 한 줄에 3개씩 이미지 표시 */}
+          {imageUrls.length > 0 ? (
+            <View style={styles.photoGrid}>
+              {imageUrls.map((imageUrl, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.photoGridItem}
+                  onPress={() => openImageViewer(index)}
+                >
+                  <Image
+                    source={{ uri: imageUrl }}
+                    style={styles.photoGridImage}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : (
+            <View style={styles.emptyPhotoContainer}>
+              <Ionicons name='images-outline' size={48} color='#9CA3AF' />
+              <Text style={styles.emptyPhotoText}>사진을 추가해보세요</Text>
+            </View>
           )}
         </View>
 
@@ -398,6 +563,50 @@ const ProductDetailScreen: React.FC = () => {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* 이미지 뷰어 모달 */}
+      <Modal
+        visible={isImageViewerVisible}
+        transparent={true}
+        animationType='fade'
+        onRequestClose={closeImageViewer}
+      >
+        <View style={styles.imageViewerContainer}>
+          <TouchableOpacity
+            style={styles.imageViewerCloseButton}
+            onPress={closeImageViewer}
+          >
+            <Ionicons name='close' size={30} color='#fff' />
+          </TouchableOpacity>
+
+          <ScrollView
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            contentOffset={{ x: selectedImageIndex * screenWidth, y: 0 }}
+            style={styles.imageViewerScrollView}
+          >
+            {imageUrls.map((imageUrl, index) => (
+              <View key={index} style={styles.imageViewerItem}>
+                <Image
+                  source={{ uri: imageUrl }}
+                  style={styles.imageViewerImage}
+                  contentFit='contain'
+                />
+              </View>
+            ))}
+          </ScrollView>
+
+          {/* 이미지 인덱스 표시 */}
+          {imageUrls.length > 1 && (
+            <View style={styles.imageViewerIndicator}>
+              <Text style={styles.imageViewerIndicatorText}>
+                {selectedImageIndex + 1} / {imageUrls.length}
+              </Text>
+            </View>
+          )}
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -415,8 +624,12 @@ const styles = StyleSheet.create({
     height: 280,
     backgroundColor: '#D9D9D9',
   },
-  coverImage: {
+  imageScrollView: {
     width: '100%',
+    height: '100%',
+  },
+  coverImage: {
+    width: Dimensions.get('window').width,
     height: '100%',
     resizeMode: 'cover',
   },
@@ -427,6 +640,135 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: '#D9D9D9',
+  },
+  placeholderContainer: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F3F4F6',
+  },
+  placeholderText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#9CA3AF',
+    fontWeight: '500',
+  },
+  paginationContainer: {
+    position: 'absolute',
+    bottom: 16,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  paginationDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+    marginHorizontal: 4,
+  },
+  paginationDotActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  navButton: {
+    position: 'absolute',
+    top: '50%',
+    left: 16,
+    transform: [{ translateY: -20 }],
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  navButtonRight: {
+    left: undefined,
+    right: 16,
+  },
+  photoGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 16,
+  },
+  photoGridItem: {
+    width: '33.33%',
+    aspectRatio: 1,
+    padding: 4,
+  },
+  photoGridImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 8,
+    resizeMode: 'cover',
+  },
+  emptyPhotoContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    marginTop: 16,
+  },
+  emptyPhotoText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#9CA3AF',
+    fontWeight: '500',
+  },
+  imageViewerContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageViewerCloseButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 10,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imageViewerScrollView: {
+    flex: 1,
+    width: '100%',
+  },
+  imageViewerItem: {
+    width: Dimensions.get('window').width,
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageViewerImage: {
+    width: Dimensions.get('window').width,
+    height: '100%',
+  },
+  imageViewerIndicator: {
+    position: 'absolute',
+    bottom: 50,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  imageViewerIndicatorText: {
+    color: '#fff',
+    fontSize: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
   },
   topBar: {
     position: 'absolute',

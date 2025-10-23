@@ -23,7 +23,7 @@ interface TemplateInfo {
 type TemplateDetails =
   TemplateSetTitleData
   & TemplateSetContentData
-  & TemplateSetImageUrlsData
+  & TemplateSetImagesData
   & TemplateSetRegionsData
   & TemplateSetTagsData;
 
@@ -81,13 +81,11 @@ interface TemplateSetContentData {
 }
 interface TemplateSetContentResponse extends APIResponse<TemplateSetContentData> {}
 
-interface TemplateSetImageUrlsRequest {
+type TemplateSetImagesRequest = FormData;
+interface TemplateSetImagesData {
   imageUrls: string[];
 }
-interface TemplateSetImageUrlsData {
-  imageUrls: string[];
-}
-interface TemplateSetImageUrlsResponse extends APIResponse<TemplateSetImageUrlsData> {}
+interface TemplateSetImagesResponse extends APIResponse<TemplateSetImagesData> {}
 
 /**
  * 템플릿의 태그를 설정합니다.
@@ -133,9 +131,9 @@ export {
   TemplateGetResponse, TemplateInfo, TemplateItinerary, TemplateItineraryWithoutId, TemplateSetContentData,
   TemplateSetContentRequest,
   TemplateSetContentResponse,
-  TemplateSetImageUrlsData,
-  TemplateSetImageUrlsRequest,
-  TemplateSetImageUrlsResponse,
+  TemplateSetImagesData,
+  TemplateSetImagesRequest,
+  TemplateSetImagesResponse,
   TemplateSetItinerariesData,
   TemplateSetItinerariesRequest,
   TemplateSetItinerariesResponse,

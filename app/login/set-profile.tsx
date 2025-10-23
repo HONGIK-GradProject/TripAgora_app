@@ -1,7 +1,8 @@
 import { usersApi } from '@/api/users';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Toast from 'react-native-toast-message';
 
 const SetProfileScreen: React.FC = () => {
@@ -51,7 +52,13 @@ const SetProfileScreen: React.FC = () => {
       <View className='w-[133px] h-[133px] rounded-full bg-secondary justify-center items-center mb-8'>
         <Image
           source={{ uri: 'https://via.placeholder.com/133' }}
-          className='w-full h-full rounded-full absolute'
+          style={{
+            width: '100%',
+            height: '100%',
+            borderRadius: 66.5,
+            position: 'absolute',
+          }}
+          contentFit='cover'
         />
         <Text className='text-2xl text-black'>(프사)</Text>
       </View>
