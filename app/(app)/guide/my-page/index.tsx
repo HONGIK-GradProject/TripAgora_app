@@ -1,15 +1,23 @@
+import { Ionicons } from '@expo/vector-icons';
+import { isAxiosError } from 'axios';
+import { router } from 'expo-router';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  Image,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
+
 import { authApi } from '@/api/auth';
 import CustomImagePicker from '@/components/ui/ImagePicker';
 import { useAuth } from '@/hooks/useAuth';
 import { getUserInfo, setProfileImage } from '@/services/users';
 import { UserGetMeData } from '@/types/users';
-import { Ionicons } from '@expo/vector-icons';
-import { isAxiosError } from 'axios';
-import { router } from 'expo-router';
-import React, { useEffect, useMemo, useState } from 'react';
-import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Toast from 'react-native-toast-message';
 
 const GuideMyPageScreen: React.FC = () => {
   const { switchUserRole } = useAuth();
@@ -17,6 +25,9 @@ const GuideMyPageScreen: React.FC = () => {
   const [userInfo, setUserInfo] = useState<UserGetMeData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [imageLoadError, setImageLoadError] = useState(false);
+  const [isEditingNickname, setIsEditingNickname] = useState(false);
+  const [editingNickname, setEditingNickname] = useState('');
+  const [isUpdatingNickname, setIsUpdatingNickname] = useState(false);
 
   // 유효한 프로필 이미지 URL 계산
   const profileImageUrl = useMemo(() => {
@@ -39,13 +50,11 @@ const GuideMyPageScreen: React.FC = () => {
         }
       } catch (error) {
         console.error('사용자 정보 로드 실패:', error);
-        Toast.show({
-          type: 'error',
-          text1: '사용자 정보를 불러오는데 실패했습니다.',
-          text2: '다시 시도해주세요.',
-          position: 'bottom',
-          bottomOffset: 100,
-        });
+        showToast(
+          'error',
+          '사용자 정보를 불러오는데 실패했습니다.',
+          '다시 시도해주세요.'
+        );
       } finally {
         setIsLoading(false);
       }
@@ -64,47 +73,81 @@ const GuideMyPageScreen: React.FC = () => {
   };
 
   const handleSetProfileImage = async (uri: string | null) => {
-    if (!uri) {
-      return;
-    }
+    if (!uri) return;
 
     try {
       const newProfileImageUrl = await setProfileImage(uri);
       if (newProfileImageUrl) {
-        // 즉시 UI에 반영
         setUserInfo((prev) =>
-          prev
-            ? {
-                ...prev,
-                profileImageUrl: newProfileImageUrl,
-              }
-            : null
+          prev ? { ...prev, profileImageUrl: newProfileImageUrl } : null
         );
       }
     } catch (error) {
-      let errorMessage = '프로필 사진 업로드에 실패했습니다.';
+      const errorMessage = isAxiosError(error)
+        ? error.response?.data?.message || '프로필 사진 업로드에 실패했습니다.'
+        : '프로필 사진 업로드에 실패했습니다.';
 
-      if (isAxiosError(error)) {
-        const serverMessage = error.response?.data?.message;
-        if (serverMessage) {
-          errorMessage = serverMessage;
-        }
-        console.error(
-          '프로필 이미지 업로드 실패:',
-          error.response?.data?.message
-        );
-      } else {
-        console.error('프로필 이미지 업로드 실패:', error);
-      }
+      console.error('프로필 이미지 업로드 실패:', error);
 
-      Toast.show({
-        type: 'error',
-        text1: '프로필 사진 업로드 실패',
-        text2: errorMessage,
-        position: 'bottom',
-        bottomOffset: 100,
-      });
+      showToast('error', '프로필 사진 업로드 실패', errorMessage);
     }
+  };
+
+  const handleNicknamePress = () => {
+    if (isLoading || !userInfo?.nickname) return;
+
+    setIsEditingNickname(true);
+    setEditingNickname(userInfo.nickname);
+  };
+
+  const handleNicknameSave = async () => {
+    const trimmedNickname = editingNickname.trim();
+    if (!trimmedNickname || trimmedNickname === userInfo?.nickname) {
+      setIsEditingNickname(false);
+      return;
+    }
+
+    setIsUpdatingNickname(true);
+    try {
+      const { usersApi } = await import('@/api/users');
+      await usersApi.setNickname(trimmedNickname);
+
+      setUserInfo((prev) =>
+        prev ? { ...prev, nickname: trimmedNickname } : null
+      );
+
+      setIsEditingNickname(false);
+      showToast('success', '닉네임이 변경되었습니다.');
+    } catch (error) {
+      const errorMessage = isAxiosError(error)
+        ? error.response?.data?.message || '닉네임 변경에 실패했습니다.'
+        : '닉네임 변경에 실패했습니다.';
+
+      console.error('닉네임 변경 실패:', error);
+
+      showToast('error', '닉네임 변경 실패', errorMessage);
+    } finally {
+      setIsUpdatingNickname(false);
+    }
+  };
+
+  const handleNicknameCancel = () => {
+    setIsEditingNickname(false);
+    setEditingNickname('');
+  };
+
+  const showToast = (
+    type: 'success' | 'error',
+    text1: string,
+    text2?: string
+  ) => {
+    Toast.show({
+      type,
+      text1,
+      text2,
+      position: 'bottom',
+      bottomOffset: 100,
+    });
   };
 
   return (
@@ -135,9 +178,66 @@ const GuideMyPageScreen: React.FC = () => {
             </View>
           </CustomImagePicker>
 
-          <Text className='text-2xl font-bold mt-4 text-gray-900'>
-            {isLoading ? '로딩 중...' : userInfo?.nickname || '닉네임 없음'}
-          </Text>
+          {/* 닉네임 영역 */}
+          <View className='mt-4 items-center'>
+            {isEditingNickname ? (
+              <View className='flex-row items-center'>
+                <TextInput
+                  value={editingNickname}
+                  onChangeText={setEditingNickname}
+                  className='text-2xl font-bold text-gray-900 text-center border-b border-gray-300 px-2 py-1 min-w-[120px]'
+                  maxLength={20}
+                  autoFocus
+                  selectTextOnFocus
+                />
+                <TouchableOpacity
+                  onPress={handleNicknameSave}
+                  disabled={isUpdatingNickname}
+                  className='ml-2 p-1'
+                >
+                  <Ionicons
+                    name={
+                      isUpdatingNickname ? 'hourglass-outline' : 'checkmark'
+                    }
+                    size={20}
+                    color={isUpdatingNickname ? '#9CA3AF' : '#10B981'}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleNicknameCancel}
+                  disabled={isUpdatingNickname}
+                  className='ml-1 p-1'
+                >
+                  <Ionicons
+                    name='close'
+                    size={20}
+                    color={isUpdatingNickname ? '#9CA3AF' : '#EF4444'}
+                  />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity
+                onPress={handleNicknamePress}
+                disabled={isLoading}
+              >
+                <View className='flex-row items-center'>
+                  <Text className='text-2xl font-bold text-gray-900'>
+                    {isLoading
+                      ? '로딩 중...'
+                      : userInfo?.nickname || '닉네임 없음'}
+                  </Text>
+                  {!isLoading && userInfo?.nickname && (
+                    <Ionicons
+                      name='pencil'
+                      size={16}
+                      color='#9CA3AF'
+                      style={{ marginLeft: 8 }}
+                    />
+                  )}
+                </View>
+              </TouchableOpacity>
+            )}
+          </View>
 
           <View className='flex-row items-center mt-2 mb-4'>
             <Ionicons name='star' size={16} color='#F59E0B' />
