@@ -55,7 +55,17 @@ const EditTemplateItinerariesScreen: React.FC = () => {
   }, [day, mapKey]);
 
   const handleCameraMove = () => {
-    if (itineraries[day].length === 0) return;
+    if (!itineraries[day] || itineraries[day].length === 0) {
+      mapViewRef.current?.animateCameraTo({
+        latitude: 37.551567,
+        longitude: 126.925168,
+        zoom: 16,
+        easing: 'EaseIn',
+      });
+      
+      return;
+    }
+    
     if (itineraries[day].length === 1) {
       const firstItinerary = itineraries[day][0];
       mapViewRef.current?.animateCameraTo({
