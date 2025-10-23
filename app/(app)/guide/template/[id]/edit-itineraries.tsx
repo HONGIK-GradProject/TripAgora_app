@@ -8,9 +8,12 @@ import { setTemplateItineraries } from '@/services/templates';
 import { TemplateItinerary } from '@/types/templates';
 import { flattenItineraries } from '@/utils/Itineraries';
 import { Ionicons } from '@expo/vector-icons';
-import { ClusterMarkerProp } from '@mj-studio/react-native-naver-map';
+import {
+  CameraAnimationEasing,
+  ClusterMarkerProp,
+} from '@mj-studio/react-native-naver-map';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
@@ -31,6 +34,9 @@ const EditTemplateItinerariesScreen: React.FC = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [isSaving, setIsSaving] = useState(false);
   const [mapKey, setMapKey] = useState(0);
+  const [selectedItineraryId, setSelectedItineraryId] = useState<number | null>(
+    null
+  );
   const mapViewRef = useRef<InteractiveMapViewRef>(null);
 
   // useTemplateDetails 훅에서 여정 데이터 및 관리 함수들을 가져옵니다.
@@ -43,6 +49,65 @@ const EditTemplateItinerariesScreen: React.FC = () => {
       setMapKey((prevKey) => prevKey + 1);
     }, [])
   );
+
+  useEffect(() => {
+    handleCameraMove();
+  }, [day, mapKey]);
+
+  const handleCameraMove = () => {
+    if (itineraries[day].length === 0) return;
+    if (itineraries[day].length === 1) {
+      const firstItinerary = itineraries[day][0];
+      mapViewRef.current?.animateCameraTo({
+        latitude: firstItinerary.latitude,
+        longitude: firstItinerary.longitude,
+        zoom: 16,
+        easing: 'EaseIn',
+      });
+
+      return;
+    }
+
+    const boundary = itineraries[day].reduce(
+      (prev, cur) => {
+        return {
+          minLat: Math.min(prev.minLat, cur.latitude),
+          maxLat: Math.max(prev.maxLat, cur.latitude),
+          minLng: Math.min(prev.minLng, cur.longitude),
+          maxLng: Math.max(prev.maxLng, cur.longitude),
+        };
+      },
+      {
+        minLat: Infinity,
+        maxLat: -Infinity,
+        minLng: Infinity,
+        maxLng: -Infinity,
+      }
+    );
+
+    const padFactor = 0.4;
+    const latDelta = boundary.maxLat - boundary.minLat;
+    const lngDelta = boundary.maxLng - boundary.minLng;
+    const latPadding = latDelta * padFactor;
+    const lngPadding = lngDelta * padFactor;
+
+    const camera = {
+      latitude: boundary.minLat - latPadding / 2,
+      longitude: boundary.minLng - lngPadding / 2,
+      latitudeDelta: latDelta + latPadding,
+      longitudeDelta: lngDelta + lngPadding,
+      easing: 'EaseIn' as CameraAnimationEasing,
+    };
+
+    mapViewRef.current?.animateRegionTo(camera);
+  };
+
+  const handleMarkerClick = (markerIdentifier: string) => {
+    const clickedId = parseInt(markerIdentifier, 10);
+    if (!isNaN(clickedId)) {
+      setSelectedItineraryId(clickedId);
+    }
+  };
 
   /**
    * 선택된 일정 항목의 편집 화면으로 이동합니다.
@@ -75,6 +140,7 @@ const EditTemplateItinerariesScreen: React.FC = () => {
    * @param item - 터치된 일정 항목
    */
   const handleItemPress = (item: TemplateItinerary) => {
+    setSelectedItineraryId(item.id);
     if (item.latitude && item.longitude) {
       mapViewRef.current?.animateCameraTo({
         latitude: item.latitude,
@@ -95,8 +161,8 @@ const EditTemplateItinerariesScreen: React.FC = () => {
       title: '',
       content: '',
       startTime: '00:00',
-      latitude: 0,
-      longitude: 0,
+      latitude: 37.5665,
+      longitude: 126.978,
       id: Date.now(), // 임시 ID
     };
 
@@ -163,19 +229,22 @@ const EditTemplateItinerariesScreen: React.FC = () => {
       a.startTime.localeCompare(b.startTime)
     );
 
-    return sortedItineraries.map((itinerary, index) => ({
-      identifier: itinerary.id.toString(),
-      latitude: itinerary.latitude,
-      longitude: itinerary.longitude,
-      image: {
-        symbol: 'blue',
-        size: 20, // 마커 크기 축소
-      },
-      caption: (index + 1).toString(), // 순서 번호 표시
-      captionSize: 12,
-      captionColor: '#FFFFFF',
-    }));
-  }, [itineraries, day]);
+    return sortedItineraries.map((itinerary, index) => {
+      const isSelected = itinerary.id === selectedItineraryId;
+      return {
+        identifier: itinerary.id.toString(),
+        latitude: itinerary.latitude,
+        longitude: itinerary.longitude,
+        image: {
+          symbol: isSelected ? 'red' : 'blue',
+          size: isSelected ? 24 : 20,
+        },
+        caption: (index + 1).toString(), // 순서 번호 표시
+        captionSize: 12,
+        captionColor: '#FFFFFF',
+      };
+    });
+  }, [itineraries, day, selectedItineraryId]);
 
   const cameraPosition = useMemo(
     () => ({
@@ -194,6 +263,10 @@ const EditTemplateItinerariesScreen: React.FC = () => {
           ref={mapViewRef}
           cameraPosition={cameraPosition}
           clusterMarkers={clusterMarkers}
+          options={{
+            drawPath: true,
+          }}
+          onMarkerClick={handleMarkerClick}
         />
       </View>
 
@@ -261,6 +334,7 @@ const EditTemplateItinerariesScreen: React.FC = () => {
         onItemPress={handleItemPress}
         ListHeaderComponent={ListHeader}
         contentContainerStyle={styles.scrollViewContent}
+        selectedItineraryId={selectedItineraryId}
       />
 
       <View style={styles.addButtonContainer}>

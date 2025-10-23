@@ -10,14 +10,18 @@ import { StyleSheet, ViewProps } from 'react-native';
 interface MapViewProps {
   style?: ViewProps['style'];
   cameraPosition: Camera;
-  clusterMarkers: ClusterMarkerProp[];
+  clusterMarkers?: ClusterMarkerProp[];
   children?: React.ReactNode;
+  onMarkerClick?: (markerIdentifier: string) => void;
 }
 
 export const MapView = forwardRef<NaverMapViewRef, MapViewProps>(
-  ({ style, cameraPosition, clusterMarkers, children }, ref) => {
-    const clusters = useMemo(
-      () => [
+  ({ style, cameraPosition, clusterMarkers, children, onMarkerClick }, ref) => {
+    const clusters = useMemo(() => {
+      if (!clusterMarkers || clusterMarkers.length === 0) {
+        return []; // Return an empty array instead of undefined
+      }
+      return [
         {
           width: 50, // 클러스터 마커의 너비
           height: 50, // 클러스터 마커의 높이
@@ -27,9 +31,8 @@ export const MapView = forwardRef<NaverMapViewRef, MapViewProps>(
           maxZoom: 18, // 클러스터링할 최대 줌 레벨
           animate: true, // 클러스터 펼침/합침 애니메이션
         },
-      ],
-      [clusterMarkers]
-    );
+      ];
+    }, [clusterMarkers]);
 
     return (
       <NaverMapView
@@ -37,6 +40,11 @@ export const MapView = forwardRef<NaverMapViewRef, MapViewProps>(
         style={style ?? StyleSheet.absoluteFill}
         initialCamera={cameraPosition}
         clusters={clusters}
+        onTapClusterLeaf={({ markerIdentifier }) => {
+          if (onMarkerClick && markerIdentifier) {
+            onMarkerClick(markerIdentifier);
+          }
+        }}
       >
         {children}
       </NaverMapView>
