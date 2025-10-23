@@ -591,7 +591,7 @@ const ProductDetailScreen: React.FC = () => {
                 <Image
                   source={{ uri: imageUrl }}
                   style={styles.imageViewerImage}
-                  resizeMode='contain'
+                  contentFit='contain'
                 />
               </View>
             ))}

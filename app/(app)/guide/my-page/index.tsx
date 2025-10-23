@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { isAxiosError } from 'axios';
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Image,
   ScrollView,
   Text,
   TextInput,
