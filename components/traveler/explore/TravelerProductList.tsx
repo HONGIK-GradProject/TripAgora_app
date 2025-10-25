@@ -2,7 +2,13 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { Link } from 'expo-router';
 import React from 'react';
-import { FlatList, Text, TouchableOpacity, View } from 'react-native';
+import {
+  FlatList,
+  RefreshControlProps,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 export interface Product {
   id: string;
@@ -17,9 +23,17 @@ export interface Product {
 
 interface ProductListProps {
   products: Product[];
+  onEndReached?: () => void;
+  refreshControl?: React.ReactElement<RefreshControlProps>;
+  ListFooterComponent?: React.ReactElement | null;
 }
 
-const TravelerProductList: React.FC<ProductListProps> = ({ products }) => {
+const TravelerProductList: React.FC<ProductListProps> = ({
+  products,
+  onEndReached,
+  refreshControl,
+  ListFooterComponent,
+}) => {
   const renderItem = ({ item }: { item: Product }) => (
     <Link
       href={{
@@ -93,6 +107,10 @@ const TravelerProductList: React.FC<ProductListProps> = ({ products }) => {
       keyExtractor={(item) => item.id}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingBottom: 24 }}
+      onEndReached={onEndReached}
+      onEndReachedThreshold={0.1}
+      refreshControl={refreshControl}
+      ListFooterComponent={ListFooterComponent}
     />
   );
 };
