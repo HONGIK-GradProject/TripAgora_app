@@ -3,7 +3,7 @@ import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { TAG_ID_TO_NAME_MAP } from '@/constants/Tags';
 import { SessionDetailsProvider } from '@/contexts/SessionDetailsProvider';
 import { useSessionDetails } from '@/hooks/sessions/useSessionDetails';
-import { deleteSession } from '@/services/sessions';
+import { closeSession, deleteSession } from '@/services/sessions';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
@@ -184,19 +184,47 @@ const RecruitmentDetailContent: React.FC = () => {
     ]);
   };
 
-  // 모집 확정 기능
-  const handleConfirmRecruitment = () => {
+  // 모집 마감 기능
+  const handleCloseRecruitment = () => {
     Alert.alert(
-      '모집 확정',
-      '모집을 확정하시겠습니까? 확정 후에는 참가자를 추가할 수 없습니다.',
+      '모집 마감',
+      '모집을 마감하시겠습니까? 마감 후에는 참가자를 추가할 수 없습니다.',
       [
         { text: '취소', style: 'cancel' },
         {
           text: '확인',
-          onPress: () => {
-            // TODO: 모집 확정 API 호출
-            Alert.alert('모집이 확정되었습니다.');
-            refetch();
+          onPress: async () => {
+            if (!id) {
+              Toast.show({
+                type: 'error',
+                text1: '세션 ID가 없습니다.',
+              });
+              return;
+            }
+
+            try {
+              const success = await closeSession(parseInt(id));
+
+              if (success) {
+                Toast.show({
+                  type: 'success',
+                  text1: '모집이 마감되었습니다.',
+                });
+                refetch();
+              } else {
+                Toast.show({
+                  type: 'error',
+                  text1: '모집 마감에 실패했습니다.',
+                });
+              }
+            } catch (error) {
+              console.error('세션 모집 마감 에러:', error);
+              Toast.show({
+                type: 'error',
+                text1: '모집 마감 중 오류가 발생했습니다.',
+                text2: '잠시 후 다시 시도해주세요.',
+              });
+            }
           },
         },
       ]
@@ -484,9 +512,9 @@ const RecruitmentDetailContent: React.FC = () => {
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.ctaButton, styles.primaryButton]}
-              onPress={handleConfirmRecruitment}
+              onPress={handleCloseRecruitment}
             >
-              <Text style={styles.primaryButtonText}>모집 확정</Text>
+              <Text style={styles.primaryButtonText}>모집 마감</Text>
             </TouchableOpacity>
           </>
         )}

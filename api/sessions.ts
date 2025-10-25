@@ -1,4 +1,6 @@
 import {
+  SessionCloseRequest,
+  SessionCloseResponse,
   SessionCreateRequest,
   SessionCreateResponse,
   SessionDeleteRequest,
@@ -132,6 +134,22 @@ const getSessionItineraries = async (
 };
 
 /**
+ * 특정 세션의 모집을 마감합니다.
+ * @param sessionId - 모집을 마감할 세션의 ID
+ * @returns 모집 마감 결과를 담은 Promise
+ */
+const closeSession = async (
+  sessionId: number
+): Promise<SessionCloseResponse> => {
+  const requestData: SessionCloseRequest = {} as SessionCloseRequest;
+  const response = await apiClient.post<SessionCloseResponse>(
+    `/sessions/${sessionId}/close`,
+    requestData
+  );
+  return response.data;
+};
+
+/**
  * 세션 관련 API 함수들을 모아놓은 객체입니다.
  */
 export const sessionsApi = {
@@ -141,4 +159,5 @@ export const sessionsApi = {
   getSessionList,
   getSession,
   getSessionItineraries,
+  closeSession,
 };

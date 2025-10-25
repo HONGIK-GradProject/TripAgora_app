@@ -121,7 +121,7 @@ const TravelerExploreScreen: React.FC = () => {
 
       <View
         className='bg-gray-50 rounded-2xl p-4'
-        style={{ marginBottom: 16 + insets.bottom }}
+        style={{ marginBottom: 200 + insets.bottom }}
       >
         <ProductList products={filteredProducts} />
       </View>

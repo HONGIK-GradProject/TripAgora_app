@@ -137,3 +137,24 @@ export const getSessionItineraries = async (sessionId: number) => {
     console.error(error);
   }
 };
+
+/**
+ * 특정 세션의 모집을 마감합니다.
+ * @param sessionId - 모집을 마감할 세션의 ID
+ * @returns 성공 시 true, 실패 시 undefined
+ */
+export const closeSession = async (sessionId: number) => {
+  try {
+    const response = await sessionsApi.closeSession(sessionId);
+
+    if (response && response.code === 200) {
+      return true;
+    }
+
+    throw new Error(
+      `세션 모집 마감 실패: ${response?.message || '알 수 없는 오류'}`
+    );
+  } catch (error) {
+    console.error('세션 모집 마감 에러:', error);
+  }
+};

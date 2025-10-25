@@ -152,7 +152,28 @@ interface SessionGetItinerariesResponse
   // APIResponse의 모든 속성을 상속받습니다.
 }
 
+/**
+ * 세션 모집 마감 요청 데이터 (빈 데이터)
+ */
+interface SessionCloseRequest {
+  // 세션 모집 마감 시 추가 데이터 없음
+}
+
+/**
+ * 세션 모집 마감 응답 데이터 (빈 데이터)
+ */
+interface SessionCloseData {
+  // 세션 모집 마감 시 반환 데이터 없음
+}
+
+interface SessionCloseResponse extends APIResponse<SessionCloseData> {
+  // APIResponse의 모든 속성을 상속받습니다.
+}
+
 export {
+  SessionCloseData,
+  SessionCloseRequest,
+  SessionCloseResponse,
   SessionCreateData,
   SessionCreateRequest,
   SessionCreateResponse,
