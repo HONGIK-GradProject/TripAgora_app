@@ -29,7 +29,8 @@ export const useSessionList = () => {
       console.log('Calling page ', pageToLoad);
 
       // statuses가 비었을 때 기본 statuses를 설정합니다.
-      if (!statuses) statuses = ['RECRUITING', 'RECRUITMENT_CLOSED', 'IN_PROGRESS'];
+      if (!statuses)
+        statuses = ['RECRUITING', 'RECRUITMENT_CLOSED', 'IN_PROGRESS'];
 
       try {
         const response = await getSessionList(statuses, pageToLoad);

@@ -1,6 +1,12 @@
 import { getSession, getSessionItineraries } from '@/services/sessions';
 import { SessionItinerary } from '@/types/sessions';
-import React, { createContext, ReactNode, useCallback, useState } from 'react';
+import React, {
+  createContext,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 
 /**
  * 세션 상세 정보 관련 상태와 로직을 관리하는 내부 훅입니다.
@@ -66,6 +72,11 @@ const useSessionDetailsLogic = (id: string) => {
       setIsLoading(false);
     }
   }, [id]);
+
+  // 컴포넌트 마운트 시 데이터 가져오기
+  useEffect(() => {
+    fetchSessionDetails();
+  }, [fetchSessionDetails]);
 
   return {
     isLoading,

@@ -95,9 +95,10 @@ const GuideTripListScreen: React.FC = () => {
     <TouchableOpacity
       className='bg-white rounded-2xl mb-2 p-5 shadow-sm border border-gray-100'
       onPress={() => {
-        // 진행 중인 여행은 세션 룸으로, 나머지는 상세 페이지로
+        // 진행 중인 여행과 모집 마감된 여행은 세션 룸으로, 나머지는 상세 페이지로
         const route =
-          session.status === 'IN_PROGRESS'
+          session.status === 'IN_PROGRESS' ||
+          session.status === 'RECRUITMENT_CLOSED'
             ? `/guide/session/${session.sessionId.toString()}/session-room`
             : `/guide/session/${session.sessionId.toString()}`;
         router.push(route as any);

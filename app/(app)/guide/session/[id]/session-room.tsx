@@ -1,6 +1,9 @@
+import FullScreenLoader from '@/components/ui/FullScreenLoader';
+import { SessionDetailsProvider } from '@/contexts/SessionDetailsProvider';
+import { useSessionDetails } from '@/hooks/sessions/useSessionDetails';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useMemo, useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -13,9 +16,40 @@ import {
  * 진행 중인 여행의 세션 룸 화면입니다.
  * 지도, 일정, 일행 위치 확인, 공지하기 기능을 제공합니다.
  */
-const SessionRoomScreen: React.FC = () => {
+const SessionRoomContent: React.FC = () => {
   const router = useRouter();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const [selectedDay, setSelectedDay] = useState(1);
+
+  // 세션 상세 정보 가져오기
+  const sessionDetails = useSessionDetails();
+  const {
+    title = '',
+    startDate = '',
+    endDate = '',
+    maxParticipants = 0,
+    currentParticipants = 0,
+    itineraries = {},
+    isLoading = true,
+  } = sessionDetails || {};
+
+  // 일정 관련 상태
+  const availableDays = useMemo(
+    () =>
+      Object.keys(itineraries)
+        .map(Number)
+        .sort((a, b) => a - b),
+    [itineraries]
+  );
+
+  // 날짜 포맷팅
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return `${date.getMonth() + 1}.${date
+      .getDate()
+      .toString()
+      .padStart(2, '0')}`;
+  };
 
   // 일행 위치 확인 기능
   const handleCheckLocations = () => {
@@ -24,13 +58,18 @@ const SessionRoomScreen: React.FC = () => {
 
   // 공지하기 기능
   const handleAnnounce = () => {
-    router.push('/guide/session/announce');
+    router.push(`/guide/session/${id}/announce`);
   };
 
   // 일정 편집 기능
   const handleEditItinerary = () => {
     console.log('일정 편집');
   };
+
+  // 로딩 중일 때
+  if (isLoading) {
+    return <FullScreenLoader />;
+  }
 
   return (
     <View style={styles.container}>
@@ -48,13 +87,17 @@ const SessionRoomScreen: React.FC = () => {
           </TouchableOpacity>
 
           <View style={styles.titleContainer}>
-            <Text style={styles.sessionTitle}>홍대 1박2일 모임</Text>
-            <Text style={styles.dateText}>2025.03.31 - 04.01</Text>
+            <Text style={styles.sessionTitle}>{title}</Text>
+            <Text style={styles.dateText}>
+              {formatDate(startDate)} - {formatDate(endDate)}
+            </Text>
           </View>
 
           <View style={styles.participantInfo}>
             <Ionicons name='people' size={16} color='#6B7280' />
-            <Text style={styles.participantText}>4/6명</Text>
+            <Text style={styles.participantText}>
+              {currentParticipants}/{maxParticipants}명
+            </Text>
           </View>
         </View>
 
@@ -101,90 +144,74 @@ const SessionRoomScreen: React.FC = () => {
         </TouchableOpacity>
 
         {/* 일정 탭 */}
-        <View style={styles.dayTabsContainer}>
-          <TouchableOpacity
-            style={[styles.dayTab, selectedDay === 1 && styles.dayTabActive]}
-            onPress={() => setSelectedDay(1)}
-          >
-            <Text
-              style={[
-                styles.dayTabText,
-                selectedDay === 1 && styles.dayTabTextActive,
-              ]}
-            >
-              1일차
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.dayTab, selectedDay === 2 && styles.dayTabActive]}
-            onPress={() => setSelectedDay(2)}
-          >
-            <Text
-              style={[
-                styles.dayTabText,
-                selectedDay === 2 && styles.dayTabTextActive,
-              ]}
-            >
-              2일차
-            </Text>
-          </TouchableOpacity>
-        </View>
+        {availableDays.length > 0 && (
+          <View style={styles.dayTabsContainer}>
+            {availableDays.map((dayNumber) => (
+              <TouchableOpacity
+                key={dayNumber}
+                style={[
+                  styles.dayTab,
+                  selectedDay === dayNumber && styles.dayTabActive,
+                ]}
+                onPress={() => setSelectedDay(dayNumber)}
+              >
+                <Text
+                  style={[
+                    styles.dayTabText,
+                    selectedDay === dayNumber && styles.dayTabTextActive,
+                  ]}
+                >
+                  {dayNumber}일차
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
 
         {/* 일정 목록 */}
         <View style={styles.itinerarySection}>
-          <View style={styles.itineraryItem}>
-            <View style={styles.itineraryTime}>
-              <Text style={styles.itineraryTimeText}>10:00</Text>
-            </View>
-            <View style={styles.itineraryContent}>
-              <Text style={styles.itineraryTitle}>홍대입구역 집합</Text>
-              <Text style={styles.itineraryDescription}>
-                홍대입구역 2번 출구에서 만나요
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.itineraryItem}>
-            <View style={styles.itineraryTime}>
-              <Text style={styles.itineraryTimeText}>12:00</Text>
-            </View>
-            <View style={styles.itineraryContent}>
-              <Text style={styles.itineraryTitle}>점심 식사</Text>
-              <Text style={styles.itineraryDescription}>
-                홍대 맛집에서 함께 점심을 먹어요
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.itineraryItem}>
-            <View style={styles.itineraryTime}>
-              <Text style={styles.itineraryTimeText}>14:00</Text>
-            </View>
-            <View style={styles.itineraryContent}>
-              <Text style={styles.itineraryTitle}>홍대 거리 탐방</Text>
-              <Text style={styles.itineraryDescription}>
-                홍대의 유명한 장소들을 둘러봐요
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.itineraryItem}>
-            <View style={styles.itineraryTime}>
-              <Text style={styles.itineraryTimeText}>18:00</Text>
-            </View>
-            <View style={styles.itineraryContent}>
-              <Text style={styles.itineraryTitle}>저녁 식사</Text>
-              <Text style={styles.itineraryDescription}>
-                홍대에서 저녁을 먹고 숙소로 이동
-              </Text>
-            </View>
-          </View>
+          {(itineraries[selectedDay] || [])
+            .sort((a, b) => a.startTime.localeCompare(b.startTime))
+            .map((item) => (
+              <View key={item.id} style={styles.itineraryItem}>
+                <View style={styles.itineraryTime}>
+                  <Text style={styles.itineraryTimeText}>
+                    {item.startTime.substring(0, 5)}
+                  </Text>
+                </View>
+                <View style={styles.itineraryContent}>
+                  <Text style={styles.itineraryTitle}>{item.title}</Text>
+                  {item.content ? (
+                    <Text style={styles.itineraryDescription}>
+                      {item.content}
+                    </Text>
+                  ) : null}
+                </View>
+              </View>
+            ))}
         </View>
 
         <View style={{ height: 100 }} />
       </ScrollView>
     </View>
+  );
+};
+
+const SessionRoomScreen: React.FC = () => {
+  const { id } = useLocalSearchParams<{ id: string }>();
+
+  if (!id) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>세션 ID가 없습니다.</Text>
+      </View>
+    );
+  }
+
+  return (
+    <SessionDetailsProvider id={id}>
+      <SessionRoomContent />
+    </SessionDetailsProvider>
   );
 };
 
@@ -371,6 +398,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6B7280',
     lineHeight: 20,
+  },
+  errorContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#6B7280',
   },
 });
 
