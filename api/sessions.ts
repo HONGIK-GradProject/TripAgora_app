@@ -11,6 +11,8 @@ import {
   SessionGetListResponse,
   SessionGetRequest,
   SessionGetResponse,
+  SessionParticipationRequest,
+  SessionParticipationResponse,
   SessionStatus,
   SessionUpdateRequest,
   SessionUpdateResponse,
@@ -173,6 +175,23 @@ const closeSession = async (
 };
 
 /**
+ * 세션에 참여 요청을 합니다.
+ * @param sessionId - 참여할 세션의 ID
+ * @returns 세션 참여 결과를 담은 Promise
+ */
+const createParticipation = async (
+  sessionId: number
+): Promise<SessionParticipationResponse> => {
+  const requestData: SessionParticipationRequest =
+    {} as SessionParticipationRequest;
+  const response = await apiClient.post<SessionParticipationResponse>(
+    `/participation/sessions/${sessionId}`,
+    requestData
+  );
+  return response.data;
+};
+
+/**
  * 세션 관련 API 함수들을 모아놓은 객체입니다.
  */
 export const sessionsApi = {
@@ -184,4 +203,5 @@ export const sessionsApi = {
   getSession,
   getSessionItineraries,
   closeSession,
+  createParticipation,
 };

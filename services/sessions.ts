@@ -184,3 +184,25 @@ export const closeSession = async (sessionId: number) => {
     console.error('세션 모집 마감 에러:', error);
   }
 };
+
+/**
+ * 세션에 참여 요청을 합니다.
+ * @param sessionId - 참여할 세션의 ID
+ * @returns 성공 시 참여 정보, 실패 시 undefined
+ */
+export const createParticipation = async (sessionId: number) => {
+  try {
+    const response = await sessionsApi.createParticipation(sessionId);
+
+    if (response && response.code === 200) {
+      return response.data;
+    }
+
+    throw new Error(
+      `세션 참여 실패: ${response?.message || '알 수 없는 오류'}`
+    );
+  } catch (error) {
+    console.error('세션 참여 에러:', error);
+    throw error; // 오류를 다시 던져서 상위에서 처리할 수 있도록 함
+  }
+};

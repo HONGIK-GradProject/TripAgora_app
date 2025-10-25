@@ -170,6 +170,27 @@ interface SessionCloseResponse extends APIResponse<SessionCloseData> {
   // APIResponse의 모든 속성을 상속받습니다.
 }
 
+/**
+ * 세션 참여 요청 데이터 (빈 데이터)
+ */
+interface SessionParticipationRequest {
+  // 세션 참여 시 추가 데이터 없음
+}
+
+/**
+ * 세션 참여 응답 데이터
+ */
+interface SessionParticipationData {
+  participationId: number; // 세션 참여 ID
+  sessionId: number; // 참여 신청한 세션 ID
+  currentParticipants: number; // 현재 세션의 참여 인원
+}
+
+interface SessionParticipationResponse
+  extends APIResponse<SessionParticipationData> {
+  // APIResponse의 모든 속성을 상속받습니다.
+}
+
 export {
   SessionCloseData,
   SessionCloseRequest,
@@ -191,6 +212,9 @@ export {
   SessionGetResponse,
   SessionInfo,
   SessionItinerary,
+  SessionParticipationData,
+  SessionParticipationRequest,
+  SessionParticipationResponse,
   SessionStatus,
   SessionUpdateData,
   SessionUpdateRequest,
