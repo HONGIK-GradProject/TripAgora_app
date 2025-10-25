@@ -2,6 +2,12 @@ import APIResponse from './apiResponse';
 
 type UserRole = 'traveler' | 'guide';
 
+interface UserData {
+  nickname: string;
+  role: UserRole;
+  profileImageUrl: string;
+}
+
 interface UserSetNicknameRequest {
   nickname: string;
 }
@@ -36,15 +42,11 @@ interface UserSetProfileImageData {
 interface UserSetProfileImageResponse
   extends APIResponse<UserSetProfileImageData> {}
 
-interface UserGetMeData {
-  nickname: string;
-  role: string;
-  profileImageUrl: string;
-}
+type UserGetMeData = UserData;
 interface UserGetMeResponse extends APIResponse<UserGetMeData> {}
 
 export {
-  UserGetMeData,
+  UserData, UserGetMeData,
   UserGetMeResponse,
   UserRole,
   UserSetNicknameData,
@@ -60,5 +62,6 @@ export {
   UserSwitchToGuideRequest,
   UserSwitchToGuideResponse,
   UserSwitchToTravelerRequest,
-  UserSwitchToTravelerResponse,
+  UserSwitchToTravelerResponse
 };
+

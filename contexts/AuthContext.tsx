@@ -8,21 +8,33 @@ import { usersApi } from '@/api/users';
 import { clearTokens, getTokens, saveTokens } from '@/lib/tokenStorage';
 import { reissueToken } from '@/services/auth';
 import { kakaoSignIn, kakaoSignOut } from '@/services/kakaoAuth';
-import { AuthContextType, AuthDecodedToken } from '@/types/auth';
-import { UserRole } from '@/types/users';
+import { getUser } from '@/services/users';
+import { UserData, UserRole } from '@/types/users';
 import { isAxiosError } from 'axios';
-import { jwtDecode } from 'jwt-decode';
 import { createContext, useCallback, useEffect, useState } from 'react';
 
+
 /**
- * @description 인증 관련 상태 및 함수를 전역적으로 제공하는 Context입니다.
  * @property {string | null} accessToken - 사용자의 액세스 토큰
- * @property {UserRole} userRole - 유저의 역할 (여행자 or 가이드)
+ * @property {UserData |} user - 유저 정보
  * @property {boolean} isLoading - 인증 관련 비동기 작업의 로딩 상태
  * @property {boolean} isNewUser - 새로운 사용자인지 여부
  * @property {() => Promise<void>} signIn - 로그인 함수
  * @property {() => Promise<void>} signOut - 로그아웃 함수
  * @property {(newUserRole: UserRole) => Promise<void>} switchUserRole - 역할 전환 함수
+ */
+export interface AuthContextType {
+  accessToken: string | null;
+  isLoading: boolean;
+  isNewUser: boolean;
+  user: UserData | null;
+  signIn: () => Promise<void>;
+  signOut: () => Promise<void>;
+  switchUserRole: (newUserRole: UserRole) => Promise<void>;
+}
+
+/**
+ * @description 인증 관련 상태 및 함수를 전역적으로 제공하는 Context입니다.
  */
 const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -38,7 +50,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isNewUser, setIsNewUser] = useState<boolean>(false);
-  const [userRole, setUserRole] = useState<UserRole>('traveler');
+  const [user, setUser] = useState<UserData | null>(null);
 
   /**
    * @description 사용자를 로그아웃 처리합니다.
@@ -58,7 +70,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       await clearTokens();
       setAccessToken(null);
       setIsNewUser(false);
-      setUserRole('traveler');
+      setUser(null);
       setIsLoading(false);
     }
   }, []);
@@ -81,10 +93,12 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log(accessToken);
 
       try {
-        const decodedToken = jwtDecode<AuthDecodedToken>(accessToken);
-        if (decodedToken.role) {
-          const role = decodedToken.role.toLowerCase() as UserRole;
-          setUserRole(role);
+        const newUser = await getUser();
+        if (newUser) {
+          setUser(newUser);
+        }
+        else {
+          setUser(null);
         }
       } catch (error) {
         console.error('JWT 디코딩 또는 역할 설정 실패', error);
@@ -107,7 +121,18 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       if (response.data) {
         const { accessToken, refreshToken, isNewUser } = response.data;
         await processAndSetAuth(accessToken, refreshToken);
+
         setIsNewUser(isNewUser);
+
+        const newUser = await getUser();
+
+        if (newUser) {
+          setUser(newUser);
+        }
+        else {
+          setUser(null);
+        }
+        
         console.log('로그인 성공, 토큰 저장 및 역할 설정 완료');
       } else {
         throw new Error('서버로부터 토큰을 받지 못했습니다.');
@@ -189,7 +214,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         accessToken,
         isLoading,
         isNewUser,
-        userRole,
+        user,
         signIn: signInHandler,
         signOut: signOutHandler,
         switchUserRole: switchUserRoleHandler,
@@ -201,3 +226,4 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 };
 
 export { AuthContext, AuthProvider };
+
