@@ -191,6 +191,20 @@ interface SessionParticipationResponse
   // APIResponse의 모든 속성을 상속받습니다.
 }
 
+// 세션 참여 취소 관련 타입
+interface SessionParticipationCancelRequest {
+  // 세션 참여 취소 시 추가 데이터 없음
+}
+
+interface SessionParticipationCancelData {
+  // 세션 참여 취소 시 반환 데이터 없음
+}
+
+interface SessionParticipationCancelResponse
+  extends APIResponse<SessionParticipationCancelData> {
+  // APIResponse의 모든 속성을 상속받습니다.
+}
+
 export {
   SessionCloseData,
   SessionCloseRequest,
@@ -212,6 +226,9 @@ export {
   SessionGetResponse,
   SessionInfo,
   SessionItinerary,
+  SessionParticipationCancelData,
+  SessionParticipationCancelRequest,
+  SessionParticipationCancelResponse,
   SessionParticipationData,
   SessionParticipationRequest,
   SessionParticipationResponse,

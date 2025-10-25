@@ -206,3 +206,25 @@ export const createParticipation = async (sessionId: number) => {
     throw error; // 오류를 다시 던져서 상위에서 처리할 수 있도록 함
   }
 };
+
+/**
+ * 세션 참여를 취소합니다.
+ * @param sessionId - 참여 취소할 세션의 ID
+ * @returns 성공 시 true, 실패 시 오류 발생
+ */
+export const cancelParticipation = async (sessionId: number) => {
+  try {
+    const response = await sessionsApi.cancelParticipation(sessionId);
+
+    if (response && response.code === 200) {
+      return true;
+    }
+
+    throw new Error(
+      `세션 참여 취소 실패: ${response?.message || '알 수 없는 오류'}`
+    );
+  } catch (error) {
+    console.error('세션 참여 취소 에러:', error);
+    throw error; // 오류를 다시 던져서 상위에서 처리할 수 있도록 함
+  }
+};

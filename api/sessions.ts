@@ -11,6 +11,8 @@ import {
   SessionGetListResponse,
   SessionGetRequest,
   SessionGetResponse,
+  SessionParticipationCancelRequest,
+  SessionParticipationCancelResponse,
   SessionParticipationRequest,
   SessionParticipationResponse,
   SessionStatus,
@@ -192,6 +194,23 @@ const createParticipation = async (
 };
 
 /**
+ * 세션 참여를 취소합니다.
+ * @param sessionId - 참여 취소할 세션의 ID
+ * @returns 세션 참여 취소 결과를 담은 Promise
+ */
+const cancelParticipation = async (
+  sessionId: number
+): Promise<SessionParticipationCancelResponse> => {
+  const requestData: SessionParticipationCancelRequest =
+    {} as SessionParticipationCancelRequest;
+  const response = await apiClient.delete<SessionParticipationCancelResponse>(
+    `/participation/sessions/${sessionId}`,
+    { data: requestData }
+  );
+  return response.data;
+};
+
+/**
  * 세션 관련 API 함수들을 모아놓은 객체입니다.
  */
 export const sessionsApi = {
@@ -204,4 +223,5 @@ export const sessionsApi = {
   getSessionItineraries,
   closeSession,
   createParticipation,
+  cancelParticipation,
 };
