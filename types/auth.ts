@@ -1,5 +1,4 @@
 import APIResponse from "./apiResponse";
-import { UserRole } from "./users";
 
 interface AuthLoginRequest {
   socialAccessToken: string;
@@ -25,19 +24,6 @@ interface AuthReissueData {
 }
 interface AuthReissueResponse extends APIResponse<AuthReissueData> {}
 
-interface AuthContextType {
-  accessToken: string | null;
-  // 추후 /users/me API 연동 시 주석 해제
-  // User: 유저 정보 타입
-  // user: User | null;
-  userRole: UserRole;
-  isLoading: boolean;
-  isNewUser: boolean;
-  signIn: () => Promise<void>;
-  signOut: () => Promise<void>;
-  switchUserRole: (newUserRole: UserRole) => Promise<void>;
-}
-
 interface AuthDecodedToken {
   exp: string;
   iat: string;
@@ -47,7 +33,6 @@ interface AuthDecodedToken {
 }
 
 export {
-  AuthContextType,
   AuthDecodedToken,
   AuthLoginData,
   AuthLoginRequest,
@@ -56,6 +41,6 @@ export {
   AuthLogoutResponse,
   AuthReissueData,
   AuthReissueRequest,
-  AuthReissueResponse,
+  AuthReissueResponse
 };
 
