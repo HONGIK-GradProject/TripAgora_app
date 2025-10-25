@@ -11,39 +11,34 @@ import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 
 /**
  * 재시도 플래그를 포함하는 사용자 정의 Axios 요청 설정입니다.
- * @interface CustomInternalAxiosRequestConfig
- * @extends {InternalAxiosRequestConfig}
  */
 interface CustomInternalAxiosRequestConfig extends InternalAxiosRequestConfig {
-  /**
-   * 요청이 재시도되었는지 여부를 나타내는 플래그입니다.
-   * @property {boolean} [_retry] - 선택적 재시도 플래그입니다.
-   */
   _retry?: boolean;
 }
 
-/**
- * 애플리케이션의 기본 Axios 클라이언트 인스턴스입니다.
- * @type {AxiosInstance}
- */
+// 1. JSON 요청을 위한 기본 클라이언트
 const apiClient: AxiosInstance = axios.create({
   baseURL: process.env.EXPO_PUBLIC_API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
 
-// 요청 인터셉터: 헤더에 액세스 토큰 추가
+// 2. multipart/form-data 요청을 위한 전용 클라이언트
+export const apiClientMultipart: AxiosInstance = axios.create({
+  baseURL: process.env.EXPO_PUBLIC_API_BASE_URL,
+});
+
+// --- 요청 인터셉터 설정 ---
+
+// `apiClient`용: JSON 요청 처리
 apiClient.interceptors.request.use(
   async (config) => {
     const tokens = await getTokens();
     const accessToken = tokens.accessToken;
 
-    // 토큰 재발급 API에서 액세스 토큰을 검증하는 로직을 회피합니다.
+    config.headers['Content-Type'] = 'application/json';
+
     if (config.url === '/auth/reissue') {
       config.headers.Authorization = undefined;
-    }
-    else if (accessToken) {
+    } else if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
 
@@ -52,48 +47,71 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// `apiClientMultipart`용: FormData 요청 처리
+apiClientMultipart.interceptors.request.use(
+  async (config) => {
+    const tokens = await getTokens();
+    const accessToken = tokens.accessToken;
+
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+
+    // FormData 요청 시 Content-Type을 명시적으로 지정하여 boundary 문제를 해결합니다.
+    config.headers['Content-Type'] = 'multipart/form-data';
+
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// --- 응답 인터셉터 설정 (공통 로직) ---
+
 /**
  * @description Axios 응답 인터셉터를 설정합니다. 401 오류 발생 시 토큰 재발급을 시도하고, 실패 시 로그아웃을 실행합니다.
- * @param {() => Promise<void>} signOut - 토큰 재발급 실패 시 호출될 로그아웃 함수입니다.
  */
 export const setupInterceptors = (
   reissueToken: () => Promise<string | undefined>,
   signOut: () => Promise<void>
 ) => {
-  apiClient.interceptors.response.use(
-    (response) => response,
-    async (error) => {
-      const originalRequest = error.config as CustomInternalAxiosRequestConfig;
+  const responseInterceptor = async (error: any) => {
+    const originalRequest = error.config as CustomInternalAxiosRequestConfig;
 
-      // 토큰 재발급 요청 자체에서 발생한 401은 무시하여 무한 루프를 방지합니다.
-      if (originalRequest.url === '/auth/reissue') {
-        return Promise.reject(error);
-      }
-
-      if (error.response?.status === 401 && !originalRequest._retry) {
-        originalRequest._retry = true;
-        console.warn('액세스 토큰 만료, 토큰 재발급 시도 중...');
-        try {
-          const newAccessToken = await reissueToken();
-          if (newAccessToken) {
-            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-            return apiClient(originalRequest);
-          } else {
-            throw new Error('토큰 재발급 실패');
-          }
-        } catch (refreshError) {
-          signOut();
-          return Promise.reject(refreshError);
-        }
-      }
-      if (axios.isAxiosError(error)) {
-        console.error('API 오류:', error.toJSON());
-      } else {
-        console.error('예상치 못한 오류:', error);
-      }
+    if (originalRequest.url === '/auth/reissue') {
       return Promise.reject(error);
     }
-  );
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      console.warn('액세스 토큰 만료, 토큰 재발급 시도 중...');
+      try {
+        const newAccessToken = await reissueToken();
+        if (newAccessToken) {
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          // 원래 요청의 Content-Type을 확인하여 적절한 클라이언트로 재시도합니다.
+          if (originalRequest.headers['Content-Type'] === 'multipart/form-data') {
+            return apiClientMultipart(originalRequest);
+          }
+          return apiClient(originalRequest);
+        } else {
+          throw new Error('토큰 재발급 실패');
+        }
+      } catch (refreshError) {
+        signOut();
+        return Promise.reject(refreshError);
+      }
+    }
+    if (axios.isAxiosError(error)) {
+      console.error('API 오류:', error.toJSON());
+    } else {
+      console.error('예상치 못한 오류:', error);
+    }
+    return Promise.reject(error);
+  };
+
+  // 두 클라이언트에 공통 응답 인터셉터 적용
+  apiClient.interceptors.response.use((response) => response, responseInterceptor);
+  apiClientMultipart.interceptors.response.use((response) => response, responseInterceptor);
 };
 
 export default apiClient;

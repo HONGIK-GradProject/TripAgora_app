@@ -2,8 +2,12 @@ import { useLocationPermission } from '@/hooks/useLocationPermission';
 import { fetchKakaoPlaceSearch } from '@/services/search';
 import {
   Camera,
+  CameraMoveBaseParams,
   ClusterMarkerProp,
+  Coord,
+  NaverMapPathOverlay,
   NaverMapViewRef,
+  Region,
 } from '@mj-studio/react-native-naver-map';
 import * as Location from 'expo-location';
 import React, {
@@ -20,30 +24,46 @@ import { MapView } from './MapView';
 export interface MapOverlayOptions {
   searchBar?: boolean;
   currentLocationButton?: boolean;
+  drawPath?: boolean;
 }
 
 interface InteractiveMapViewProps {
   cameraPosition: Camera;
   clusterMarkers: ClusterMarkerProp[];
-  children?: React.ReactNode;
   options?: MapOverlayOptions;
   onPlaceSelect?: (place: { latitude: number; longitude: number }) => void;
+  onMarkerClick?: (markerIdentifier: string) => void;
+}
+
+interface MapPathViewProps {
+  coords: Coord[];
+  drawPath: boolean;
 }
 
 export interface InteractiveMapViewRef {
-  animateCameraTo: (camera: {
-    latitude: number;
-    longitude: number;
-    zoom?: number;
-    duration?: number;
-    easing?: string;
-  }) => void;
+  animateCameraTo: (camera: CameraMoveBaseParams & Coord & { zoom: number }) => void
+  animateRegionTo: (camera: CameraMoveBaseParams & Region) => void;
 }
+
+const MapPathView = ({ coords, drawPath }: MapPathViewProps) => {
+  if (!drawPath || coords.length < 2) {
+    return (<></>);
+  }
+  return (
+    <NaverMapPathOverlay
+      coords={coords}
+      width={8}
+      color="#8130FF"
+      outlineWidth={2}
+      outlineColor="#dbc7ff10"
+    />
+  );
+};
 
 export const InteractiveMapView = memo(
   forwardRef<InteractiveMapViewRef, InteractiveMapViewProps>(
     (
-      { cameraPosition, clusterMarkers, children, options, onPlaceSelect },
+      { cameraPosition, clusterMarkers, options, onPlaceSelect, onMarkerClick },
       ref
     ) => {
       const mapViewRef = useRef<NaverMapViewRef>(null);
@@ -55,6 +75,9 @@ export const InteractiveMapView = memo(
         animateCameraTo: (camera) => {
           mapViewRef.current?.animateCameraTo(camera);
         },
+        animateRegionTo: (camera) => {
+          mapViewRef.current?.animateRegionTo(camera);
+        }
       }));
 
       const handleSearch = async (query: string) => {
@@ -68,7 +91,7 @@ export const InteractiveMapView = memo(
             mapViewRef.current?.animateCameraTo({
               latitude,
               longitude,
-              zoom: 15,
+              zoom: 12,
               duration: 1000,
             });
 
@@ -121,9 +144,19 @@ export const InteractiveMapView = memo(
           <MapView
             ref={mapViewRef}
             cameraPosition={cameraPosition}
-            clusterMarkers={clusterMarkers}
+            clusterMarkers={clusterMarkers.length > 0 ? clusterMarkers : undefined}
+            onMarkerClick={onMarkerClick}
           >
-            {children}
+            <MapPathView
+              coords={clusterMarkers.map(
+                (marker) =>
+                  ({
+                    longitude: marker.longitude,
+                    latitude: marker.latitude,
+                  } as Coord)
+              )}
+              drawPath={options?.drawPath ? true : false}
+            />
           </MapView>
           <MapOverlay
             options={options}

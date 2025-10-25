@@ -59,7 +59,7 @@ const EditTemplateItineraryScreen: React.FC = () => {
     () => ({
       latitude: parseFloat(latitude) || 37.5665,
       longitude: parseFloat(longitude) || 126.978,
-      zoom: isMapExpanded ? 14 : 10,
+      zoom: 16,
     }),
     [latitude, longitude, isMapExpanded]
   );

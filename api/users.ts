@@ -4,14 +4,26 @@
  */
 
 import {
+  UserGetMeResponse,
   UserSetNicknameRequest,
   UserSetNicknameResponse,
+  UserSetProfileImageResponse,
   UserSetTagsRequest,
   UserSetTagsResponse,
   UserSwitchToGuideResponse,
-  UserSwitchToTravelerResponse
+  UserSwitchToTravelerResponse,
 } from '@/types/users';
-import apiClient from './client';
+import { createFileFromImageUri } from '@/utils/files';
+import apiClient, { apiClientMultipart } from './client';
+
+/**
+ * 현재 로그인한 사용자의 정보를 조회합니다.
+ * @returns 사용자 정보 조회 성공 시 응답 데이터를 반환합니다.
+ */
+const getMe = async (): Promise<UserGetMeResponse> => {
+  const response = await apiClient.get<UserGetMeResponse>('/users/me');
+  return response.data;
+};
 
 /**
  * 사용자의 닉네임을 설정합니다.
@@ -57,10 +69,23 @@ const switchToTraveler = async (): Promise<UserSwitchToTravelerResponse> => {
   return response.data;
 };
 
+const setProfileImage = async (
+  uri: string
+): Promise<UserSetProfileImageResponse> => {
+  const requestForm = new FormData();
+  requestForm.append('imageFile', createFileFromImageUri(uri));
+  const response = await apiClientMultipart.patch<UserSetProfileImageResponse>(
+    '/users/me/profile-image',
+    requestForm
+  );
+  return response.data;
+};
+
 export const usersApi = {
+  getMe,
   setNickname,
   setTags,
   switchToGuide,
   switchToTraveler,
+  setProfileImage,
 };
-

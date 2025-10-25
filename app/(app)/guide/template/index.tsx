@@ -1,14 +1,14 @@
 import GuideProductList from '@/components/guide/product/GuideTemplateList';
+import SearchWithAutoComplete from '@/components/search-bar/SearchWithAutoComplete';
 import FullScreenLoader from '@/components/ui/FullScreenLoader';
 import { useTemplateList } from '@/hooks/templates/useTemplateList';
 import { createBlankTemplate } from '@/services/templates';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -23,9 +23,33 @@ const MyProductsScreen: React.FC = () => {
   const { products, isLoading, error, loadMore, refetch } = useTemplateList();
   const { bottom } = useSafeAreaInsets();
 
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [submittedQuery, setSubmittedQuery] = useState<string>('');
+
+  const filteredProducts = useMemo(() => {
+    if (!submittedQuery.trim()) {
+      return products;
+    }
+    const lowercasedQuery = submittedQuery.toLowerCase();
+    return products.filter((info) =>
+      info.title.toLowerCase().includes(lowercasedQuery)
+    );
+  }, [products, submittedQuery]);
+
+  // 자동완성 비활성화
+  const handleFetchSuggestions = async (query: string) => {
+    return [];
+  };
+
+  const handleSearch = (query: string) => {
+    setSubmittedQuery(query);
+  };
+
   useFocusEffect(
     useCallback(() => {
       refetch();
+      setSearchQuery('');
+      setSubmittedQuery('');
     }, [refetch])
   );
 
@@ -55,14 +79,13 @@ const MyProductsScreen: React.FC = () => {
 
   return (
     <View className='flex-1 bg-white pt-12 relative'>
-      <View className='flex-row items-center mx-5 mb-5 rounded-full bg-gray-100 px-4 py-3'>
-        <Ionicons name='search' size={20} color='#999' />
-        <TextInput
-          className='flex-1 text-base text-gray-700 ml-2'
-          placeholder='템플릿명으로 검색하기 (미구현)'
-          placeholderTextColor={'#9CA3AF'}
-        />
-      </View>
+      <SearchWithAutoComplete
+        query={searchQuery}
+        onQueryChange={setSearchQuery}
+        fetchSuggestions={handleFetchSuggestions}
+        onSearch={handleSearch}
+        placeholder='제목으로 템플릿을 검색해보세요!'
+      />
 
       {/* 초기 로딩 처리 */}
       {isLoading && products.length === 0 ? (
@@ -81,7 +104,7 @@ const MyProductsScreen: React.FC = () => {
             style={{ marginBottom: 16 + bottom }}
           >
             <GuideProductList
-              products={products}
+              products={filteredProducts}
               onEndReached={loadMore}
               onEndReachedThreshold={0.5}
               ListFooterComponent={renderFooter}

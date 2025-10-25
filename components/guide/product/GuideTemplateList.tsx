@@ -1,12 +1,12 @@
 import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { TemplateInfo } from '@/types/templates';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { Link } from 'expo-router';
 import React from 'react';
 import {
   FlatList,
   FlatListProps,
-  Image,
   Text,
   TouchableOpacity,
   View,
@@ -37,7 +37,8 @@ const GuideTemplateList: React.FC<TemplateListProps> = ({
         <View className='flex-row items-center'>
           <Image
             source={{ uri: item.firstImageUrl }}
-            className='w-20 h-20 rounded-xl mr-4'
+            style={{ width: 80, height: 80, borderRadius: 12, marginRight: 16 }}
+            contentFit='cover'
           />
           <View className='flex-1'>
             <Text className='text-lg font-semibold text-gray-900 mb-1'>

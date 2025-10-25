@@ -5,11 +5,13 @@ import { SessionDetailsProvider } from '@/contexts/SessionDetailsProvider';
 import { useSessionDetails } from '@/hooks/sessions/useSessionDetails';
 import { deleteSession } from '@/services/sessions';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
-  Image,
+  Dimensions,
+  Modal,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -68,6 +70,13 @@ const RecruitmentDetailContent: React.FC = () => {
     );
   }, [tagIds]);
 
+  // 이미지 관련 상태
+  const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [scrollViewRef, setScrollViewRef] = useState<ScrollView | null>(null);
+  const screenWidth = Dimensions.get('window').width;
+
   // 일정 관련 상태
   const availableDays = useMemo(
     () =>
@@ -86,6 +95,45 @@ const RecruitmentDetailContent: React.FC = () => {
       setSelectedDay(availableDays[0]);
     }
   }, [availableDays, selectedDay]);
+
+  // 이미지 관련 함수들
+  const openImageViewer = (index: number) => {
+    setSelectedImageIndex(index);
+    setIsImageViewerVisible(true);
+  };
+
+  const closeImageViewer = () => {
+    setIsImageViewerVisible(false);
+  };
+
+  const handleMomentumScrollEnd = (event: any) => {
+    if (imageUrls.length <= 1) return;
+    const contentOffsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(contentOffsetX / screenWidth);
+    setCurrentImageIndex(index);
+  };
+
+  const goToNextImage = () => {
+    if (imageUrls.length <= 1) return;
+    const nextIndex = (currentImageIndex + 1) % imageUrls.length;
+    scrollViewRef?.scrollTo({ x: nextIndex * screenWidth, animated: true });
+    setCurrentImageIndex(nextIndex);
+  };
+
+  const goToPreviousImage = () => {
+    if (imageUrls.length <= 1) return;
+    const prevIndex =
+      currentImageIndex === 0 ? imageUrls.length - 1 : currentImageIndex - 1;
+    scrollViewRef?.scrollTo({ x: prevIndex * screenWidth, animated: true });
+    setCurrentImageIndex(prevIndex);
+  };
+
+  // 이미지가 변경될 때 현재 인덱스 초기화
+  useEffect(() => {
+    if (imageUrls.length > 0) {
+      setCurrentImageIndex(0);
+    }
+  }, [imageUrls]);
 
   // 날짜 포맷팅
   const formatDate = (dateString: string) => {
@@ -169,13 +217,65 @@ const RecruitmentDetailContent: React.FC = () => {
         }
       >
         <View style={styles.coverContainer}>
-          {/* 배경 이미지 */}
-          {imageUrls[0] ? (
-            <Image source={{ uri: imageUrls[0] }} style={styles.coverImage} />
+          {/* 배경 이미지 캐러셀 */}
+          {imageUrls.length > 0 ? (
+            <>
+              <ScrollView
+                ref={setScrollViewRef}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                onMomentumScrollEnd={handleMomentumScrollEnd}
+                style={styles.imageScrollView}
+                decelerationRate='fast'
+                bounces={false}
+              >
+                {imageUrls.map((imageUrl, index) => (
+                  <Image
+                    key={index}
+                    source={{ uri: imageUrl }}
+                    style={styles.coverImage}
+                  />
+                ))}
+              </ScrollView>
+
+              {/* 좌우 네비게이션 버튼 */}
+              {imageUrls.length > 1 && (
+                <>
+                  <TouchableOpacity
+                    style={styles.navButton}
+                    onPress={goToPreviousImage}
+                  >
+                    <Ionicons name='chevron-back' size={24} color='#fff' />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.navButton, styles.navButtonRight]}
+                    onPress={goToNextImage}
+                  >
+                    <Ionicons name='chevron-forward' size={24} color='#fff' />
+                  </TouchableOpacity>
+                </>
+              )}
+            </>
           ) : (
-            <View style={styles.placeholderImage}>
-              <Ionicons name='image-outline' size={60} color='#9CA3AF' />
-              <Text style={styles.placeholderText}>이미지 없음</Text>
+            <View style={styles.placeholderContainer}>
+              <Ionicons name='image-outline' size={48} color='#9CA3AF' />
+              <Text style={styles.placeholderText}>대표 이미지 없음</Text>
+            </View>
+          )}
+
+          {/* 페이지 인디케이터 */}
+          {imageUrls.length > 1 && (
+            <View style={styles.paginationContainer}>
+              {imageUrls.map((_, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.paginationDot,
+                    currentImageIndex === index && styles.paginationDotActive,
+                  ]}
+                />
+              ))}
             </View>
           )}
         </View>
@@ -251,6 +351,36 @@ const RecruitmentDetailContent: React.FC = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>여행 소개</Text>
           <Text style={styles.description}>{content}</Text>
+        </View>
+
+        <View style={styles.divider} />
+
+        {/* 사진 섹션 */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>사진</Text>
+
+          {/* 한 줄에 3개씩 이미지 표시 */}
+          {imageUrls.length > 0 ? (
+            <View style={styles.photoGrid}>
+              {imageUrls.map((imageUrl, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.photoGridItem}
+                  onPress={() => openImageViewer(index)}
+                >
+                  <Image
+                    source={{ uri: imageUrl }}
+                    style={styles.photoGridImage}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : (
+            <View style={styles.emptyPhotoContainer}>
+              <Ionicons name='images-outline' size={48} color='#9CA3AF' />
+              <Text style={styles.emptyPhotoText}>사진이 없습니다</Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.divider} />
@@ -393,6 +523,50 @@ const RecruitmentDetailContent: React.FC = () => {
           </View>
         )}
       </View>
+
+      {/* 이미지 뷰어 모달 */}
+      <Modal
+        visible={isImageViewerVisible}
+        transparent={true}
+        animationType='fade'
+        onRequestClose={closeImageViewer}
+      >
+        <View style={styles.imageViewerContainer}>
+          <TouchableOpacity
+            style={styles.imageViewerCloseButton}
+            onPress={closeImageViewer}
+          >
+            <Ionicons name='close' size={30} color='#fff' />
+          </TouchableOpacity>
+
+          <ScrollView
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            contentOffset={{ x: selectedImageIndex * screenWidth, y: 0 }}
+            style={styles.imageViewerScrollView}
+          >
+            {imageUrls.map((imageUrl, index) => (
+              <View key={index} style={styles.imageViewerItem}>
+                <Image
+                  source={{ uri: imageUrl }}
+                  style={styles.imageViewerImage}
+                  contentFit='contain'
+                />
+              </View>
+            ))}
+          </ScrollView>
+
+          {/* 이미지 인덱스 표시 */}
+          {imageUrls.length > 1 && (
+            <View style={styles.imageViewerIndicator}>
+              <Text style={styles.imageViewerIndicatorText}>
+                {selectedImageIndex + 1} / {imageUrls.length}
+              </Text>
+            </View>
+          )}
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -424,15 +598,16 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   coverContainer: {
-    height: 250,
-    position: 'relative',
+    width: '100%',
+    height: 280,
+    backgroundColor: '#D9D9D9',
   },
   coverImage: {
-    width: '100%',
+    width: Dimensions.get('window').width,
     height: '100%',
     resizeMode: 'cover',
   },
-  placeholderImage: {
+  placeholderContainer: {
     width: '100%',
     height: '100%',
     backgroundColor: '#F3F4F6',
@@ -443,6 +618,46 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 16,
     color: '#9CA3AF',
+  },
+  // 이미지 슬라이드 스타일
+  imageScrollView: {
+    width: '100%',
+    height: '100%',
+  },
+  navButton: {
+    position: 'absolute',
+    top: '50%',
+    left: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transform: [{ translateY: -20 }],
+  },
+  navButtonRight: {
+    left: undefined,
+    right: 16,
+  },
+  paginationContainer: {
+    position: 'absolute',
+    bottom: 16,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  paginationDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    marginHorizontal: 4,
+  },
+  paginationDotActive: {
+    backgroundColor: 'white',
   },
   section: {
     paddingHorizontal: 20,
@@ -670,6 +885,83 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#444',
     lineHeight: 20,
+  },
+  // 사진 그리드 스타일
+  photoGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 16,
+  },
+  photoGridItem: {
+    width: '30%',
+    aspectRatio: 1,
+    marginRight: '3.33%',
+    marginBottom: 16,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  photoGridImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  emptyPhotoContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  emptyPhotoText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#9CA3AF',
+  },
+  // 이미지 뷰어 모달 스타일
+  imageViewerContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageViewerCloseButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imageViewerScrollView: {
+    flex: 1,
+    width: '100%',
+  },
+  imageViewerItem: {
+    width: Dimensions.get('window').width,
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageViewerImage: {
+    width: '100%',
+    height: '100%',
+  },
+  imageViewerIndicator: {
+    position: 'absolute',
+    bottom: 50,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  imageViewerIndicatorText: {
+    color: 'white',
+    fontSize: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
   },
 });
 

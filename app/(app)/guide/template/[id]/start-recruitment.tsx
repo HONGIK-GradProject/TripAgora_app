@@ -4,11 +4,11 @@ import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import { createSession } from '@/services/sessions';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Image,
   Platform,
   ScrollView,
   Text,
@@ -180,7 +180,8 @@ const StartRecruitmentContent: React.FC = () => {
               ) : (
                 <Image
                   source={{ uri: imageUrls[0] }}
-                  className='w-20 h-20 rounded-lg'
+                  style={{ width: 80, height: 80, borderRadius: 8 }}
+                  contentFit='cover'
                   onError={() => setHasImageError(true)}
                 />
               )}
