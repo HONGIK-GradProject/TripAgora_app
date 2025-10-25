@@ -1,6 +1,12 @@
+import {
+  createNotice,
+  getNoticeDetail,
+  getNoticeList,
+} from '@/services/notices';
+import { NoticeInfo } from '@/types/notices';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
   ScrollView,
@@ -10,35 +16,161 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 
 /**
- * 세션 공지하기 화면입니다.
+ * 일행에게 공지를 발송하고 이전 공지 목록을 보여주는 화면입니다.
+ * 가이드가 세션 참여자들에게 공지사항을 전달할 수 있습니다.
  */
 const AnnounceScreen: React.FC = () => {
   const router = useRouter();
-  const [content, setContent] = useState('');
+  const insets = useSafeAreaInsets();
+  const { id } = useLocalSearchParams<{ id: string }>();
 
-  const handleSendAnnouncement = () => {
-    if (!content.trim()) {
-      Alert.alert('알림', '공지 내용을 입력해주세요.');
+  const [announcementTitle, setAnnouncementTitle] = useState('');
+  const [announcement, setAnnouncement] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [notices, setNotices] = useState<NoticeInfo[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [expandedNoticeId, setExpandedNoticeId] = useState<number | null>(null);
+  const [noticeDetails, setNoticeDetails] = useState<Record<number, string>>(
+    {}
+  );
+  const [loadingDetails, setLoadingDetails] = useState<Set<number>>(new Set());
+
+  // 공지 목록 조회
+  const fetchNotices = useCallback(async () => {
+    if (!id) return;
+
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await getNoticeList(parseInt(id), 0);
+      setNotices(data?.notices || []);
+    } catch (err) {
+      console.error('공지 목록 조회 에러:', err);
+      setError('공지 목록을 불러오는데 실패했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [id]);
+
+  // 컴포넌트 마운트 시 공지 목록 조회
+  useEffect(() => {
+    fetchNotices();
+  }, [fetchNotices]);
+
+  // 공지 상세 조회
+  const fetchNoticeDetail = useCallback(
+    async (noticeId: number) => {
+      if (!id || noticeDetails[noticeId]) return; // 이미 로드된 경우 스킵
+
+      try {
+        setLoadingDetails((prev) => new Set(prev).add(noticeId));
+        const data = await getNoticeDetail(parseInt(id), noticeId);
+        setNoticeDetails((prev) => ({
+          ...prev,
+          [noticeId]: data?.content || '',
+        }));
+      } catch (err) {
+        console.error('공지 상세 조회 에러:', err);
+        Toast.show({
+          type: 'error',
+          text1: '공지 상세 조회 실패',
+          text2: '다시 시도해주세요.',
+        });
+      } finally {
+        setLoadingDetails((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(noticeId);
+          return newSet;
+        });
+      }
+    },
+    [id, noticeDetails]
+  );
+
+  // 공지 항목 토글
+  const toggleNotice = useCallback(
+    (noticeId: number) => {
+      if (expandedNoticeId === noticeId) {
+        setExpandedNoticeId(null);
+      } else {
+        setExpandedNoticeId(noticeId);
+        fetchNoticeDetail(noticeId);
+      }
+    },
+    [expandedNoticeId, fetchNoticeDetail]
+  );
+
+  // 공지 발송 처리
+  const handleSendAnnouncement = async () => {
+    if (!announcementTitle.trim()) {
+      Toast.show({
+        type: 'error',
+        text1: '공지 제목을 입력해주세요',
+      });
       return;
     }
 
-    Alert.alert('공지 발송', '공지를 발송하시겠습니까?', [
+    if (!announcement.trim()) {
+      Toast.show({
+        type: 'error',
+        text1: '공지 내용을 입력해주세요',
+      });
+      return;
+    }
+
+    if (!id) {
+      Toast.show({
+        type: 'error',
+        text1: '세션 정보를 찾을 수 없습니다',
+      });
+      return;
+    }
+
+    Alert.alert('공지 발송', '일행에게 공지를 발송하시겠습니까?', [
       {
         text: '취소',
         style: 'cancel',
       },
       {
         text: '발송',
-        onPress: () => {
-          console.log('공지 발송:', { content });
-          Alert.alert('완료', '공지가 발송되었습니다.', [
-            {
-              text: '확인',
-              onPress: () => router.back(),
-            },
-          ]);
+        onPress: async () => {
+          try {
+            setIsSubmitting(true);
+
+            // 공지 작성 API 호출
+            const result = await createNotice(
+              parseInt(id),
+              announcementTitle.trim(),
+              announcement.trim()
+            );
+
+            if (result) {
+              // 공지 발송 후 목록 새로고침
+              await fetchNotices();
+              setAnnouncementTitle('');
+              setAnnouncement('');
+
+              Toast.show({
+                type: 'success',
+                text1: '공지가 발송되었습니다',
+                text2: '일행들에게 공지사항이 전달되었습니다.',
+              });
+            }
+          } catch (error) {
+            console.error('공지 발송 에러:', error);
+            Toast.show({
+              type: 'error',
+              text1: '공지 발송 실패',
+              text2: '다시 시도해주세요.',
+            });
+          } finally {
+            setIsSubmitting(false);
+          }
         },
       },
     ]);
@@ -46,65 +178,164 @@ const AnnounceScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
+      {/* 상단 네비게이션 바 */}
+      <View style={[styles.topBar, { paddingTop: insets.top + 10 }]}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Ionicons name='arrow-back' size={24} color='#000' />
+        </TouchableOpacity>
+        <Text style={styles.title}>일행에게 공지하기</Text>
+        <View style={styles.placeholder} />
+      </View>
+
       <ScrollView
-        contentContainerStyle={styles.scrollViewContent}
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* 헤더 섹션 */}
-        <View style={styles.headerSection}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <Ionicons name='arrow-back' size={24} color='#000' />
-          </TouchableOpacity>
-
-          <View style={styles.titleContainer}>
-            <Text style={styles.headerTitle}>일행에게 공지하기</Text>
+        {/* 공지 작성 영역 */}
+        <View style={styles.writeSection}>
+          {/* 제목 입력 */}
+          <View style={styles.titleInputContainer}>
+            <TextInput
+              style={styles.titleInput}
+              value={announcementTitle}
+              onChangeText={setAnnouncementTitle}
+              placeholder='제목을 입력하세요'
+              placeholderTextColor='#999999'
+              maxLength={50}
+            />
+            <Text style={styles.titleCharacterCount}>
+              {announcementTitle.length}/50
+            </Text>
           </View>
-        </View>
 
-        {/* 내용 입력 섹션 */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>공지 내용</Text>
+          {/* 내용 입력 */}
           <View style={styles.inputContainer}>
             <TextInput
-              style={styles.contentInput}
-              placeholder='일행들에게 전달할 내용을 입력해주세요'
-              value={content}
-              onChangeText={setContent}
+              style={styles.textInput}
+              value={announcement}
+              onChangeText={setAnnouncement}
+              placeholder='내용을 입력하세요...'
+              placeholderTextColor='#999999'
               multiline
               textAlignVertical='top'
-              placeholderTextColor='#9CA3AF'
+              maxLength={500}
             />
+            <Text style={styles.characterCount}>{announcement.length}/500</Text>
           </View>
-          <Text style={styles.charCount}>{content.length}/500</Text>
+
+          {/* 발송 버튼 */}
+          <View style={styles.sendButtonContainer}>
+            <TouchableOpacity
+              style={[
+                styles.sendButton,
+                (!announcementTitle.trim() ||
+                  !announcement.trim() ||
+                  isSubmitting) &&
+                  styles.sendButtonDisabled,
+              ]}
+              onPress={handleSendAnnouncement}
+              disabled={
+                !announcementTitle.trim() ||
+                !announcement.trim() ||
+                isSubmitting
+              }
+            >
+              <Text
+                style={[
+                  styles.sendButtonText,
+                  (!announcementTitle.trim() ||
+                    !announcement.trim() ||
+                    isSubmitting) &&
+                    styles.sendButtonTextDisabled,
+                ]}
+              >
+                {isSubmitting ? '발송 중...' : '공지 발송하기'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* 미리보기 섹션 */}
-        {content.trim() && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>미리보기</Text>
-            <View style={styles.previewContainer}>
-              <View style={styles.previewHeader}>
-                <Ionicons name='notifications' size={20} color='#FF8330' />
-                <Text style={styles.previewLabel}>공지</Text>
-              </View>
-              <Text style={styles.previewContent}>{content}</Text>
+        {/* 공지 목록 */}
+        <View style={styles.announcementsSection}>
+          {isLoading ? (
+            <View style={styles.loadingContainer}>
+              <Text style={styles.loadingText}>공지 목록을 불러오는 중...</Text>
             </View>
-          </View>
-        )}
-      </ScrollView>
+          ) : error ? (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+              <TouchableOpacity
+                style={styles.retryButton}
+                onPress={fetchNotices}
+              >
+                <Text style={styles.retryButtonText}>다시 시도</Text>
+              </TouchableOpacity>
+            </View>
+          ) : notices.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>아직 발송된 공지가 없습니다.</Text>
+            </View>
+          ) : (
+            notices.map((notice) => (
+              <View key={notice.noticeId} style={styles.announcementCard}>
+                <TouchableOpacity
+                  style={styles.announcementHeader}
+                  onPress={() => toggleNotice(notice.noticeId)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.avatarContainer}>
+                    <Ionicons name='megaphone' size={20} color='#8130FF' />
+                  </View>
+                  <View style={styles.announcementContent}>
+                    <Text style={styles.announcementText}>{notice.title}</Text>
+                    <Text style={styles.announcementTime}>
+                      {new Date(notice.createdAt).toLocaleString('ko-KR', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </Text>
+                  </View>
+                  <View style={styles.expandIcon}>
+                    <Ionicons
+                      name={
+                        expandedNoticeId === notice.noticeId
+                          ? 'chevron-up'
+                          : 'chevron-down'
+                      }
+                      size={20}
+                      color='#9CA3AF'
+                    />
+                  </View>
+                </TouchableOpacity>
 
-      {/* 하단 액션 */}
-      <View style={styles.bottomActionContainer}>
-        <TouchableOpacity
-          style={[styles.ctaButton, styles.primaryButton]}
-          onPress={handleSendAnnouncement}
-        >
-          <Text style={styles.primaryButtonText}>공지 발송하기</Text>
-        </TouchableOpacity>
-      </View>
+                {expandedNoticeId === notice.noticeId && (
+                  <View style={styles.announcementDetail}>
+                    {loadingDetails.has(notice.noticeId) ? (
+                      <View style={styles.detailLoading}>
+                        <Text style={styles.detailLoadingText}>
+                          상세 내용을 불러오는 중...
+                        </Text>
+                      </View>
+                    ) : (
+                      <Text style={styles.detailContent}>
+                        {noticeDetails[notice.noticeId] ||
+                          '상세 내용을 불러올 수 없습니다.'}
+                      </Text>
+                    )}
+                  </View>
+                )}
+              </View>
+            ))
+          )}
+        </View>
+      </ScrollView>
     </View>
   );
 };
@@ -114,114 +345,216 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  scrollViewContent: {
-    paddingBottom: 120,
-  },
-  headerSection: {
+  topBar: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
-    backgroundColor: '#fff',
+    zIndex: 10,
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 16,
   },
-  titleContainer: {
-    flex: 1,
-  },
-  headerTitle: {
-    fontSize: 24,
+  title: {
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#000',
+    flex: 1,
+    textAlign: 'center',
+    marginHorizontal: 20,
   },
-  section: {
+  placeholder: {
+    width: 40,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  writeSection: {
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 100, // 상단 바 공간 확보
+    paddingBottom: 20,
+    borderBottomWidth: 8,
+    borderBottomColor: '#F4F4F4',
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#000',
-    marginBottom: 12,
-  },
-  inputContainer: {
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 12,
+  titleInputContainer: {
     backgroundColor: '#fff',
-    padding: 16,
-    minHeight: 200,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 12,
+    position: 'relative',
+    minHeight: 48,
   },
-  contentInput: {
-    flex: 1,
+  titleInput: {
     fontSize: 16,
+    lineHeight: 22,
     color: '#000',
-    textAlignVertical: 'top',
-    minHeight: 150,
-    lineHeight: 24,
+    paddingRight: 60,
   },
-  charCount: {
+  titleCharacterCount: {
+    position: 'absolute',
+    bottom: 8,
+    right: 12,
     fontSize: 12,
     color: '#9CA3AF',
-    textAlign: 'right',
-    marginTop: 8,
   },
-  previewContainer: {
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  previewHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  previewLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#FF8330',
-    marginLeft: 6,
-  },
-  previewContent: {
-    fontSize: 16,
-    color: '#374151',
-    lineHeight: 24,
-  },
-  bottomActionContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    paddingTop: 16,
+  inputContainer: {
     backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-  },
-  ctaButton: {
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    padding: 16,
+    minHeight: 120,
+    position: 'relative',
+  },
+  textInput: {
+    fontSize: 16,
+    lineHeight: 22,
+    color: '#000',
+    flex: 1,
+    minHeight: 80,
+  },
+  characterCount: {
+    position: 'absolute',
+    bottom: 8,
+    right: 12,
+    fontSize: 12,
+    color: '#9CA3AF',
+  },
+  sendButtonContainer: {
+    marginTop: 16,
+    paddingHorizontal: 0,
+  },
+  sendButton: {
+    backgroundColor: '#8130FF',
+    borderRadius: 8,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  primaryButton: {
-    backgroundColor: '#8130FF',
+  sendButtonDisabled: {
+    backgroundColor: '#E5E5E5',
   },
-  primaryButtonText: {
+  sendButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: 'bold',
+  },
+  sendButtonTextDisabled: {
+    color: '#9CA3AF',
+  },
+  announcementsSection: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 40, // 하단 여백 추가
+  },
+  announcementCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    overflow: 'hidden',
+  },
+  announcementHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+  },
+  avatarContainer: {
+    marginRight: 12,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  announcementContent: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  expandIcon: {
+    marginLeft: 8,
+  },
+  announcementDetail: {
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+    padding: 16,
+    backgroundColor: '#FAFAFA',
+  },
+  detailLoading: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  detailLoadingText: {
+    fontSize: 14,
+    color: '#9CA3AF',
+  },
+  detailContent: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: '#374151',
+  },
+  announcementText: {
+    fontSize: 16,
+    lineHeight: 22,
+    color: '#000',
+  },
+  announcementTime: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    marginTop: 4,
+  },
+  loadingContainer: {
+    padding: 40,
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#9CA3AF',
+  },
+  errorContainer: {
+    padding: 40,
+    alignItems: 'center',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#EF4444',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  retryButton: {
+    backgroundColor: '#8130FF',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  emptyContainer: {
+    padding: 40,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#9CA3AF',
   },
 });
 
