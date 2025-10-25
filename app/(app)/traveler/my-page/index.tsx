@@ -7,7 +7,7 @@ const TravelerMyPageScreen: React.FC = () => {
   const { switchUserRole, signOut } = useAuth();
 
   const handleSwitchUserRole = async () => {
-    await switchUserRole('guide');
+    await switchUserRole('GUIDE');
   }
 
   const handleSignOut = async () => {

@@ -82,7 +82,7 @@ export const setProfileImage = async (uri: string) => {
  * 현재 로그인한 사용자의 정보를 조회합니다.
  * @returns 성공 시 사용자 정보를, 실패 시 undefined를 반환합니다.
  */
-export const getUserInfo = async () => {
+export const getUser = async () => {
   try {
     const response = await usersApi.getMe();
     if (response.data && response.code === 200) {
