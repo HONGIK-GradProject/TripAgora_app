@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { isAxiosError } from 'axios';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import {
   ScrollView,
   Text,
@@ -16,55 +16,19 @@ import Toast from 'react-native-toast-message';
 import { authApi } from '@/api/auth';
 import CustomImagePicker from '@/components/ui/ImagePicker';
 import { useAuth } from '@/hooks/useAuth';
-import { getUserInfo, setProfileImage } from '@/services/users';
-import { UserGetMeData } from '@/types/users';
+import { setProfileImage } from '@/services/users';
 
 const GuideMyPageScreen: React.FC = () => {
-  const { switchUserRole } = useAuth();
+  const { user, setUser, switchUserRole } = useAuth();
   const insets = useSafeAreaInsets();
-  const [userInfo, setUserInfo] = useState<UserGetMeData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [imageLoadError, setImageLoadError] = useState(false);
   const [isEditingNickname, setIsEditingNickname] = useState(false);
   const [editingNickname, setEditingNickname] = useState('');
   const [isUpdatingNickname, setIsUpdatingNickname] = useState(false);
 
-  // 유효한 프로필 이미지 URL 계산
-  const profileImageUrl = useMemo(() => {
-    const uri = userInfo?.profileImageUrl;
-    return uri && uri.trim() !== '' ? uri : null;
-  }, [userInfo?.profileImageUrl]);
-
-  // 이미지 URL이 변경될 때 에러 상태 리셋
-  useEffect(() => {
-    setImageLoadError(false);
-  }, [profileImageUrl]);
-
-  // 사용자 정보 로드
-  useEffect(() => {
-    const loadUserInfo = async () => {
-      try {
-        const userData = await getUserInfo();
-        if (userData) {
-          setUserInfo(userData);
-        }
-      } catch (error) {
-        console.error('사용자 정보 로드 실패:', error);
-        showToast(
-          'error',
-          '사용자 정보를 불러오는데 실패했습니다.',
-          '다시 시도해주세요.'
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadUserInfo();
-  }, []);
-
   const handleSwitchUserRole = async () => {
-    await switchUserRole('traveler');
+    await switchUserRole('TRAVELER');
   };
 
   const handleSignOut = async () => {
@@ -78,7 +42,7 @@ const GuideMyPageScreen: React.FC = () => {
     try {
       const newProfileImageUrl = await setProfileImage(uri);
       if (newProfileImageUrl) {
-        setUserInfo((prev) =>
+        setUser((prev) => 
           prev ? { ...prev, profileImageUrl: newProfileImageUrl } : null
         );
       }
@@ -94,15 +58,15 @@ const GuideMyPageScreen: React.FC = () => {
   };
 
   const handleNicknamePress = () => {
-    if (isLoading || !userInfo?.nickname) return;
+    if (isLoading || !user?.nickname) return;
 
     setIsEditingNickname(true);
-    setEditingNickname(userInfo.nickname);
+    setEditingNickname(user.nickname);
   };
 
   const handleNicknameSave = async () => {
     const trimmedNickname = editingNickname.trim();
-    if (!trimmedNickname || trimmedNickname === userInfo?.nickname) {
+    if (!trimmedNickname || trimmedNickname === user?.nickname) {
       setIsEditingNickname(false);
       return;
     }
@@ -112,7 +76,7 @@ const GuideMyPageScreen: React.FC = () => {
       const { usersApi } = await import('@/api/users');
       await usersApi.setNickname(trimmedNickname);
 
-      setUserInfo((prev) =>
+      setUser((prev) =>
         prev ? { ...prev, nickname: trimmedNickname } : null
       );
 
@@ -160,9 +124,9 @@ const GuideMyPageScreen: React.FC = () => {
             aspect={[1, 1]}
           >
             <View className='w-24 h-24 rounded-full bg-gray-100 justify-center items-center shadow-sm'>
-              {profileImageUrl && !imageLoadError ? (
+              {user?.profileImageUrl && !imageLoadError ? (
                 <Image
-                  source={{ uri: profileImageUrl }}
+                  source={{ uri: user?.profileImageUrl }}
                   style={{ width: 96, height: 96, borderRadius: 48 }}
                   onError={() => {
                     setImageLoadError(true);
@@ -224,9 +188,9 @@ const GuideMyPageScreen: React.FC = () => {
                   <Text className='text-2xl font-bold text-gray-900'>
                     {isLoading
                       ? '로딩 중...'
-                      : userInfo?.nickname || '닉네임 없음'}
+                      : user?.nickname || '닉네임 없음'}
                   </Text>
-                  {!isLoading && userInfo?.nickname && (
+                  {!isLoading && user?.nickname && (
                     <Ionicons
                       name='pencil'
                       size={16}

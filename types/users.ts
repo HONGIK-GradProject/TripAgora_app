@@ -1,6 +1,6 @@
 import APIResponse from './apiResponse';
 
-type UserRole = 'traveler' | 'guide';
+type UserRole = 'TRAVELER' | 'GUIDE';
 
 interface UserData {
   nickname: string;

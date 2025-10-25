@@ -13,7 +13,6 @@ import { UserData, UserRole } from '@/types/users';
 import { isAxiosError } from 'axios';
 import { createContext, useCallback, useEffect, useState } from 'react';
 
-
 /**
  * @property {string | null} accessToken - 사용자의 액세스 토큰
  * @property {UserData |} user - 유저 정보
@@ -31,6 +30,7 @@ export interface AuthContextType {
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
   switchUserRole: (newUserRole: UserRole) => Promise<void>;
+  setUser: React.Dispatch<React.SetStateAction<UserData | null>>
 }
 
 /**
@@ -95,6 +95,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         const newUser = await getUser();
         if (newUser) {
+          console.log(newUser);
           setUser(newUser);
         }
         else {
@@ -123,15 +124,6 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         await processAndSetAuth(accessToken, refreshToken);
 
         setIsNewUser(isNewUser);
-
-        const newUser = await getUser();
-
-        if (newUser) {
-          setUser(newUser);
-        }
-        else {
-          setUser(null);
-        }
         
         console.log('로그인 성공, 토큰 저장 및 역할 설정 완료');
       } else {
@@ -154,8 +146,9 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     async (newUserRole: UserRole) => {
       setIsLoading(true);
       try {
+        console.log(newUserRole);
         const response =
-          newUserRole === 'traveler'
+          newUserRole === 'TRAVELER'
             ? await usersApi.switchToTraveler()
             : await usersApi.switchToGuide();
 
@@ -218,6 +211,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         signIn: signInHandler,
         signOut: signOutHandler,
         switchUserRole: switchUserRoleHandler,
+        setUser,
       }}
     >
       {children}
