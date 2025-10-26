@@ -1,7 +1,9 @@
 import {
   createNotice,
+  deleteNotice,
   getNoticeDetail,
   getNoticeList,
+  updateNotice,
 } from '@/services/notices';
 import { NoticeInfo } from '@/types/notices';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,6 +11,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -39,6 +42,9 @@ const AnnounceScreen: React.FC = () => {
     {}
   );
   const [loadingDetails, setLoadingDetails] = useState<Set<number>>(new Set());
+  const [editingNoticeId, setEditingNoticeId] = useState<number | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // 공지 목록 조회
   const fetchNotices = useCallback(async () => {
@@ -131,6 +137,53 @@ const AnnounceScreen: React.FC = () => {
       return;
     }
 
+    // 수정 모드인 경우
+    if (editingNoticeId) {
+      Alert.alert('공지 수정', '공지를 수정하시겠습니까?', [
+        {
+          text: '취소',
+          style: 'cancel',
+        },
+        {
+          text: '수정',
+          onPress: async () => {
+            try {
+              setIsUpdating(true);
+
+              await updateNotice(
+                parseInt(id),
+                editingNoticeId,
+                announcementTitle.trim(),
+                announcement.trim()
+              );
+
+              // 공지 수정 후 목록 새로고침
+              await fetchNotices();
+              setAnnouncementTitle('');
+              setAnnouncement('');
+              setEditingNoticeId(null);
+
+              Toast.show({
+                type: 'success',
+                text1: '공지가 수정되었습니다',
+              });
+            } catch (error) {
+              console.error('공지 수정 에러:', error);
+              Toast.show({
+                type: 'error',
+                text1: '공지 수정 실패',
+                text2: '다시 시도해주세요.',
+              });
+            } finally {
+              setIsUpdating(false);
+            }
+          },
+        },
+      ]);
+      return;
+    }
+
+    // 새 공지 작성
     Alert.alert('공지 발송', '일행에게 공지를 발송하시겠습니까?', [
       {
         text: '취소',
@@ -170,6 +223,67 @@ const AnnounceScreen: React.FC = () => {
             });
           } finally {
             setIsSubmitting(false);
+          }
+        },
+      },
+    ]);
+  };
+
+  // 공지 수정 모드로 전환
+  const handleEditNotice = async (noticeId: number) => {
+    try {
+      const data = await getNoticeDetail(parseInt(id!), noticeId);
+      if (data) {
+        setAnnouncementTitle(data.title);
+        setAnnouncement(data.content);
+        setEditingNoticeId(noticeId);
+        // 수정할 공지로 스크롤
+        // 이 부분은 필요시 구현 가능
+      }
+    } catch (error) {
+      console.error('공지 상세 조회 에러:', error);
+      Toast.show({
+        type: 'error',
+        text1: '공지 정보를 불러오는데 실패했습니다',
+      });
+    }
+  };
+
+  // 공지 수정 취소
+  const handleCancelEdit = () => {
+    setAnnouncementTitle('');
+    setAnnouncement('');
+    setEditingNoticeId(null);
+  };
+
+  // 공지 삭제
+  const handleDeleteNotice = (noticeId: number) => {
+    Alert.alert('공지 삭제', '정말 이 공지를 삭제하시겠습니까?', [
+      {
+        text: '취소',
+        style: 'cancel',
+      },
+      {
+        text: '삭제',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            setIsDeleting(true);
+            await deleteNotice(parseInt(id!), noticeId);
+            await fetchNotices();
+            Toast.show({
+              type: 'success',
+              text1: '공지가 삭제되었습니다',
+            });
+          } catch (error) {
+            console.error('공지 삭제 에러:', error);
+            Toast.show({
+              type: 'error',
+              text1: '공지 삭제 실패',
+              text2: '다시 시도해주세요.',
+            });
+          } finally {
+            setIsDeleting(false);
           }
         },
       },
@@ -227,21 +341,31 @@ const AnnounceScreen: React.FC = () => {
             <Text style={styles.characterCount}>{announcement.length}/500</Text>
           </View>
 
-          {/* 발송 버튼 */}
+          {/* 발송/수정 버튼 */}
           <View style={styles.sendButtonContainer}>
+            {editingNoticeId && (
+              <TouchableOpacity
+                style={[styles.cancelButton, { marginBottom: 8 }]}
+                onPress={handleCancelEdit}
+              >
+                <Text style={styles.cancelButtonText}>수정 취소</Text>
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
               style={[
                 styles.sendButton,
                 (!announcementTitle.trim() ||
                   !announcement.trim() ||
-                  isSubmitting) &&
+                  isSubmitting ||
+                  isUpdating) &&
                   styles.sendButtonDisabled,
               ]}
               onPress={handleSendAnnouncement}
               disabled={
                 !announcementTitle.trim() ||
                 !announcement.trim() ||
-                isSubmitting
+                isSubmitting ||
+                isUpdating
               }
             >
               <Text
@@ -249,11 +373,18 @@ const AnnounceScreen: React.FC = () => {
                   styles.sendButtonText,
                   (!announcementTitle.trim() ||
                     !announcement.trim() ||
-                    isSubmitting) &&
+                    isSubmitting ||
+                    isUpdating) &&
                     styles.sendButtonTextDisabled,
                 ]}
               >
-                {isSubmitting ? '발송 중...' : '공지 발송하기'}
+                {isUpdating
+                  ? '수정 중...'
+                  : isSubmitting
+                  ? '발송 중...'
+                  : editingNoticeId
+                  ? '공지 수정하기'
+                  : '공지 발송하기'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -282,38 +413,67 @@ const AnnounceScreen: React.FC = () => {
           ) : (
             notices.map((notice) => (
               <View key={notice.noticeId} style={styles.announcementCard}>
-                <TouchableOpacity
-                  style={styles.announcementHeader}
-                  onPress={() => toggleNotice(notice.noticeId)}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.avatarContainer}>
-                    <Ionicons name='megaphone' size={20} color='#8130FF' />
+                <View style={styles.announcementHeaderContainer}>
+                  <TouchableOpacity
+                    style={styles.announcementHeader}
+                    onPress={() => toggleNotice(notice.noticeId)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.avatarContainer}>
+                      <Ionicons name='megaphone' size={20} color='#8130FF' />
+                    </View>
+                    <View style={styles.announcementContent}>
+                      <Text style={styles.announcementText}>
+                        {notice.title}
+                      </Text>
+                      <Text style={styles.announcementTime}>
+                        {new Date(notice.createdAt).toLocaleString('ko-KR', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </Text>
+                    </View>
+                    <View style={styles.expandIcon}>
+                      <Ionicons
+                        name={
+                          expandedNoticeId === notice.noticeId
+                            ? 'chevron-up'
+                            : 'chevron-down'
+                        }
+                        size={20}
+                        color='#9CA3AF'
+                      />
+                    </View>
+                  </TouchableOpacity>
+                  {/* 수정/삭제 버튼 */}
+                  <View style={styles.actionButtons}>
+                    <TouchableOpacity
+                      style={styles.actionButton}
+                      onPress={() => handleEditNotice(notice.noticeId)}
+                      disabled={isDeleting || !!editingNoticeId}
+                    >
+                      <Ionicons
+                        name='create-outline'
+                        size={18}
+                        color='#8130FF'
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.actionButton}
+                      onPress={() => handleDeleteNotice(notice.noticeId)}
+                      disabled={isDeleting || !!editingNoticeId}
+                    >
+                      <Ionicons
+                        name='trash-outline'
+                        size={18}
+                        color='#EF4444'
+                      />
+                    </TouchableOpacity>
                   </View>
-                  <View style={styles.announcementContent}>
-                    <Text style={styles.announcementText}>{notice.title}</Text>
-                    <Text style={styles.announcementTime}>
-                      {new Date(notice.createdAt).toLocaleString('ko-KR', {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </Text>
-                  </View>
-                  <View style={styles.expandIcon}>
-                    <Ionicons
-                      name={
-                        expandedNoticeId === notice.noticeId
-                          ? 'chevron-up'
-                          : 'chevron-down'
-                      }
-                      size={20}
-                      color='#9CA3AF'
-                    />
-                  </View>
-                </TouchableOpacity>
+                </View>
 
                 {expandedNoticeId === notice.noticeId && (
                   <View style={styles.announcementDetail}>
@@ -324,7 +484,7 @@ const AnnounceScreen: React.FC = () => {
                         </Text>
                       </View>
                     ) : (
-                      <Text style={styles.detailContent}>
+                      <Text style={styles.detailContent} numberOfLines={0}>
                         {noticeDetails[notice.noticeId] ||
                           '상세 내용을 불러올 수 없습니다.'}
                       </Text>
@@ -456,6 +616,18 @@ const styles = StyleSheet.create({
   sendButtonTextDisabled: {
     color: '#9CA3AF',
   },
+  cancelButton: {
+    backgroundColor: '#F3F4F6',
+    borderRadius: 8,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelButtonText: {
+    color: '#374151',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
   announcementsSection: {
     paddingHorizontal: 20,
     paddingTop: 20,
@@ -469,10 +641,31 @@ const styles = StyleSheet.create({
     borderColor: '#E5E5E5',
     overflow: 'hidden',
   },
+  announcementHeaderContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   announcementHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
+    flex: 1,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingRight: 8,
+    gap: 8,
+  },
+  actionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 4,
   },
   avatarContainer: {
     marginRight: 12,
@@ -508,6 +701,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     color: '#374151',
+    ...(Platform.OS === 'android' && {
+      includeFontPadding: false,
+      textAlignVertical: 'top',
+    }),
   },
   announcementText: {
     fontSize: 16,

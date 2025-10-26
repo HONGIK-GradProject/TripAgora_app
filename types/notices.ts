@@ -60,10 +60,38 @@ interface NoticeCreateResponse extends APIResponse<NoticeCreateData> {
   // APIResponse의 모든 속성을 상속받습니다.
 }
 
+// 공지 수정 관련 타입
+interface NoticeUpdateRequest {
+  title: string; // 공지 제목
+  content: string; // 공지 내용
+}
+
+interface NoticeUpdateData {
+  noticeId: number; // 공지 ID
+  title: string; // 공지 제목
+  content: string; // 공지 내용
+  createdAt: string; // 생성일시 (LocalDateTime)
+}
+
+interface NoticeUpdateResponse extends APIResponse<NoticeUpdateData> {
+  // APIResponse의 모든 속성을 상속받습니다.
+}
+
+// 공지 삭제 관련 타입
+interface NoticeDeleteData {
+  // 공지 삭제는 별도의 데이터 없이 성공 여부만 반환
+}
+
+interface NoticeDeleteResponse extends APIResponse<NoticeDeleteData> {
+  // APIResponse의 모든 속성을 상속받습니다.
+}
+
 export {
   NoticeCreateData,
   NoticeCreateRequest,
   NoticeCreateResponse,
+  NoticeDeleteData,
+  NoticeDeleteResponse,
   NoticeGetDetailData,
   NoticeGetDetailRequest,
   NoticeGetDetailResponse,
@@ -71,4 +99,7 @@ export {
   NoticeGetListRequest,
   NoticeGetListResponse,
   NoticeInfo,
+  NoticeUpdateData,
+  NoticeUpdateRequest,
+  NoticeUpdateResponse,
 };
