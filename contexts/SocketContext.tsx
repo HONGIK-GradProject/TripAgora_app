@@ -27,6 +27,8 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     // 소켓 이벤트 리스너 등록
     socket.on('connect', onConnect);
     socket.on('disconnect', onDisconnect);
+    socket.on('connect_error', err => console.error(err));
+    socket.on('connect_failed', err => console.error(err));
 
     // 수동으로 소켓 연결 시작
     connectSocket();

@@ -1,10 +1,9 @@
-import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
+import { Redirect } from 'expo-router';
 import React from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 const GuideHomeScreen: React.FC = () => {
-  return (
+  return (<Redirect href={'/(app)/guide/session/123/view-location'} />)
+  /*return (
     <View className='flex-1 bg-white'>
       <View className='flex-row justify-between items-center px-5 pt-12 pb-2.5'>
         <View className='flex-row items-center'>
@@ -36,7 +35,6 @@ const GuideHomeScreen: React.FC = () => {
             김 홍익 가이드님의 여행 상품
           </Text>
           <View className='flex-row flex-wrap justify-between'>
-            {/* 가이드 상품 리스트 (임시) */}
             <View className='w-[48%] mb-4 rounded-2xl overflow-hidden bg-gray-200 h-36 justify-center items-center'>
               <Image
                 source={{ uri: 'https://via.placeholder.com/100' }}
@@ -99,7 +97,7 @@ const GuideHomeScreen: React.FC = () => {
         </View>
       </ScrollView>
     </View>
-  );
+  );*/
 };
 
 export default GuideHomeScreen;
