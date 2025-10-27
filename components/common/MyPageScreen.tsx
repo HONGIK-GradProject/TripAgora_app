@@ -4,6 +4,7 @@ import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  Alert,
   ScrollView,
   Text,
   TextInput,
@@ -16,7 +17,11 @@ import Toast from 'react-native-toast-message';
 import { authApi } from '@/api/auth';
 import CustomImagePicker from '@/components/ui/ImagePicker';
 import { useAuth } from '@/hooks/useAuth';
-import { getUserInfo, setProfileImage } from '@/services/users';
+import {
+  deleteUserAccount,
+  getUserInfo,
+  setProfileImage,
+} from '@/services/users';
 import { UserGetMeData } from '@/types/users';
 
 interface MyPageScreenProps {
@@ -75,6 +80,41 @@ const MyPageScreen: React.FC<MyPageScreenProps> = ({ userRole }) => {
   const handleSignOut = async () => {
     await authApi.signOut();
     router.replace('/login');
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      '회원 탈퇴',
+      '정말 탈퇴하시겠습니까?\n탈퇴 시 모든 데이터가 삭제되며 복구가 불가능합니다.',
+      [
+        {
+          text: '취소',
+          style: 'cancel',
+        },
+        {
+          text: '탈퇴하기',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const result = await deleteUserAccount();
+              if (result) {
+                showToast(
+                  'success',
+                  '회원 탈퇴가 완료되었습니다.',
+                  '이용해주셔서 감사합니다.'
+                );
+                router.replace('/login');
+              } else {
+                showToast('error', '회원 탈퇴 실패', '다시 시도해주세요.');
+              }
+            } catch (error) {
+              console.error('회원 탈퇴 중 오류 발생:', error);
+              showToast('error', '회원 탈퇴 실패', '다시 시도해주세요.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleSetProfileImage = async (uri: string | null) => {
@@ -306,7 +346,10 @@ const MyPageScreen: React.FC<MyPageScreenProps> = ({ userRole }) => {
               <Ionicons name='chevron-forward' size={20} color='#9CA3AF' />
             </TouchableOpacity>
 
-            <TouchableOpacity className='flex-row items-center py-4 px-6'>
+            <TouchableOpacity
+              className='flex-row items-center py-4 px-6'
+              onPress={handleDeleteAccount}
+            >
               <View className='w-10 h-10 rounded-full bg-red-50 items-center justify-center mr-4'>
                 <Ionicons name='trash-outline' size={20} color='#EF4444' />
               </View>

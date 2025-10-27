@@ -76,7 +76,7 @@ const EditTemplateTagsScreen: React.FC = () => {
         템플릿 태그 설정
       </Text>
       <Text className='text-base text-darkgray text-left w-4/5 mb-8'>
-        최소 3개를 선택해 주세요.
+        최대 5개까지 설정 가능합니다.
       </Text>
 
       <View className='flex-row flex-wrap justify-start w-4/5 mb-10'>

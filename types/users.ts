@@ -43,7 +43,12 @@ interface UserGetMeData {
 }
 interface UserGetMeResponse extends APIResponse<UserGetMeData> {}
 
+interface UserDeleteMeData {}
+interface UserDeleteMeResponse extends APIResponse<UserDeleteMeData> {}
+
 export {
+  UserDeleteMeData,
+  UserDeleteMeResponse,
   UserGetMeData,
   UserGetMeResponse,
   UserRole,
