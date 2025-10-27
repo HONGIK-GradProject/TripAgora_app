@@ -131,6 +131,29 @@ const getPublicSessionList = async (
 };
 
 /**
+ * 여행자가 참여한 세션 목록을 상태별로 조회합니다.
+ * @param statuses - 조회할 세션 상태 배열 (선택사항)
+ * @param page - 조회할 페이지 번호
+ * @returns 참여한 세션 목록 정보를 담은 Promise
+ */
+const getParticipatingSessionList = async (
+  statuses: SessionStatus[] | undefined,
+  page: number
+): Promise<SessionGetListResponse> => {
+  const requestData: SessionGetListRequest = {
+    params: {
+      statuses,
+      page,
+    },
+  };
+  const response = await apiClient.get<SessionGetListResponse>(
+    '/sessions/participating',
+    requestData
+  );
+  return response.data;
+};
+
+/**
  * 특정 세션의 상세 정보를 조회합니다.
  * @param sessionId - 조회할 세션의 ID
  * @returns 세션 상세 정보를 담은 Promise
@@ -219,6 +242,7 @@ export const sessionsApi = {
   deleteSession,
   getSessionList,
   getPublicSessionList,
+  getParticipatingSessionList,
   getSession,
   getSessionItineraries,
   closeSession,

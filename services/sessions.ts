@@ -127,6 +127,32 @@ export const getPublicSessionList = async (
 };
 
 /**
+ * 여행자가 참여한 세션 목록을 상태별로 조회합니다.
+ * @param statuses - 조회할 세션 상태 배열 (선택사항)
+ * @param page - 조회할 페이지 번호
+ * @returns 성공 시 참여한 세션 목록 데이터, 실패 시 undefined
+ */
+export const getParticipatingSessionList = async (
+  statuses: string[] | undefined,
+  page: number
+) => {
+  try {
+    const response = await sessionsApi.getParticipatingSessionList(
+      statuses as any,
+      page
+    );
+
+    if (response && response.code === 200) {
+      return response.data;
+    }
+
+    throw new Error('참여한 세션 목록 조회 에러');
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+/**
  * 특정 세션의 상세 정보를 조회합니다.
  * @param sessionId - 조회할 세션의 ID
  * @returns 성공 시 세션 상세 정보, 실패 시 undefined
