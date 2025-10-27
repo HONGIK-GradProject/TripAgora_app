@@ -100,7 +100,7 @@ const ReviewWriteScreen: React.FC = () => {
 
             {/* 여행 제목 */}
             <Text className='text-2xl font-bold text-center mb-4'>
-              홍대 1박2일 모임
+              홍대거리 오후 번개
             </Text>
 
             {/* 가이드 정보 */}

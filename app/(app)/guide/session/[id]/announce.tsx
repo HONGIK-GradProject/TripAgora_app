@@ -22,14 +22,22 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
+interface AnnounceScreenProps {
+  userType?: 'guide' | 'traveler';
+}
+
 /**
  * 일행에게 공지를 발송하고 이전 공지 목록을 보여주는 화면입니다.
  * 가이드가 세션 참여자들에게 공지사항을 전달할 수 있습니다.
+ * userType이 traveler인 경우 공지 작성 및 수정/삭제 기능이 숨겨집니다.
  */
-const AnnounceScreen: React.FC = () => {
+const AnnounceScreen: React.FC<AnnounceScreenProps> = ({
+  userType = 'guide',
+}) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const isTraveler = userType === 'traveler';
 
   const [announcementTitle, setAnnouncementTitle] = useState('');
   const [announcement, setAnnouncement] = useState('');
@@ -309,89 +317,98 @@ const AnnounceScreen: React.FC = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* 공지 작성 영역 */}
-        <View style={styles.writeSection}>
-          {/* 제목 입력 */}
-          <View style={styles.titleInputContainer}>
-            <TextInput
-              style={styles.titleInput}
-              value={announcementTitle}
-              onChangeText={setAnnouncementTitle}
-              placeholder='제목을 입력하세요'
-              placeholderTextColor='#999999'
-              maxLength={50}
-            />
-            <Text style={styles.titleCharacterCount}>
-              {announcementTitle.length}/50
-            </Text>
-          </View>
+        {/* 공지 작성 영역 - 가이드만 표시 */}
+        {!isTraveler && (
+          <View style={styles.writeSection}>
+            {/* 제목 입력 */}
+            <View style={styles.titleInputContainer}>
+              <TextInput
+                style={styles.titleInput}
+                value={announcementTitle}
+                onChangeText={setAnnouncementTitle}
+                placeholder='제목을 입력하세요'
+                placeholderTextColor='#999999'
+                maxLength={50}
+              />
+              <Text style={styles.titleCharacterCount}>
+                {announcementTitle.length}/50
+              </Text>
+            </View>
 
-          {/* 내용 입력 */}
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.textInput}
-              value={announcement}
-              onChangeText={setAnnouncement}
-              placeholder='내용을 입력하세요...'
-              placeholderTextColor='#999999'
-              multiline
-              textAlignVertical='top'
-              maxLength={500}
-            />
-            <Text style={styles.characterCount}>{announcement.length}/500</Text>
-          </View>
+            {/* 내용 입력 */}
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.textInput}
+                value={announcement}
+                onChangeText={setAnnouncement}
+                placeholder='내용을 입력하세요...'
+                placeholderTextColor='#999999'
+                multiline
+                textAlignVertical='top'
+                maxLength={500}
+              />
+              <Text style={styles.characterCount}>
+                {announcement.length}/500
+              </Text>
+            </View>
 
-          {/* 발송/수정 버튼 */}
-          <View style={styles.sendButtonContainer}>
-            {editingNoticeId && (
+            {/* 발송/수정 버튼 */}
+            <View style={styles.sendButtonContainer}>
+              {editingNoticeId && (
+                <TouchableOpacity
+                  style={[styles.cancelButton, { marginBottom: 8 }]}
+                  onPress={handleCancelEdit}
+                >
+                  <Text style={styles.cancelButtonText}>수정 취소</Text>
+                </TouchableOpacity>
+              )}
               <TouchableOpacity
-                style={[styles.cancelButton, { marginBottom: 8 }]}
-                onPress={handleCancelEdit}
-              >
-                <Text style={styles.cancelButtonText}>수정 취소</Text>
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity
-              style={[
-                styles.sendButton,
-                (!announcementTitle.trim() ||
-                  !announcement.trim() ||
-                  isSubmitting ||
-                  isUpdating) &&
-                  styles.sendButtonDisabled,
-              ]}
-              onPress={handleSendAnnouncement}
-              disabled={
-                !announcementTitle.trim() ||
-                !announcement.trim() ||
-                isSubmitting ||
-                isUpdating
-              }
-            >
-              <Text
                 style={[
-                  styles.sendButtonText,
+                  styles.sendButton,
                   (!announcementTitle.trim() ||
                     !announcement.trim() ||
                     isSubmitting ||
                     isUpdating) &&
-                    styles.sendButtonTextDisabled,
+                    styles.sendButtonDisabled,
                 ]}
+                onPress={handleSendAnnouncement}
+                disabled={
+                  !announcementTitle.trim() ||
+                  !announcement.trim() ||
+                  isSubmitting ||
+                  isUpdating
+                }
               >
-                {isUpdating
-                  ? '수정 중...'
-                  : isSubmitting
-                  ? '발송 중...'
-                  : editingNoticeId
-                  ? '공지 수정하기'
-                  : '공지 발송하기'}
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  style={[
+                    styles.sendButtonText,
+                    (!announcementTitle.trim() ||
+                      !announcement.trim() ||
+                      isSubmitting ||
+                      isUpdating) &&
+                      styles.sendButtonTextDisabled,
+                  ]}
+                >
+                  {isUpdating
+                    ? '수정 중...'
+                    : isSubmitting
+                    ? '발송 중...'
+                    : editingNoticeId
+                    ? '공지 수정하기'
+                    : '공지 발송하기'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        )}
 
         {/* 공지 목록 */}
-        <View style={styles.announcementsSection}>
+        <View
+          style={[
+            styles.announcementsSection,
+            isTraveler && styles.announcementsSectionTraveler,
+          ]}
+        >
           {isLoading ? (
             <View style={styles.loadingContainer}>
               <Text style={styles.loadingText}>공지 목록을 불러오는 중...</Text>
@@ -448,31 +465,33 @@ const AnnounceScreen: React.FC = () => {
                       />
                     </View>
                   </TouchableOpacity>
-                  {/* 수정/삭제 버튼 */}
-                  <View style={styles.actionButtons}>
-                    <TouchableOpacity
-                      style={styles.actionButton}
-                      onPress={() => handleEditNotice(notice.noticeId)}
-                      disabled={isDeleting || !!editingNoticeId}
-                    >
-                      <Ionicons
-                        name='create-outline'
-                        size={18}
-                        color='#8130FF'
-                      />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.actionButton}
-                      onPress={() => handleDeleteNotice(notice.noticeId)}
-                      disabled={isDeleting || !!editingNoticeId}
-                    >
-                      <Ionicons
-                        name='trash-outline'
-                        size={18}
-                        color='#EF4444'
-                      />
-                    </TouchableOpacity>
-                  </View>
+                  {/* 수정/삭제 버튼 - 가이드만 표시 */}
+                  {!isTraveler && (
+                    <View style={styles.actionButtons}>
+                      <TouchableOpacity
+                        style={styles.actionButton}
+                        onPress={() => handleEditNotice(notice.noticeId)}
+                        disabled={isDeleting || !!editingNoticeId}
+                      >
+                        <Ionicons
+                          name='create-outline'
+                          size={18}
+                          color='#8130FF'
+                        />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.actionButton}
+                        onPress={() => handleDeleteNotice(notice.noticeId)}
+                        disabled={isDeleting || !!editingNoticeId}
+                      >
+                        <Ionicons
+                          name='trash-outline'
+                          size={18}
+                          color='#EF4444'
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
 
                 {expandedNoticeId === notice.noticeId && (
@@ -752,6 +771,9 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     color: '#9CA3AF',
+  },
+  announcementsSectionTraveler: {
+    paddingTop: 100, // 공지 작성 영역이 없을 때 상단 공간 확보
   },
 });
 

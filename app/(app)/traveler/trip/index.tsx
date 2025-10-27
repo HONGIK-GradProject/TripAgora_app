@@ -37,6 +37,20 @@ const TravelerTripListScreen: React.FC = () => {
 
   // 현재 탭에 따른 데이터 필터링 및 정렬
   const filteredSessions = useMemo(() => {
+    // 하드코딩된 완료된 세션 샘플 데이터
+    const sampleCompletedSession: SessionInfo = {
+      sessionId: 9999,
+      title: '홍대거리 오후 번개',
+      firstImageUrl:
+        'https://images.unsplash.com/photo-1564485774779-ccbcb813b101?w=400',
+      regionNames: ['마포구'],
+      maxParticipants: 8,
+      currentParticipants: 8,
+      startDate: '2025-11-15',
+      endDate: '2025-11-15',
+      status: 'COMPLETED',
+    };
+
     let filtered = [];
 
     if (activeTab === 'upcoming') {
@@ -57,6 +71,8 @@ const TravelerTripListScreen: React.FC = () => {
       });
     } else {
       filtered = sessions.filter((session) => session.status === 'COMPLETED');
+      // 완료 탭에 하드코딩된 샘플 데이터 추가
+      filtered = [sampleCompletedSession, ...filtered];
     }
 
     return filtered;
@@ -119,58 +135,86 @@ const TravelerTripListScreen: React.FC = () => {
    */
   const renderSessionItem = ({ item: session }: { item: SessionInfo }) => {
     const badge = getStatusBadge(session.status);
+    const isCompleted = session.status === 'COMPLETED';
+
     return (
-      <TouchableOpacity
-        className='bg-white rounded-2xl mb-2 p-5 shadow-sm border border-gray-100'
-        activeOpacity={0.7}
-        onPress={() => {
-          // TODO: 세션 상세 페이지로 이동
-          router.push(`/traveler/trip/${session.sessionId}` as any);
-        }}
-      >
-        <View className='flex-row items-center'>
-          <Image
-            source={{ uri: session.firstImageUrl }}
-            style={{ width: 80, height: 80, borderRadius: 12, marginRight: 16 }}
-            contentFit='cover'
-          />
-          <View className='flex-1'>
-            <Text className='text-lg font-semibold text-gray-900 mb-1'>
-              {session.title}
-            </Text>
-            <Text className='text-gray-600 mb-2'>
-              {session.startDate} ~ {session.endDate}
-            </Text>
-            <View className='flex-row items-start'>
-              <MaterialIcons
-                name='person-outline'
-                size={16}
-                color='#6B7280'
-                style={{ marginTop: 2 }}
+      <View className='bg-white rounded-2xl mb-2 shadow-sm border border-gray-100 overflow-hidden'>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => {
+            // [테스트용] 모든 세션을 세션 룸으로 이동
+            // 원래: RECRUITING, COMPLETED → 상세 / RECRUITMENT_CLOSED, IN_PROGRESS → 룸
+            const route = `/traveler/trip/${session.sessionId}/session-room`;
+            router.push(route as any);
+          }}
+        >
+          <View className='p-5'>
+            <View className='flex-row items-center'>
+              <Image
+                source={{ uri: session.firstImageUrl }}
+                style={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: 12,
+                  marginRight: 16,
+                }}
+                contentFit='cover'
               />
-              <Text className='text-gray-600 ml-1 mr-4'>
-                {session.currentParticipants}/{session.maxParticipants}명
-              </Text>
-              <Ionicons
-                name='location-outline'
-                size={16}
-                color='#6B7280'
-                style={{ marginTop: 2 }}
-              />
-              <Text
-                className='text-gray-600 ml-1 flex-1'
-                numberOfLines={2}
-                ellipsizeMode='tail'
-              >
-                {session.regionNames.join(', ')}
-              </Text>
+              <View className='flex-1'>
+                <Text className='text-lg font-semibold text-gray-900 mb-1'>
+                  {session.title}
+                </Text>
+                <Text className='text-gray-600 mb-2'>
+                  {session.startDate} ~ {session.endDate}
+                </Text>
+                <View className='flex-row items-start'>
+                  <MaterialIcons
+                    name='person-outline'
+                    size={16}
+                    color='#6B7280'
+                    style={{ marginTop: 2 }}
+                  />
+                  <Text className='text-gray-600 ml-1 mr-4'>
+                    {session.currentParticipants}/{session.maxParticipants}명
+                  </Text>
+                  <Ionicons
+                    name='location-outline'
+                    size={16}
+                    color='#6B7280'
+                    style={{ marginTop: 2 }}
+                  />
+                  <Text
+                    className='text-gray-600 ml-1 flex-1'
+                    numberOfLines={2}
+                    ellipsizeMode='tail'
+                  >
+                    {session.regionNames.join(', ')}
+                  </Text>
+                </View>
+              </View>
+              <View className={`px-3 py-1 rounded-full ${badge.bg}`}>
+                <Text className={`text-sm ${badge.text}`}>{badge.label}</Text>
+              </View>
             </View>
           </View>
-          <View className={`px-3 py-1 rounded-full ${badge.bg}`}>
-            <Text className={`text-sm ${badge.text}`}>{badge.label}</Text>
+        </TouchableOpacity>
+
+        {/* 완료된 세션에만 리뷰 버튼 표시 */}
+        {isCompleted && (
+          <View className='px-5 pb-5 border-t border-gray-100'>
+            <TouchableOpacity
+              className='bg-purple-500 rounded-xl py-3 flex-row items-center justify-center'
+              onPress={() => router.push('/ReviewWriteScreen' as any)}
+              activeOpacity={0.8}
+            >
+              <Ionicons name='star' size={20} color='#fff' />
+              <Text className='text-white font-semibold text-base ml-2'>
+                리뷰 작성하기
+              </Text>
+            </TouchableOpacity>
           </View>
-        </View>
-      </TouchableOpacity>
+        )}
+      </View>
     );
   };
 
@@ -191,9 +235,9 @@ const TravelerTripListScreen: React.FC = () => {
           <TouchableOpacity
             className='bg-blue-500 rounded-2xl p-5'
             onPress={() => {
-              // TODO: 세션 룸으로 이동
+              // 진행 중인 여행은 세션 룸으로 이동
               router.push(
-                `/traveler/trip/${currentSession.sessionId}/room` as any
+                `/traveler/trip/${currentSession.sessionId}/session-room` as any
               );
             }}
           >

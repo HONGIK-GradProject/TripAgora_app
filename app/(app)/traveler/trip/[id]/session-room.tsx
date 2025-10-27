@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,12 +14,12 @@ import {
 } from 'react-native';
 
 /**
- * 진행 중인 여행의 세션 룸 화면입니다.
- * 지도, 일정, 일행 위치 확인, 공지하기 기능을 제공합니다.
+ * 여행자용 진행 중인 여행의 세션 룸 화면입니다.
+ * 지도, 일정, 일행 위치 확인 기능을 제공합니다.
  */
-const SessionRoomContent: React.FC = () => {
+const TravelerSessionRoomContent: React.FC = () => {
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id } = useLocalSearchParams<{ id: string }>(); // sessionId는 SessionDetailsProvider에서 관리
   const [selectedDay, setSelectedDay] = useState(1);
 
   // 세션 상세 정보 가져오기
@@ -27,6 +28,8 @@ const SessionRoomContent: React.FC = () => {
     title = '',
     startDate = '',
     endDate = '',
+    maxParticipants = 0,
+    currentParticipants = 0,
     itineraries = {},
     isLoading = true,
   } = sessionDetails || {};
@@ -54,14 +57,22 @@ const SessionRoomContent: React.FC = () => {
     console.log('일행 확인하기');
   };
 
-  // 공지하기 기능
-  const handleAnnounce = () => {
-    router.push(`/guide/session/${id}/announce`);
-  };
-
-  // 일정 편집 기능
-  const handleEditItinerary = () => {
-    console.log('일정 편집');
+  // SOS 보내기 기능
+  const handleSendSOS = () => {
+    Alert.alert('SOS 보내기', '긴급 상황을 일행에게 알리시겠습니까?', [
+      {
+        text: '취소',
+        style: 'cancel',
+      },
+      {
+        text: '보내기',
+        style: 'destructive',
+        onPress: () => {
+          console.log('SOS 보내기');
+          // TODO: SOS 보내기 API 호출
+        },
+      },
+    ]);
   };
 
   // 로딩 중일 때
@@ -94,7 +105,7 @@ const SessionRoomContent: React.FC = () => {
           <TouchableOpacity
             style={styles.detailButton}
             onPress={() => {
-              router.push(`/guide/session/${id}` as any);
+              router.push(`/traveler/trip/${id}` as any);
             }}
           >
             <Ionicons
@@ -105,7 +116,7 @@ const SessionRoomContent: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        {/* 액션 버튼들 */}
+        {/* 액션 버튼 */}
         <View style={styles.actionButtonsContainer}>
           <TouchableOpacity
             style={[styles.actionButton, styles.locationButton]}
@@ -116,13 +127,27 @@ const SessionRoomContent: React.FC = () => {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.actionButton, styles.announceButton]}
-            onPress={handleAnnounce}
+            style={[styles.actionButton, styles.noticeButton]}
+            onPress={() => {
+              router.push(`/traveler/trip/${id}/notice` as any);
+            }}
           >
-            <Ionicons name='notifications' size={20} color='#FF8330' />
-            <Text style={[styles.actionButtonText, styles.announceButtonText]}>
-              공지하기
+            <Ionicons name='megaphone' size={20} color='#FF8330' />
+            <Text style={[styles.actionButtonText, styles.noticeButtonText]}>
+              공지 목록
             </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* SOS 버튼 - 긴급 상황 대응 */}
+        <View style={styles.sosButtonContainer}>
+          <TouchableOpacity
+            style={styles.sosButton}
+            onPress={handleSendSOS}
+            activeOpacity={0.8}
+          >
+            <Ionicons name='alert-circle' size={24} color='#fff' />
+            <Text style={styles.sosButtonText}>SOS 보내기</Text>
           </TouchableOpacity>
         </View>
 
@@ -136,14 +161,6 @@ const SessionRoomContent: React.FC = () => {
             </View>
           </View>
         </View>
-
-        {/* 일정 편집 버튼 */}
-        <TouchableOpacity
-          style={styles.editButton}
-          onPress={handleEditItinerary}
-        >
-          <Text style={styles.editButtonText}>일정 편집하기</Text>
-        </TouchableOpacity>
 
         {/* 일정 탭 */}
         {availableDays.length > 0 && (
@@ -199,7 +216,7 @@ const SessionRoomContent: React.FC = () => {
   );
 };
 
-const SessionRoomScreen: React.FC = () => {
+const TravelerSessionRoomScreen: React.FC = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
 
   if (!id) {
@@ -212,7 +229,7 @@ const SessionRoomScreen: React.FC = () => {
 
   return (
     <SessionDetailsProvider id={id}>
-      <SessionRoomContent />
+      <TravelerSessionRoomContent />
     </SessionDetailsProvider>
   );
 };
@@ -298,7 +315,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3ECFF',
     borderColor: '#8130FF',
   },
-  announceButton: {
+  noticeButton: {
     backgroundColor: '#FFF4E6',
     borderColor: '#FF8330',
   },
@@ -307,8 +324,34 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#8130FF',
   },
-  announceButtonText: {
+  noticeButtonText: {
     color: '#FF8330',
+  },
+  sosButtonContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  sosButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#EF4444',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#DC2626',
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  sosButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginLeft: 8,
   },
   mapSection: {
     paddingHorizontal: 20,
@@ -336,21 +379,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#9CA3AF',
     marginTop: 4,
-  },
-  editButton: {
-    marginHorizontal: 20,
-    marginBottom: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.55)',
-    borderWidth: 1,
-    borderColor: '#000',
-    borderRadius: 5,
-    paddingVertical: 10,
-    alignItems: 'center',
-  },
-  editButtonText: {
-    fontSize: 20,
-    fontWeight: '400',
-    color: '#000',
   },
   dayTabsContainer: {
     flexDirection: 'row',
@@ -422,4 +450,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SessionRoomScreen;
+export default TravelerSessionRoomScreen;
