@@ -1,5 +1,5 @@
 import { getSession, getSessionItineraries } from '@/services/sessions';
-import { SessionItinerary } from '@/types/sessions';
+import { Participant, SessionItinerary } from '@/types/sessions';
 import React, {
   createContext,
   ReactNode,
@@ -26,6 +26,8 @@ const useSessionDetailsLogic = (id: string) => {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [status, setStatus] = useState<string>('');
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [isParticipating, setIsParticipating] = useState<boolean>(false);
   const [itineraries, setItineraries] = useState<{
     [key: number]: SessionItinerary[];
   }>({});
@@ -53,6 +55,8 @@ const useSessionDetailsLogic = (id: string) => {
         setStartDate(sessionResponse.startDate);
         setEndDate(sessionResponse.endDate);
         setStatus(sessionResponse.status);
+        setParticipants(sessionResponse.participants);
+        setIsParticipating(sessionResponse.isParticipating);
       }
 
       if (itinerariesResponse) {
@@ -90,6 +94,8 @@ const useSessionDetailsLogic = (id: string) => {
     startDate,
     endDate,
     status,
+    participants,
+    isParticipating,
     itineraries,
     setTitle,
     setContent,
@@ -101,6 +107,8 @@ const useSessionDetailsLogic = (id: string) => {
     setStartDate,
     setEndDate,
     setStatus,
+    setParticipants,
+    setIsParticipating,
     setItineraries,
     refetch: fetchSessionDetails,
   };

@@ -4,6 +4,7 @@ import { TAG_ID_TO_NAME_MAP } from '@/constants/Tags';
 import { SessionDetailsProvider } from '@/contexts/SessionDetailsProvider';
 import { useSessionDetails } from '@/hooks/sessions/useSessionDetails';
 import {
+  cancelParticipation,
   closeSession,
   createParticipation,
   deleteSession,
@@ -57,6 +58,8 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
     startDate = '',
     endDate = '',
     status = '',
+    participants = [],
+    isParticipating: contextIsParticipating = false,
     itineraries = {},
     isLoading = true,
     refetch = () => {},
@@ -72,8 +75,15 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
   );
 
   // 참여 신청 상태 관리 (여행자용)
-  const [isParticipating, setIsParticipating] = useState(false);
+  const [isParticipating, setIsParticipating] = useState(
+    contextIsParticipating
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 컨텍스트의 isParticipating 상태가 변경되면 로컬 상태도 업데이트
+  useEffect(() => {
+    setIsParticipating(contextIsParticipating);
+  }, [contextIsParticipating]);
 
   // 이미지 관련 상태
   const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
@@ -139,6 +149,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
 
             if (result) {
               setIsParticipating(true);
+              refetch(); // 세션 정보 새로고침
               Toast.show({
                 type: 'success',
                 text1: '참여 신청 완료',
@@ -158,7 +169,48 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
         },
       },
     ]);
-  }, [id]);
+  }, [id, refetch]);
+
+  // 여행자용 참여 취소 처리
+  const handleCancelParticipation = useCallback(async () => {
+    if (!id) return;
+
+    Alert.alert('참여 취소', '정말로 참여 신청을 취소하시겠습니까?', [
+      {
+        text: '취소',
+        style: 'cancel',
+      },
+      {
+        text: '확인',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            setIsSubmitting(true);
+            const result = await cancelParticipation(parseInt(id));
+
+            if (result) {
+              setIsParticipating(false);
+              refetch(); // 세션 정보 새로고침
+              Toast.show({
+                type: 'success',
+                text1: '참여 취소 완료',
+                text2: '여행 참여 신청이 취소되었습니다.',
+              });
+            }
+          } catch (error) {
+            console.error('참여 취소 에러:', error);
+            Toast.show({
+              type: 'error',
+              text1: '참여 취소 실패',
+              text2: '잠시 후 다시 시도해주세요.',
+            });
+          } finally {
+            setIsSubmitting(false);
+          }
+        },
+      },
+    ]);
+  }, [id, refetch]);
 
   // 가이드용 모집 마감 처리
   const handleCloseRecruitment = useCallback(async () => {
@@ -400,6 +452,32 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
         <View style={styles.section}>
           <Text style={styles.title}>{title}</Text>
 
+          {/* 가이드 정보 */}
+          {(() => {
+            const guide = participants.find((p) => p.role === 'GUIDE');
+            return (
+              <View style={styles.guideContainer}>
+                {guide ? (
+                  <Image
+                    source={{ uri: guide.profileImageUrl }}
+                    style={styles.guideAvatar}
+                    contentFit='cover'
+                  />
+                ) : (
+                  <View style={styles.guideAvatarPlaceholder}>
+                    <Ionicons name='person-outline' size={20} color='#9CA3AF' />
+                  </View>
+                )}
+                <View style={styles.guideInfo}>
+                  <Text style={styles.guideLabel}>가이드</Text>
+                  <Text style={styles.guideName}>
+                    {guide ? guide.nickname : '알 수 없음'}
+                  </Text>
+                </View>
+              </View>
+            );
+          })()}
+
           {/* 상태 배지 */}
           <View style={styles.statusContainer}>
             <View
@@ -467,6 +545,50 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
 
         {/* 구분선 */}
         <View style={styles.divider} />
+
+        {/* 참여자 목록 섹션 */}
+        {(() => {
+          // 가이드를 제외한 여행자만 필터링
+          const travelers = participants.filter((p) => p.role === 'TRAVELER');
+
+          return travelers.length > 0 ? (
+            <>
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>참여자 목록</Text>
+                <View style={styles.participantsContainer}>
+                  {travelers.map((participant, index) => (
+                    <View key={index} style={styles.participantItem}>
+                      <Image
+                        source={{ uri: participant.profileImageUrl }}
+                        style={styles.participantAvatar}
+                        contentFit='cover'
+                      />
+                      <View style={styles.participantInfo}>
+                        <Text style={styles.participantName}>
+                          {participant.nickname}
+                        </Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              </View>
+              <View style={styles.divider} />
+            </>
+          ) : participants.length > 0 ? (
+            <>
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>참여자 목록</Text>
+                <View style={styles.emptyParticipantsContainer}>
+                  <Ionicons name='people-outline' size={48} color='#D1D5DB' />
+                  <Text style={styles.emptyParticipantsText}>
+                    아직 신청인원이 없습니다.
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.divider} />
+            </>
+          ) : null;
+        })()}
 
         {/* 여행 소개 섹션 */}
         <View style={styles.section}>
@@ -587,8 +709,18 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
             )}
           </>
         ) : isParticipating ? (
-          <TouchableOpacity style={[styles.ctaButton, styles.completedButton]}>
-            <Text style={styles.completedButtonText}>참여 신청됨</Text>
+          <TouchableOpacity
+            style={[
+              styles.ctaButton,
+              styles.cancelButton,
+              isSubmitting && { backgroundColor: '#9CA3AF' },
+            ]}
+            onPress={handleCancelParticipation}
+            disabled={isSubmitting}
+          >
+            <Text style={styles.cancelButtonText}>
+              {isSubmitting ? '취소 중...' : '참여 신청 취소'}
+            </Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
@@ -751,6 +883,43 @@ const styles = StyleSheet.create({
     color: '#000000',
     marginBottom: 16,
   },
+  guideContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  guideAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  guideAvatarPlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  guideInfo: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  guideLabel: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginBottom: 2,
+  },
+  guideName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000',
+  },
   statusContainer: {
     marginBottom: 16,
   },
@@ -888,6 +1057,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#BBF7D0',
   },
+  cancelButton: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#EF4444',
+  },
   primaryButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
@@ -905,6 +1079,65 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  cancelButtonText: {
+    color: '#EF4444',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  participantsContainer: {
+    marginTop: 16,
+    gap: 8,
+  },
+  participantItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  participantAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    marginRight: 10,
+  },
+  participantInfo: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  participantName: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#000',
+  },
+  participantRoleBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  participantRoleText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  participantRoleGuide: {
+    color: '#7C3AED',
+    backgroundColor: '#DDD6FE',
+  },
+  participantRoleTraveler: {
+    color: '#15803D',
+    backgroundColor: '#D1FAE5',
+  },
+  emptyParticipantsContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  emptyParticipantsText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#9CA3AF',
   },
   errorContainer: {
     flex: 1,

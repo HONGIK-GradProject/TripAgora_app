@@ -103,6 +103,16 @@ interface SessionGetListResponse extends APIResponse<SessionGetListData> {
 interface SessionGetRequest {}
 
 /**
+ * 세션 참여자 정보 타입
+ */
+interface Participant {
+  userId: number;
+  nickname: string;
+  profileImageUrl: string;
+  role: 'GUIDE' | 'TRAVELER';
+}
+
+/**
  * 세션 상세 조회 응답 데이터
  */
 interface SessionGetData {
@@ -116,6 +126,8 @@ interface SessionGetData {
   startDate: string; // yyyy-mm-dd 형식
   endDate: string; // yyyy-mm-dd 형식
   status: SessionStatus;
+  participants: Participant[];
+  isParticipating: boolean;
 }
 
 interface SessionGetResponse extends APIResponse<SessionGetData> {
@@ -206,6 +218,7 @@ interface SessionParticipationCancelResponse
 }
 
 export {
+  Participant,
   SessionCloseData,
   SessionCloseRequest,
   SessionCloseResponse,
