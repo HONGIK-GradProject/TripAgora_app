@@ -4,8 +4,7 @@ import { io, Socket } from 'socket.io-client';
 // 1. 소켓 클라이언트 생성 및 내보내기
 //    - 여러 컴포넌트에서 동일한 소켓 인스턴스를 공유하기 위해 싱글톤으로 관리합니다.
 //    - autoConnect: false로 설정하여 수동으로 연결을 관리합니다.
-const SOCKET_URL = '172.30.1.53:3000';
-//const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_BASE_URL; // TODO: 실제 서버 주소로 변경하세요.
+const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_BASE_URL;
 
 export const socket: Socket = io(SOCKET_URL, {
   autoConnect: false,

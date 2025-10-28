@@ -4,10 +4,11 @@ import { useLocationPermission } from '@/hooks/useLocationPermission';
 import { useSocket } from '@/hooks/useSocket';
 import { emitEvent, listenOn } from '@/services/socket';
 import { Ionicons } from '@expo/vector-icons';
-import { ClusterMarkerProp } from '@mj-studio/react-native-naver-map';
+import { ClusterMarkerProp, Coord } from '@mj-studio/react-native-naver-map';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import haversine from 'haversine-distance';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   ScrollView,
@@ -18,10 +19,13 @@ import {
 } from 'react-native';
 
 interface LocationData {
-  username: string;
+  nickname: string;
   latitude: number;
   longitude: number;
 };
+
+const COLORS = ['blue', 'green', 'pink', 'lightblue', 'yellow', 'red'];
+const COLOR_CODES = ['#4DB1FF', '#08DA76', '#E355A9', '#01C6D8', '#FFC801', '#FF4D60'];
 
 /**
  * 모집 정보를 수정하는 화면입니다.
@@ -33,7 +37,8 @@ const EditRecruitmentScreen: React.FC = () => {
 
   const id = '123';
 
-  const [clusterMarkers, setClusterMarkers] = useState<ClusterMarkerProp[]>([]);
+  const [locations, setLocations] = useState<LocationData[]>([]);
+  const [myLocation, setMyLocation] = useState<Coord | null>(null);
 
   const { user } = useAuth();
   // Socket 통신
@@ -52,9 +57,7 @@ const EditRecruitmentScreen: React.FC = () => {
       emitEvent('join', id);
 
       const handleUpdate = (data: LocationData[]) => {
-        const newClusterMarkers = toClusterMarkers(data);
-        setClusterMarkers(newClusterMarkers);
-        console.log(data);
+        setLocations(data);
       }
 
       listenOn('locationUpdated', handleUpdate);
@@ -89,6 +92,7 @@ const EditRecruitmentScreen: React.FC = () => {
     const location = await Location.getCurrentPositionAsync({});
 
     const { latitude, longitude } = location.coords;
+    setMyLocation({ latitude, longitude });
 
     const updateData = {
       roomId: id,
@@ -104,23 +108,40 @@ const EditRecruitmentScreen: React.FC = () => {
     }
   };
 
-  const toClusterMarkers = (data: LocationData[]) => {
-    if (!data || data.length < 1) {
+  setInterval(() => {
+    console.log('Location updated');
+    handleUpdateLocation();
+  }, 1000);
+
+  const clusterMarkers = useMemo(() => {
+    if (!locations || locations.length < 1) {
       return [];
     }
 
-    return data.map((location, index) => {
+    console.log(locations);
+
+    return locations.map((loc, index) => {
       return {
         identifier: Date.now().toString(),
-        latitude: location.latitude,
-        longitude: location.longitude,
+        latitude: loc.latitude,
+        longitude: loc.longitude,
         image: {
-          symbol: 'blue',
-          size: 20,
+          symbol: COLORS[index % COLORS.length],
         },
+        width: 30,
+        height: 40,
       } as ClusterMarkerProp;
     });
-  };
+  }, [locations]);
+
+  const getDistance = (latitude: number, longitude: number) => {
+    if (!myLocation) return 0;
+
+    const dist = haversine(myLocation, {latitude, longitude});
+    const kmDist = dist / 1000;
+
+    return kmDist.toFixed(1);
+  }
 
   return (
     <View style={styles.container}>    
@@ -136,38 +157,18 @@ const EditRecruitmentScreen: React.FC = () => {
           />
         </View>
 
-        <View style={styles.destinationInfo}>
-          <Ionicons name="location" size={30} color="#FF0000" style={styles.destinationIcon} />
-          <Text style={styles.destinationText}>다음 목적지</Text>
-          <Text style={styles.distanceText}>320m</Text>
-        </View>
-
         <View style={styles.memberList}>
-          <View style={styles.memberItem}>
-            <Ionicons name="person-circle" size={40} color="#FF0000" style={styles.memberIcon} />
-            <Text style={styles.memberName}>김 홍익</Text>
-            <Text style={styles.memberDistance}>나</Text>
-          </View>
-          <View style={styles.memberItem}>
-            <Ionicons name="person-circle" size={40} color="#FFFF00" style={styles.memberIcon} />
-            <Text style={styles.memberName}>엄 복동</Text>
-            <Text style={styles.memberDistance}>10m</Text>
-          </View>
-          <View style={styles.memberItem}>
-            <Ionicons name="person-circle" size={40} color="#00FFFF" style={styles.memberIcon} />
-            <Text style={styles.memberName}>홍 길동</Text>
-            <Text style={styles.memberDistance}>25m</Text>
-          </View>
-          <View style={styles.memberItem}>
-            <Ionicons name="person-circle" size={40} color="#FF9500" style={styles.memberIcon} />
-            <Text style={styles.memberName}>박 대기</Text>
-            <Text style={styles.memberDistance}>11m</Text>
-          </View>
-          <View style={styles.memberItem}>
-            <Ionicons name="person-circle" size={40} color="#00FF00" style={styles.memberIcon} />
-            <Text style={styles.memberName}>정 신줄</Text>
-            <Text style={styles.memberDistance}>133m</Text>
-          </View>
+          {locations.map((loc, index) => (
+            <View style={styles.memberItem} key={loc.nickname}>
+              <Ionicons name="person-circle" size={40} color={COLOR_CODES[index % COLOR_CODES.length]} style={styles.memberIcon} />
+              <Text style={styles.memberName}>{loc.nickname}</Text>
+              <Text style={styles.memberDistance}>{
+              loc.nickname === user?.nickname ? '나' : 
+                myLocation ? `${getDistance(loc.latitude, loc.longitude)} km` : '?'
+              }
+              </Text>
+            </View>))
+          }
         </View>
       </ScrollView>
 
@@ -227,12 +228,12 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   destinationText: {
-    fontSize: 24,
+    fontSize: 16,
     fontWeight: 'bold',
     flex: 1,
   },
   distanceText: {
-    fontSize: 24,
+    fontSize: 16,
     fontWeight: 'bold',
   },
   memberList: {
@@ -247,12 +248,12 @@ const styles = StyleSheet.create({
     marginRight: 15,
   },
   memberName: {
-    fontSize: 24,
+    fontSize: 16,
     color: '#000',
     flex: 1,
   },
   memberDistance: {
-    fontSize: 24,
+    fontSize: 16,
     color: '#000',
   },
   bottomActionContainer: {

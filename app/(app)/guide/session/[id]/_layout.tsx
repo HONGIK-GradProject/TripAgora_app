@@ -25,6 +25,13 @@ export default function SessionDetailLayout() {
           title: '여행 상세',
         }}
       />
+      <Stack.Screen
+        name='view-location'
+        options={{
+          headerShown: false,
+          title: '위치 보기',
+        }}
+      />
     </Stack>
   );
 }
