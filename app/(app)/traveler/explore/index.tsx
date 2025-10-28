@@ -49,7 +49,6 @@ const TravelerExploreScreen: React.FC = () => {
 
       setIsLoading(true);
       setError(null);
-      console.log('Calling page ', pageToLoad);
 
       try {
         const response = await getPublicSessionList(['RECRUITING'], pageToLoad);

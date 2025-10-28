@@ -38,20 +38,6 @@ const TravelerTripListScreen: React.FC = () => {
 
   // 현재 탭에 따른 데이터 필터링 및 정렬
   const filteredSessions = useMemo(() => {
-    // 하드코딩된 완료된 세션 샘플 데이터
-    const sampleCompletedSession: SessionInfo = {
-      sessionId: 9999,
-      title: '홍대거리 오후 번개',
-      firstImageUrl:
-        'https://images.unsplash.com/photo-1564485774779-ccbcb813b101?w=400',
-      regionIds: [113],
-      maxParticipants: 8,
-      currentParticipants: 8,
-      startDate: '2025-11-15',
-      endDate: '2025-11-15',
-      status: 'COMPLETED',
-    };
-
     let filtered = [];
 
     if (activeTab === 'upcoming') {
@@ -72,8 +58,6 @@ const TravelerTripListScreen: React.FC = () => {
       });
     } else {
       filtered = sessions.filter((session) => session.status === 'COMPLETED');
-      // 완료 탭에 하드코딩된 샘플 데이터 추가
-      filtered = [sampleCompletedSession, ...filtered];
     }
 
     return filtered;
@@ -143,10 +127,14 @@ const TravelerTripListScreen: React.FC = () => {
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={() => {
-            // [테스트용] 모든 세션을 세션 룸으로 이동
-            // 원래: RECRUITING, COMPLETED → 상세 / RECRUITMENT_CLOSED, IN_PROGRESS → 룸
-            const route = `/traveler/trip/${session.sessionId}/session-room`;
-            router.push(route as any);
+            // RECRUITING, RECRUITMENT_CLOSED → 상세 / IN_PROGRESS → 룸
+            if (session.status === 'IN_PROGRESS') {
+              router.push(
+                `/traveler/trip/${session.sessionId}/session-room` as any
+              );
+            } else {
+              router.push(`/traveler/trip/${session.sessionId}` as any);
+            }
           }}
         >
           <View className='p-5'>

@@ -17,22 +17,15 @@ import Toast from 'react-native-toast-message';
 import { authApi } from '@/api/auth';
 import CustomImagePicker from '@/components/ui/ImagePicker';
 import { useAuth } from '@/hooks/useAuth';
-import {
-  deleteUserAccount,
-  getUserInfo,
-  setProfileImage,
-} from '@/services/users';
-import { UserGetMeData } from '@/types/users';
+import { deleteUserAccount, setProfileImage } from '@/services/users';
 
 interface MyPageScreenProps {
   userRole: 'guide' | 'traveler';
 }
 
 const MyPageScreen: React.FC<MyPageScreenProps> = ({ userRole }) => {
-  const { switchUserRole } = useAuth();
+  const { user, setUser, switchUserRole } = useAuth();
   const insets = useSafeAreaInsets();
-  const [userInfo, setUserInfo] = useState<UserGetMeData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [imageLoadError, setImageLoadError] = useState(false);
   const [isEditingNickname, setIsEditingNickname] = useState(false);
   const [editingNickname, setEditingNickname] = useState('');
@@ -40,37 +33,14 @@ const MyPageScreen: React.FC<MyPageScreenProps> = ({ userRole }) => {
 
   // 유효한 프로필 이미지 URL 계산
   const profileImageUrl = useMemo(() => {
-    const uri = userInfo?.profileImageUrl;
+    const uri = user?.profileImageUrl;
     return uri && uri.trim() !== '' ? uri : null;
-  }, [userInfo?.profileImageUrl]);
+  }, [user?.profileImageUrl]);
 
   // 이미지 URL이 변경될 때 에러 상태 리셋
   useEffect(() => {
     setImageLoadError(false);
   }, [profileImageUrl]);
-
-  // 사용자 정보 로드
-  useEffect(() => {
-    const loadUserInfo = async () => {
-      try {
-        const userData = await getUserInfo();
-        if (userData) {
-          setUserInfo(userData);
-        }
-      } catch (error) {
-        console.error('사용자 정보 로드 실패:', error);
-        showToast(
-          'error',
-          '사용자 정보를 불러오는데 실패했습니다.',
-          '다시 시도해주세요.'
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadUserInfo();
-  }, []);
 
   const handleSwitchUserRole = async () => {
     const targetRole = userRole === 'guide' ? 'traveler' : 'guide';
@@ -123,7 +93,7 @@ const MyPageScreen: React.FC<MyPageScreenProps> = ({ userRole }) => {
     try {
       const newProfileImageUrl = await setProfileImage(uri);
       if (newProfileImageUrl) {
-        setUserInfo((prev) =>
+        setUser((prev: any) =>
           prev ? { ...prev, profileImageUrl: newProfileImageUrl } : null
         );
       }
@@ -139,15 +109,15 @@ const MyPageScreen: React.FC<MyPageScreenProps> = ({ userRole }) => {
   };
 
   const handleNicknamePress = () => {
-    if (isLoading || !userInfo?.nickname) return;
+    if (!user?.nickname) return;
 
     setIsEditingNickname(true);
-    setEditingNickname(userInfo.nickname);
+    setEditingNickname(user.nickname);
   };
 
   const handleNicknameSave = async () => {
     const trimmedNickname = editingNickname.trim();
-    if (!trimmedNickname || trimmedNickname === userInfo?.nickname) {
+    if (!trimmedNickname || trimmedNickname === user?.nickname) {
       setIsEditingNickname(false);
       return;
     }
@@ -157,7 +127,7 @@ const MyPageScreen: React.FC<MyPageScreenProps> = ({ userRole }) => {
       const { usersApi } = await import('@/api/users');
       await usersApi.setNickname(trimmedNickname);
 
-      setUserInfo((prev) =>
+      setUser((prev: any) =>
         prev ? { ...prev, nickname: trimmedNickname } : null
       );
 
@@ -265,17 +235,12 @@ const MyPageScreen: React.FC<MyPageScreenProps> = ({ userRole }) => {
                 </TouchableOpacity>
               </View>
             ) : (
-              <TouchableOpacity
-                onPress={handleNicknamePress}
-                disabled={isLoading}
-              >
+              <TouchableOpacity onPress={handleNicknamePress}>
                 <View className='flex-row items-center'>
                   <Text className='text-2xl font-bold text-gray-900'>
-                    {isLoading
-                      ? '로딩 중...'
-                      : userInfo?.nickname || '닉네임 없음'}
+                    {user?.nickname || '닉네임 없음'}
                   </Text>
-                  {!isLoading && userInfo?.nickname && (
+                  {user?.nickname && (
                     <Ionicons
                       name='pencil'
                       size={16}
