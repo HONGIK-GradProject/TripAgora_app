@@ -91,20 +91,6 @@ export const getSessionList = async (
     const response = await sessionsApi.getSessionList(statuses as any, page);
 
     if (response && response.code === 200) {
-      try {
-        const raw = response.data;
-        console.log('[getSessionList] page=', page, 'statuses=', statuses);
-        console.log(
-          '[getSessionList] sample',
-          Array.isArray(raw?.sessions)
-            ? raw.sessions.slice(0, 3).map((s: any) => ({
-                sessionId: s.sessionId,
-                regionIds: s.regionIds,
-                regionNames: s.regionNames,
-              }))
-            : raw
-        );
-      } catch {}
       return response.data;
     }
 
@@ -131,25 +117,6 @@ export const getPublicSessionList = async (
     );
 
     if (response && response.code === 200) {
-      try {
-        const raw = response.data;
-        console.log(
-          '[getPublicSessionList] page=',
-          page,
-          'statuses=',
-          statuses
-        );
-        console.log(
-          '[getPublicSessionList] sample',
-          Array.isArray(raw?.sessions)
-            ? raw.sessions.slice(0, 3).map((s: any) => ({
-                sessionId: s.sessionId,
-                regionIds: s.regionIds,
-                regionNames: s.regionNames,
-              }))
-            : raw
-        );
-      } catch {}
       return response.data;
     }
 
@@ -176,25 +143,6 @@ export const getParticipatingSessionList = async (
     );
 
     if (response && response.code === 200) {
-      try {
-        const raw = response.data;
-        console.log(
-          '[getParticipatingSessionList] page=',
-          page,
-          'statuses=',
-          statuses
-        );
-        console.log(
-          '[getParticipatingSessionList] sample',
-          Array.isArray(raw?.sessions)
-            ? raw.sessions.slice(0, 3).map((s: any) => ({
-                sessionId: s.sessionId,
-                regionIds: s.regionIds,
-                regionNames: s.regionNames,
-              }))
-            : raw
-        );
-      } catch {}
       return response.data;
     }
 

@@ -26,7 +26,6 @@ export const useSessionList = () => {
 
       setIsLoading(true);
       setError(null);
-      console.log('Calling page ', pageToLoad);
 
       // statuses가 비었을 때 기본 statuses를 설정합니다.
       if (!statuses)
