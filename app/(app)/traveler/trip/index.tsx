@@ -1,3 +1,4 @@
+import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { useParticipatingSessionList } from '@/hooks/sessions/useParticipatingSessionList';
 import { SessionInfo } from '@/types/sessions';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
@@ -43,7 +44,7 @@ const TravelerTripListScreen: React.FC = () => {
       title: '홍대거리 오후 번개',
       firstImageUrl:
         'https://images.unsplash.com/photo-1564485774779-ccbcb813b101?w=400',
-      regionNames: ['마포구'],
+      regionIds: [113],
       maxParticipants: 8,
       currentParticipants: 8,
       startDate: '2025-11-15',
@@ -188,7 +189,13 @@ const TravelerTripListScreen: React.FC = () => {
                     numberOfLines={2}
                     ellipsizeMode='tail'
                   >
-                    {session.regionNames.join(', ')}
+                    {(Array.isArray(session.regionIds) &&
+                    session.regionIds.length > 0
+                      ? session.regionIds.map((id) => REGION_ID_TO_NAME_MAP[id])
+                      : (session as any).regionNames || []
+                    )
+                      .filter(Boolean)
+                      .join(', ')}
                   </Text>
                 </View>
               </View>
@@ -287,7 +294,15 @@ const TravelerTripListScreen: React.FC = () => {
                     numberOfLines={2}
                     ellipsizeMode='tail'
                   >
-                    {currentSession.regionNames.join(', ')}
+                    {(Array.isArray(currentSession.regionIds) &&
+                    currentSession.regionIds.length > 0
+                      ? currentSession.regionIds.map(
+                          (id) => REGION_ID_TO_NAME_MAP[id]
+                        )
+                      : (currentSession as any).regionNames || []
+                    )
+                      .filter(Boolean)
+                      .join(', ')}
                   </Text>
                 </View>
               </View>

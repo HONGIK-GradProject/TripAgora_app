@@ -1,3 +1,4 @@
+import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { useSessionList } from '@/hooks/sessions/useSessionList';
 import { SessionInfo } from '@/types/sessions';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
@@ -138,7 +139,12 @@ const GuideTripListScreen: React.FC = () => {
               numberOfLines={2}
               ellipsizeMode='tail'
             >
-              {session.regionNames.join(', ')}
+              {(Array.isArray(session.regionIds) && session.regionIds.length > 0
+                ? session.regionIds.map((id) => REGION_ID_TO_NAME_MAP[id])
+                : (session as any).regionNames || []
+              )
+                .filter(Boolean)
+                .join(', ')}
             </Text>
           </View>
         </View>
@@ -242,7 +248,15 @@ const GuideTripListScreen: React.FC = () => {
                     numberOfLines={2}
                     ellipsizeMode='tail'
                   >
-                    {currentSession.regionNames.join(', ')}
+                    {(Array.isArray(currentSession.regionIds) &&
+                    currentSession.regionIds.length > 0
+                      ? currentSession.regionIds.map(
+                          (id) => REGION_ID_TO_NAME_MAP[id]
+                        )
+                      : (currentSession as any).regionNames || []
+                    )
+                      .filter(Boolean)
+                      .join(', ')}
                   </Text>
                 </View>
               </View>

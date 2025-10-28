@@ -67,7 +67,7 @@ interface SessionInfo {
   sessionId: number;
   title: string;
   firstImageUrl: string;
-  regionNames: string[];
+  regionIds: number[];
   maxParticipants: number;
   currentParticipants: number;
   startDate: string; // yyyy-mm-dd 형식

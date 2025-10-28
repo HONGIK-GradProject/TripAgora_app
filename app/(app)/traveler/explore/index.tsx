@@ -1,5 +1,6 @@
 import SearchWithAutoComplete from '@/components/search-bar/SearchWithAutoComplete';
 import ProductList from '@/components/traveler/explore/TravelerProductList';
+import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { getPublicSessionList } from '@/services/sessions';
 import { SessionInfo } from '@/types/sessions';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -94,7 +95,13 @@ const TravelerExploreScreen: React.FC = () => {
       title: session.title,
       date: `${session.startDate} - ${session.endDate}`,
       participants: `${session.currentParticipants}/${session.maxParticipants}명`,
-      location: session.regionNames.join(', '),
+      location: (Array.isArray(session.regionIds) &&
+      session.regionIds.length > 0
+        ? session.regionIds.map((id) => REGION_ID_TO_NAME_MAP[id])
+        : (session as any).regionNames || []
+      )
+        .filter(Boolean)
+        .join(', '),
       guide: '가이드', // TODO: 가이드 정보 추가 필요
       rating: '-' as const,
       imageUrl: session.firstImageUrl,
