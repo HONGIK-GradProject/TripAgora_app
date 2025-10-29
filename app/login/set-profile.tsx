@@ -1,5 +1,4 @@
 import { usersApi } from '@/api/users';
-import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -48,20 +47,6 @@ const SetProfileScreen: React.FC = () => {
       <Text className='text-4xl text-center mb-10 font-normal'>
         당신에 대해 알려주세요.
       </Text>
-
-      <View className='w-[133px] h-[133px] rounded-full bg-secondary justify-center items-center mb-8'>
-        <Image
-          source={{ uri: 'https://via.placeholder.com/133' }}
-          style={{
-            width: '100%',
-            height: '100%',
-            borderRadius: 66.5,
-            position: 'absolute',
-          }}
-          contentFit='cover'
-        />
-        <Text className='text-2xl text-black'>(프사)</Text>
-      </View>
 
       {/* 닉네임 인풋 */}
       <View className='w-4/5 mb-5'>

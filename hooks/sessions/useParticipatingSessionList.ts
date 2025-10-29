@@ -1,8 +1,8 @@
-import { getSessionList } from '@/services/sessions';
+import { getParticipatingSessionList } from '@/services/sessions';
 import { SessionInfo } from '@/types/sessions';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-export const useSessionList = () => {
+export const useParticipatingSessionList = () => {
   const [sessions, setSessions] = useState<SessionInfo[]>([]);
   const [page, setPage] = useState(0);
   const [hasNextPage, setHasNextPage] = useState(true);
@@ -32,7 +32,10 @@ export const useSessionList = () => {
         statuses = ['RECRUITING', 'RECRUITMENT_CLOSED', 'IN_PROGRESS'];
 
       try {
-        const response = await getSessionList(statuses, pageToLoad);
+        const response = await getParticipatingSessionList(
+          statuses,
+          pageToLoad
+        );
 
         if (response) {
           setSessions((prev) =>

@@ -4,6 +4,7 @@
  */
 
 import {
+  UserDeleteMeResponse,
   UserGetMeResponse,
   UserSetNicknameRequest,
   UserSetNicknameResponse,
@@ -81,6 +82,15 @@ const setProfileImage = async (
   return response.data;
 };
 
+/**
+ * 현재 로그인한 사용자의 계정을 삭제합니다.
+ * @returns 계정 삭제 성공 시 응답 데이터를 반환합니다.
+ */
+const deleteMe = async (): Promise<UserDeleteMeResponse> => {
+  const response = await apiClient.delete<UserDeleteMeResponse>('/users/me');
+  return response.data;
+};
+
 export const usersApi = {
   getMe,
   setNickname,
@@ -88,4 +98,5 @@ export const usersApi = {
   switchToGuide,
   switchToTraveler,
   setProfileImage,
+  deleteMe,
 };

@@ -1,4 +1,6 @@
 import {
+  SessionCloseRequest,
+  SessionCloseResponse,
   SessionCreateRequest,
   SessionCreateResponse,
   SessionDeleteRequest,
@@ -9,6 +11,10 @@ import {
   SessionGetListResponse,
   SessionGetRequest,
   SessionGetResponse,
+  SessionParticipationCancelRequest,
+  SessionParticipationCancelResponse,
+  SessionParticipationRequest,
+  SessionParticipationResponse,
   SessionStatus,
   SessionUpdateRequest,
   SessionUpdateResponse,
@@ -102,6 +108,52 @@ const getSessionList = async (
 };
 
 /**
+ * 전체 세션 목록을 상태별로 조회합니다.
+ * @param statuses - 조회할 세션 상태 배열 (선택사항)
+ * @param page - 조회할 페이지 번호
+ * @returns 전체 세션 목록 정보를 담은 Promise
+ */
+const getPublicSessionList = async (
+  statuses: SessionStatus[] | undefined,
+  page: number
+): Promise<SessionGetListResponse> => {
+  const requestData: SessionGetListRequest = {
+    params: {
+      statuses,
+      page,
+    },
+  };
+  const response = await apiClient.get<SessionGetListResponse>(
+    '/sessions',
+    requestData
+  );
+  return response.data;
+};
+
+/**
+ * 여행자가 참여한 세션 목록을 상태별로 조회합니다.
+ * @param statuses - 조회할 세션 상태 배열 (선택사항)
+ * @param page - 조회할 페이지 번호
+ * @returns 참여한 세션 목록 정보를 담은 Promise
+ */
+const getParticipatingSessionList = async (
+  statuses: SessionStatus[] | undefined,
+  page: number
+): Promise<SessionGetListResponse> => {
+  const requestData: SessionGetListRequest = {
+    params: {
+      statuses,
+      page,
+    },
+  };
+  const response = await apiClient.get<SessionGetListResponse>(
+    '/sessions/participating',
+    requestData
+  );
+  return response.data;
+};
+
+/**
  * 특정 세션의 상세 정보를 조회합니다.
  * @param sessionId - 조회할 세션의 ID
  * @returns 세션 상세 정보를 담은 Promise
@@ -132,6 +184,56 @@ const getSessionItineraries = async (
 };
 
 /**
+ * 특정 세션의 모집을 마감합니다.
+ * @param sessionId - 모집을 마감할 세션의 ID
+ * @returns 모집 마감 결과를 담은 Promise
+ */
+const closeSession = async (
+  sessionId: number
+): Promise<SessionCloseResponse> => {
+  const requestData: SessionCloseRequest = {} as SessionCloseRequest;
+  const response = await apiClient.post<SessionCloseResponse>(
+    `/sessions/${sessionId}/close`,
+    requestData
+  );
+  return response.data;
+};
+
+/**
+ * 세션에 참여 요청을 합니다.
+ * @param sessionId - 참여할 세션의 ID
+ * @returns 세션 참여 결과를 담은 Promise
+ */
+const createParticipation = async (
+  sessionId: number
+): Promise<SessionParticipationResponse> => {
+  const requestData: SessionParticipationRequest =
+    {} as SessionParticipationRequest;
+  const response = await apiClient.post<SessionParticipationResponse>(
+    `/participation/sessions/${sessionId}`,
+    requestData
+  );
+  return response.data;
+};
+
+/**
+ * 세션 참여를 취소합니다.
+ * @param sessionId - 참여 취소할 세션의 ID
+ * @returns 세션 참여 취소 결과를 담은 Promise
+ */
+const cancelParticipation = async (
+  sessionId: number
+): Promise<SessionParticipationCancelResponse> => {
+  const requestData: SessionParticipationCancelRequest =
+    {} as SessionParticipationCancelRequest;
+  const response = await apiClient.delete<SessionParticipationCancelResponse>(
+    `/participation/sessions/${sessionId}`,
+    { data: requestData }
+  );
+  return response.data;
+};
+
+/**
  * 세션 관련 API 함수들을 모아놓은 객체입니다.
  */
 export const sessionsApi = {
@@ -139,6 +241,11 @@ export const sessionsApi = {
   updateSession,
   deleteSession,
   getSessionList,
+  getPublicSessionList,
+  getParticipatingSessionList,
   getSession,
   getSessionItineraries,
+  closeSession,
+  createParticipation,
+  cancelParticipation,
 };

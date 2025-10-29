@@ -4,7 +4,7 @@
  */
 
 import { usersApi } from '@/api/users';
-import { saveTokens } from '@/lib/tokenStorage';
+import { clearTokens, saveTokens } from '@/lib/tokenStorage';
 import {
   UserSwitchToGuideResponse,
   UserSwitchToTravelerResponse,
@@ -96,6 +96,32 @@ export const getUser = async () => {
       );
     } else {
       console.error('사용자 정보 조회 실패 (Unknown Error):', error);
+    }
+  }
+  return undefined;
+};
+
+/**
+ * 현재 로그인한 사용자의 계정을 삭제합니다.
+ * @returns 성공 시 true를, 실패 시 undefined를 반환합니다.
+ */
+export const deleteUserAccount = async () => {
+  try {
+    const response = await usersApi.deleteMe();
+    if (response.code === 200) {
+      // 계정 삭제 성공 시 로컬 토큰도 삭제
+      await clearTokens();
+      console.log('사용자 계정 삭제 성공');
+      return true;
+    }
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error(
+        '사용자 계정 삭제 실패 (Axios Error):',
+        error.response?.data?.message || error.message
+      );
+    } else {
+      console.error('사용자 계정 삭제 실패 (Unknown Error):', error);
     }
   }
   return undefined;
