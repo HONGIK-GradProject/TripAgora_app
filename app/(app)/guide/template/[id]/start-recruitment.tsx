@@ -171,8 +171,8 @@ const StartRecruitmentContent: React.FC = () => {
 
         {/* 여행 정보 섹션 */}
         <View className='px-5 mb-5'>
-          <View className='flex-row items-center bg-white rounded-lg p-0'>
-            <View className='w-20 h-20 rounded-lg mr-4'>
+          <View className='flex-row items-center bg-white rounded-lg p-4'>
+            <View className='w-20 h-20 rounded-lg mr-6'>
               {hasImageError || !imageUrls || imageUrls.length === 0 ? (
                 <View className='w-20 h-20 rounded-lg bg-gray-300 items-center justify-center'>
                   <Ionicons name='image-outline' size={24} color='#9CA3AF' />
@@ -199,7 +199,7 @@ const StartRecruitmentContent: React.FC = () => {
         {/* 모집 인원 설정 */}
         <View className='px-5 mb-8'>
           <Text className='text-lg font-bold text-[#8130FF] mb-4'>
-            모집 인원
+            모집 인원 (가이드 제외)
           </Text>
           <View className='flex-row items-center justify-center gap-5'>
             <TouchableOpacity

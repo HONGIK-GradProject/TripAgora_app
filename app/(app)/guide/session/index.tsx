@@ -1,3 +1,4 @@
+import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { useSessionList } from '@/hooks/sessions/useSessionList';
 import { SessionInfo } from '@/types/sessions';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
@@ -94,9 +95,15 @@ const GuideTripListScreen: React.FC = () => {
   const renderSessionItem = ({ item: session }: { item: SessionInfo }) => (
     <TouchableOpacity
       className='bg-white rounded-2xl mb-2 p-5 shadow-sm border border-gray-100'
-      onPress={() =>
-        router.push(`/guide/session/${session.sessionId.toString()}` as any)
-      }
+      onPress={() => {
+        // 진행 중인 여행과 모집 마감된 여행은 세션 룸으로, 나머지는 상세 페이지로
+        const route =
+          session.status === 'IN_PROGRESS' ||
+          session.status === 'RECRUITMENT_CLOSED'
+            ? `/guide/session/${session.sessionId.toString()}/session-room`
+            : `/guide/session/${session.sessionId.toString()}`;
+        router.push(route as any);
+      }}
     >
       <View className='flex-row items-center'>
         <Image
@@ -132,7 +139,12 @@ const GuideTripListScreen: React.FC = () => {
               numberOfLines={2}
               ellipsizeMode='tail'
             >
-              {session.regionNames.join(', ')}
+              {(Array.isArray(session.regionIds) && session.regionIds.length > 0
+                ? session.regionIds.map((id) => REGION_ID_TO_NAME_MAP[id])
+                : (session as any).regionNames || []
+              )
+                .filter(Boolean)
+                .join(', ')}
             </Text>
           </View>
         </View>
@@ -186,7 +198,7 @@ const GuideTripListScreen: React.FC = () => {
             className='bg-purple-500 rounded-2xl p-5'
             onPress={() =>
               router.push(
-                `/guide/session/${currentSession.sessionId.toString()}` as any
+                `/guide/session/${currentSession.sessionId.toString()}/session-room` as any
               )
             }
           >
@@ -236,7 +248,15 @@ const GuideTripListScreen: React.FC = () => {
                     numberOfLines={2}
                     ellipsizeMode='tail'
                   >
-                    {currentSession.regionNames.join(', ')}
+                    {(Array.isArray(currentSession.regionIds) &&
+                    currentSession.regionIds.length > 0
+                      ? currentSession.regionIds.map(
+                          (id) => REGION_ID_TO_NAME_MAP[id]
+                        )
+                      : (currentSession as any).regionNames || []
+                    )
+                      .filter(Boolean)
+                      .join(', ')}
                   </Text>
                 </View>
               </View>

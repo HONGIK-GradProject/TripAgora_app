@@ -136,6 +136,14 @@ const ProductDetailScreen: React.FC = () => {
     setIsImageViewerVisible(false);
   };
 
+  // 이미지 뷰어 스크롤 이벤트 핸들러
+  const handleImageViewerMomentumScrollEnd = (event: any) => {
+    if (imageUrls.length <= 1) return;
+    const contentOffsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(contentOffsetX / screenWidth);
+    setSelectedImageIndex(index);
+  };
+
   useFocusEffect(
     useCallback(() => {
       // The id check is still useful here before refetching
@@ -585,6 +593,7 @@ const ProductDetailScreen: React.FC = () => {
             showsHorizontalScrollIndicator={false}
             contentOffset={{ x: selectedImageIndex * screenWidth, y: 0 }}
             style={styles.imageViewerScrollView}
+            onMomentumScrollEnd={handleImageViewerMomentumScrollEnd}
           >
             {imageUrls.map((imageUrl, index) => (
               <View key={index} style={styles.imageViewerItem}>

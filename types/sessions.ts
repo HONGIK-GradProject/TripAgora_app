@@ -67,7 +67,7 @@ interface SessionInfo {
   sessionId: number;
   title: string;
   firstImageUrl: string;
-  regionNames: string[];
+  regionIds: number[];
   maxParticipants: number;
   currentParticipants: number;
   startDate: string; // yyyy-mm-dd 형식
@@ -103,6 +103,16 @@ interface SessionGetListResponse extends APIResponse<SessionGetListData> {
 interface SessionGetRequest {}
 
 /**
+ * 세션 참여자 정보 타입
+ */
+interface Participant {
+  userId: number;
+  nickname: string;
+  profileImageUrl: string;
+  role: 'GUIDE' | 'TRAVELER';
+}
+
+/**
  * 세션 상세 조회 응답 데이터
  */
 interface SessionGetData {
@@ -116,6 +126,8 @@ interface SessionGetData {
   startDate: string; // yyyy-mm-dd 형식
   endDate: string; // yyyy-mm-dd 형식
   status: SessionStatus;
+  participants: Participant[];
+  isParticipating: boolean;
 }
 
 interface SessionGetResponse extends APIResponse<SessionGetData> {
@@ -152,7 +164,64 @@ interface SessionGetItinerariesResponse
   // APIResponse의 모든 속성을 상속받습니다.
 }
 
+/**
+ * 세션 모집 마감 요청 데이터 (빈 데이터)
+ */
+interface SessionCloseRequest {
+  // 세션 모집 마감 시 추가 데이터 없음
+}
+
+/**
+ * 세션 모집 마감 응답 데이터 (빈 데이터)
+ */
+interface SessionCloseData {
+  // 세션 모집 마감 시 반환 데이터 없음
+}
+
+interface SessionCloseResponse extends APIResponse<SessionCloseData> {
+  // APIResponse의 모든 속성을 상속받습니다.
+}
+
+/**
+ * 세션 참여 요청 데이터 (빈 데이터)
+ */
+interface SessionParticipationRequest {
+  // 세션 참여 시 추가 데이터 없음
+}
+
+/**
+ * 세션 참여 응답 데이터
+ */
+interface SessionParticipationData {
+  participationId: number; // 세션 참여 ID
+  sessionId: number; // 참여 신청한 세션 ID
+  currentParticipants: number; // 현재 세션의 참여 인원
+}
+
+interface SessionParticipationResponse
+  extends APIResponse<SessionParticipationData> {
+  // APIResponse의 모든 속성을 상속받습니다.
+}
+
+// 세션 참여 취소 관련 타입
+interface SessionParticipationCancelRequest {
+  // 세션 참여 취소 시 추가 데이터 없음
+}
+
+interface SessionParticipationCancelData {
+  // 세션 참여 취소 시 반환 데이터 없음
+}
+
+interface SessionParticipationCancelResponse
+  extends APIResponse<SessionParticipationCancelData> {
+  // APIResponse의 모든 속성을 상속받습니다.
+}
+
 export {
+  Participant,
+  SessionCloseData,
+  SessionCloseRequest,
+  SessionCloseResponse,
   SessionCreateData,
   SessionCreateRequest,
   SessionCreateResponse,
@@ -170,6 +239,12 @@ export {
   SessionGetResponse,
   SessionInfo,
   SessionItinerary,
+  SessionParticipationCancelData,
+  SessionParticipationCancelRequest,
+  SessionParticipationCancelResponse,
+  SessionParticipationData,
+  SessionParticipationRequest,
+  SessionParticipationResponse,
   SessionStatus,
   SessionUpdateData,
   SessionUpdateRequest,

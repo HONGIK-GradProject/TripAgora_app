@@ -6,12 +6,7 @@ import { createBlankTemplate } from '@/services/templates';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 /**
@@ -19,7 +14,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
  * 템플릿 목록을 조회, 검색하고 새로 생성하는 기능을 제공합니다.
  */
 const MyProductsScreen: React.FC = () => {
-  const insets = useSafeAreaInsets();
   const { products, isLoading, error, loadMore, refetch } = useTemplateList();
   const { bottom } = useSafeAreaInsets();
 
@@ -110,7 +104,7 @@ const MyProductsScreen: React.FC = () => {
               ListFooterComponent={renderFooter}
               onRefresh={refetch}
               refreshing={isLoading}
-              contentContainerStyle={{ paddingBottom: 108 + bottom }}
+              contentContainerStyle={{ paddingBottom: 80 + bottom }}
             />
           </View>
         </>
@@ -121,7 +115,7 @@ const MyProductsScreen: React.FC = () => {
         className='absolute right-6 w-16 h-16 rounded-full bg-white items-center justify-center'
         style={{
           elevation: 8,
-          bottom: insets.bottom + 20,
+          bottom: bottom + 20,
         }}
         onPress={handleCreateTemplate}
       >

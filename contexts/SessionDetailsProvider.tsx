@@ -1,6 +1,12 @@
 import { getSession, getSessionItineraries } from '@/services/sessions';
-import { SessionItinerary } from '@/types/sessions';
-import React, { createContext, ReactNode, useCallback, useState } from 'react';
+import { Participant, SessionItinerary } from '@/types/sessions';
+import React, {
+  createContext,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 
 /**
  * 세션 상세 정보 관련 상태와 로직을 관리하는 내부 훅입니다.
@@ -20,6 +26,8 @@ const useSessionDetailsLogic = (id: string) => {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [status, setStatus] = useState<string>('');
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [isParticipating, setIsParticipating] = useState<boolean>(false);
   const [itineraries, setItineraries] = useState<{
     [key: number]: SessionItinerary[];
   }>({});
@@ -47,6 +55,8 @@ const useSessionDetailsLogic = (id: string) => {
         setStartDate(sessionResponse.startDate);
         setEndDate(sessionResponse.endDate);
         setStatus(sessionResponse.status);
+        setParticipants(sessionResponse.participants);
+        setIsParticipating(sessionResponse.isParticipating);
       }
 
       if (itinerariesResponse) {
@@ -67,6 +77,11 @@ const useSessionDetailsLogic = (id: string) => {
     }
   }, [id]);
 
+  // 컴포넌트 마운트 시 데이터 가져오기
+  useEffect(() => {
+    fetchSessionDetails();
+  }, [fetchSessionDetails]);
+
   return {
     isLoading,
     title,
@@ -79,6 +94,8 @@ const useSessionDetailsLogic = (id: string) => {
     startDate,
     endDate,
     status,
+    participants,
+    isParticipating,
     itineraries,
     setTitle,
     setContent,
@@ -90,6 +107,8 @@ const useSessionDetailsLogic = (id: string) => {
     setStartDate,
     setEndDate,
     setStatus,
+    setParticipants,
+    setIsParticipating,
     setItineraries,
     refetch: fetchSessionDetails,
   };
