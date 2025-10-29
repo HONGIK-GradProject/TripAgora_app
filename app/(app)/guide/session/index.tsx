@@ -251,7 +251,7 @@ const GuideTripListScreen: React.FC = () => {
                     {(Array.isArray(currentSession.regionIds) &&
                     currentSession.regionIds.length > 0
                       ? currentSession.regionIds.map(
-                          (id) => REGION_ID_TO_NAME_MAP[id]
+                          (id: number) => REGION_ID_TO_NAME_MAP[id]
                         )
                       : (currentSession as any).regionNames || []
                     )

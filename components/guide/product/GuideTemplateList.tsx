@@ -16,11 +16,11 @@ import {
 // 단, data와 renderItem은 내부적으로 처리하므로 Omit으로 제외합니다.
 interface TemplateListProps
   extends Omit<FlatListProps<TemplateInfo>, 'data' | 'renderItem'> {
-  products: TemplateInfo[];
+  templates: TemplateInfo[];
 }
 
 const GuideTemplateList: React.FC<TemplateListProps> = ({
-  products,
+  templates,
   ...rest
 }) => {
   const renderItem = ({ item }: { item: TemplateInfo }) => (
@@ -70,7 +70,7 @@ const GuideTemplateList: React.FC<TemplateListProps> = ({
 
   return (
     <FlatList
-      data={products}
+      data={templates}
       renderItem={renderItem}
       keyExtractor={(item) => item.templateId.toString()}
       showsVerticalScrollIndicator={false}

@@ -1,4 +1,4 @@
-import GuideProductList from '@/components/guide/product/GuideTemplateList';
+import GuideTemplateList from '@/components/guide/product/GuideTemplateList';
 import SearchWithAutoComplete from '@/components/search-bar/SearchWithAutoComplete';
 import FullScreenLoader from '@/components/ui/FullScreenLoader';
 import { useTemplateList } from '@/hooks/templates/useTemplateList';
@@ -13,22 +13,22 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
  * 가이드가 생성한 자신의 상품 템플릿 목록을 보여주는 화면 컴포넌트입니다.
  * 템플릿 목록을 조회, 검색하고 새로 생성하는 기능을 제공합니다.
  */
-const MyProductsScreen: React.FC = () => {
-  const { products, isLoading, error, loadMore, refetch } = useTemplateList();
+const MyTemplatesScreen: React.FC = () => {
+  const { templates, isLoading, error, loadMore, refetch } = useTemplateList();
   const { bottom } = useSafeAreaInsets();
 
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [submittedQuery, setSubmittedQuery] = useState<string>('');
 
-  const filteredProducts = useMemo(() => {
+  const filteredTemplates = useMemo(() => {
     if (!submittedQuery.trim()) {
-      return products;
+      return templates;
     }
     const lowercasedQuery = submittedQuery.toLowerCase();
-    return products.filter((info) =>
+    return templates.filter((info) =>
       info.title.toLowerCase().includes(lowercasedQuery)
     );
-  }, [products, submittedQuery]);
+  }, [templates, submittedQuery]);
 
   // 자동완성 비활성화
   const handleFetchSuggestions = async (query: string) => {
@@ -65,11 +65,21 @@ const MyProductsScreen: React.FC = () => {
    */
   const renderFooter = () => {
     // 추가 페이지 로딩 시에만 하단 로딩 아이콘 표시
-    if (isLoading && products.length > 0) {
+    if (isLoading && templates.length > 0) {
       return <ActivityIndicator style={{ marginVertical: 20 }} />;
     }
     return null;
   };
+
+  // Wrap loadMore and refetch to ensure no arguments are passed
+  const handleLoadMore = useCallback(() => {
+    loadMore();
+  }, [loadMore]);
+
+  const handleRefetch = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
 
   return (
     <View className='flex-1 bg-white pt-12 relative'>
@@ -82,7 +92,7 @@ const MyProductsScreen: React.FC = () => {
       />
 
       {/* 초기 로딩 처리 */}
-      {isLoading && products.length === 0 ? (
+      {isLoading && templates.length === 0 ? (
         <FullScreenLoader />
       ) : error ? (
         <Text style={{ textAlign: 'center', marginTop: 50 }}>
@@ -97,12 +107,12 @@ const MyProductsScreen: React.FC = () => {
             className='bg-gray-50 rounded-2xl p-4'
             style={{ marginBottom: 16 + bottom }}
           >
-            <GuideProductList
-              products={filteredProducts}
-              onEndReached={loadMore}
+            <GuideTemplateList
+              templates={filteredTemplates}
+              onEndReached={handleLoadMore}
               onEndReachedThreshold={0.5}
               ListFooterComponent={renderFooter}
-              onRefresh={refetch}
+              onRefresh={handleRefetch}
               refreshing={isLoading}
               contentContainerStyle={{ paddingBottom: 80 + bottom }}
             />
@@ -127,4 +137,4 @@ const MyProductsScreen: React.FC = () => {
   );
 };
 
-export default MyProductsScreen;
+export default MyTemplatesScreen;
