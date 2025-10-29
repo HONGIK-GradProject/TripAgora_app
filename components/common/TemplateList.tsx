@@ -7,15 +7,33 @@ import { Image } from 'expo-image';
 import React from 'react';
 import { FlatListProps, Text, View } from 'react-native';
 
+/**
+ * @interface TemplateListProps
+ * @extends Omit<FlatListProps<TemplateInfo>, 'data' | 'renderItem' | 'keyExtractor'> `FlatList`의 props를 상속받지만, 내부적으로 처리되는 props는 제외합니다.
+ *
+ * TemplateList 컴포넌트에 전달되는 props입니다.
+ */
 interface TemplateListProps
   extends Omit<
     FlatListProps<TemplateInfo>,
     'data' | 'renderItem' | 'keyExtractor'
   > {
+  /**
+   * 리스트에 표시될 템플릿 데이터 배열입니다.
+   */
   templates: TemplateInfo[];
+  /**
+   * 현재 사용자의 역할('GUIDE' 또는 'TRAVELER')입니다.
+   * 이 역할에 따라 아이템 클릭 시 이동하는 경로가 달라집니다.
+   */
   userRole: UserRole;
 }
 
+/**
+ * 개별 템플릿 아이템의 UI를 렌더링하는 컴포넌트입니다.
+ * @param {TemplateInfo} item - 렌더링할 템플릿 정보.
+ * @returns {React.ReactElement} - 템플릿 아이템의 JSX 엘리먼트.
+ */
 const TemplateListElement = (item: TemplateInfo) => (
   <>
     <Image
@@ -54,6 +72,13 @@ const TemplateListElement = (item: TemplateInfo) => (
   </>
 );
 
+/**
+ * 템플릿 목록을 표시하는 범용 컴포넌트입니다.
+ * `ProductList`를 기반으로 하며, 사용자 역할(`userRole`)에 따라 다른 탐색 경로를 제공합니다.
+ *
+ * @param {TemplateListProps} props - 컴포넌트에 전달되는 props.
+ * @returns {React.ReactElement} - 렌더링된 템플릿 리스트 컴포넌트.
+ */
 const TemplateList: React.FC<TemplateListProps> = ({
   templates,
   userRole,
