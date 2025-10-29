@@ -1,4 +1,4 @@
-import GuideSessionList from '@/components/guide/product/GuideSessionList';
+import GuideSessionList from '@/components/guide/session/GuideSessionList';
 import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { useSessionList } from '@/hooks/sessions/useSessionList';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
