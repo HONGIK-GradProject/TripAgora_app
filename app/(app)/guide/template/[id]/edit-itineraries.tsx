@@ -1,7 +1,7 @@
-import GuideItineraryList from '@/components/guide/product/GuideItineraryList';
+import GuideItineraryList from '@/components/guide/template/GuideItineraryList';
 import {
-  InteractiveMapView,
-  InteractiveMapViewRef,
+    InteractiveMapView,
+    InteractiveMapViewRef,
 } from '@/components/map/InteractiveMapView';
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import { setTemplateItineraries } from '@/services/templates';
@@ -9,18 +9,18 @@ import { TemplateItinerary } from '@/types/templates';
 import { flattenItineraries } from '@/utils/Itineraries';
 import { Ionicons } from '@expo/vector-icons';
 import {
-  CameraAnimationEasing,
-  ClusterMarkerProp,
+    CameraAnimationEasing,
+    ClusterMarkerProp,
 } from '@mj-studio/react-native-naver-map';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
 import Toast from 'react-native-toast-message';

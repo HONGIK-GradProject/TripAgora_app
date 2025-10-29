@@ -1,13 +1,12 @@
+import GuideSessionList from '@/components/guide/product/GuideSessionList';
 import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { useSessionList } from '@/hooks/sessions/useSessionList';
-import { SessionInfo } from '@/types/sessions';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  FlatList,
   RefreshControl,
   Text,
   TouchableOpacity,
@@ -88,97 +87,6 @@ const GuideTripListScreen: React.FC = () => {
     }
     return null;
   };
-
-  /**
-   * 세션 아이템을 렌더링하는 함수
-   */
-  const renderSessionItem = ({ item: session }: { item: SessionInfo }) => (
-    <TouchableOpacity
-      className='bg-white rounded-2xl mb-2 p-5 shadow-sm border border-gray-100'
-      onPress={() => {
-        // 진행 중인 여행과 모집 마감된 여행은 세션 룸으로, 나머지는 상세 페이지로
-        const route =
-          session.status === 'IN_PROGRESS' ||
-          session.status === 'RECRUITMENT_CLOSED'
-            ? `/guide/session/${session.sessionId.toString()}/session-room`
-            : `/guide/session/${session.sessionId.toString()}`;
-        router.push(route as any);
-      }}
-    >
-      <View className='flex-row items-center'>
-        <Image
-          source={{ uri: session.firstImageUrl }}
-          style={{ width: 80, height: 80, borderRadius: 12, marginRight: 16 }}
-          contentFit='cover'
-        />
-        <View className='flex-1'>
-          <Text className='text-lg font-semibold text-gray-900 mb-1'>
-            {session.title}
-          </Text>
-          <Text className='text-gray-600 mb-2'>
-            {session.startDate} ~ {session.endDate}
-          </Text>
-          <View className='flex-row items-start'>
-            <MaterialIcons
-              name='person-outline'
-              size={16}
-              color='#6B7280'
-              style={{ marginTop: 2 }}
-            />
-            <Text className='text-gray-600 ml-1 mr-4'>
-              {session.currentParticipants}/{session.maxParticipants}명
-            </Text>
-            <Ionicons
-              name='location-outline'
-              size={16}
-              color='#6B7280'
-              style={{ marginTop: 2 }}
-            />
-            <Text
-              className='text-gray-600 ml-1 flex-1'
-              numberOfLines={2}
-              ellipsizeMode='tail'
-            >
-              {(Array.isArray(session.regionIds) && session.regionIds.length > 0
-                ? session.regionIds.map((id) => REGION_ID_TO_NAME_MAP[id])
-                : (session as any).regionNames || []
-              )
-                .filter(Boolean)
-                .join(', ')}
-            </Text>
-          </View>
-        </View>
-        <View
-          className={`px-3 py-1 rounded-full ${
-            session.status === 'RECRUITING'
-              ? 'bg-purple-100'
-              : session.status === 'RECRUITMENT_CLOSED'
-              ? 'bg-orange-100'
-              : session.status === 'COMPLETED'
-              ? 'bg-green-100'
-              : 'bg-gray-100'
-          }`}
-        >
-          <Text
-            className={`text-sm ${
-              session.status === 'RECRUITING'
-                ? 'text-purple-700'
-                : session.status === 'RECRUITMENT_CLOSED'
-                ? 'text-orange-700'
-                : session.status === 'COMPLETED'
-                ? 'text-green-700'
-                : 'text-gray-600'
-            }`}
-          >
-            {session.status === 'RECRUITING' && '모집중'}
-            {session.status === 'RECRUITMENT_CLOSED' && '모집마감'}
-            {session.status === 'IN_PROGRESS' && '진행중'}
-            {session.status === 'COMPLETED' && '완료'}
-          </Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
 
   return (
     <View className='flex-1 bg-gray-50'>
@@ -319,11 +227,8 @@ const GuideTripListScreen: React.FC = () => {
             </Text>
           </View>
         ) : (
-          <FlatList
-            data={filteredSessions}
-            renderItem={renderSessionItem}
-            keyExtractor={(item) => item.sessionId.toString()}
-            showsVerticalScrollIndicator={false}
+          <GuideSessionList
+            sessions={filteredSessions}
             onEndReached={() => {
               const statuses =
                 activeTab === 'ongoing'

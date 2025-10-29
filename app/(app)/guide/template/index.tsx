@@ -1,4 +1,4 @@
-import GuideTemplateList from '@/components/guide/product/GuideTemplateList';
+import GuideTemplateList from '@/components/guide/template/GuideTemplateList';
 import SearchWithAutoComplete from '@/components/search-bar/SearchWithAutoComplete';
 import FullScreenLoader from '@/components/ui/FullScreenLoader';
 import { useTemplateList } from '@/hooks/templates/useTemplateList';
