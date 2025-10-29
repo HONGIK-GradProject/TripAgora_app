@@ -1,18 +1,38 @@
+import { useAuth } from '@/hooks/useAuth';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React from 'react';
 import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 const TravelerHomeScreen: React.FC = () => {
+  const { user } = useAuth();
   return (
     <View className='flex-1 bg-gray-50'>
       {/* 헤더 */}
       <View className='bg-white pt-12 pb-4 px-6'>
-        <View className='flex-row items-center'>
-          <View className='w-12 h-12 rounded-full bg-gray-200 justify-center items-center'>
-            <Ionicons name='person-circle-outline' size={40} color='#6B7280' />
+        <TouchableOpacity
+          className='flex-row items-center'
+          onPress={() => router.push('/traveler/my-page')}
+          activeOpacity={0.7}
+        >
+          <View className='w-10 h-10 rounded-full bg-gray-200 justify-center items-center'>
+            {user?.profileImageUrl ? (
+              <Image
+                source={{ uri: user.profileImageUrl }}
+                style={{ width: 40, height: 40, borderRadius: 20 }}
+              />
+            ) : (
+              <Ionicons
+                name='person-circle-outline'
+                size={36}
+                color='#6B7280'
+              />
+            )}
           </View>
-          <Text className='text-2xl font-bold ml-3 text-gray-900'>김 홍익</Text>
-        </View>
+          <Text className='text-xl font-bold ml-3 text-gray-900'>
+            {user?.nickname || '닉네임 없음'}
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerClassName='pb-24'>
@@ -61,7 +81,6 @@ const TravelerHomeScreen: React.FC = () => {
                 <Image
                   source={{ uri: 'https://via.placeholder.com/200' }}
                   style={{ width: '100%', height: 120 }}
-                  contentFit='cover'
                 />
                 <View className='p-4'>
                   <Text
