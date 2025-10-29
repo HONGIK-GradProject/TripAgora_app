@@ -49,10 +49,10 @@ interface UserDeleteMeData {}
 interface UserDeleteMeResponse extends APIResponse<UserDeleteMeData> {}
 
 export {
+  UserData,
   UserDeleteMeData,
   UserDeleteMeResponse,
   UserGetMeData,
-  UserData, UserGetMeData,
   UserGetMeResponse,
   UserRole,
   UserSetNicknameData,
@@ -68,6 +68,5 @@ export {
   UserSwitchToGuideRequest,
   UserSwitchToGuideResponse,
   UserSwitchToTravelerRequest,
-  UserSwitchToTravelerResponse
+  UserSwitchToTravelerResponse,
 };
-

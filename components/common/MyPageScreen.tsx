@@ -18,12 +18,9 @@ import { authApi } from '@/api/auth';
 import CustomImagePicker from '@/components/ui/ImagePicker';
 import { useAuth } from '@/hooks/useAuth';
 import { deleteUserAccount, setProfileImage } from '@/services/users';
+import { UserRole } from '@/types/users';
 
-interface MyPageScreenProps {
-  userRole: 'guide' | 'traveler';
-}
-
-const MyPageScreen: React.FC<MyPageScreenProps> = ({ userRole }) => {
+const MyPageScreen: React.FC = () => {
   const { user, setUser, switchUserRole } = useAuth();
   const insets = useSafeAreaInsets();
   const [imageLoadError, setImageLoadError] = useState(false);
@@ -43,7 +40,8 @@ const MyPageScreen: React.FC<MyPageScreenProps> = ({ userRole }) => {
   }, [profileImageUrl]);
 
   const handleSwitchUserRole = async () => {
-    const targetRole = userRole === 'guide' ? 'traveler' : 'guide';
+    const currentRole = user?.role;
+    const targetRole: UserRole = currentRole === 'GUIDE' ? 'TRAVELER' : 'GUIDE';
     await switchUserRole(targetRole);
   };
 
@@ -166,7 +164,7 @@ const MyPageScreen: React.FC<MyPageScreenProps> = ({ userRole }) => {
   };
 
   const getRoleDisplayText = () => {
-    return userRole === 'guide' ? '여행자로 전환하기' : '가이드로 전환하기';
+    return user?.role === 'GUIDE' ? '여행자로 전환하기' : '가이드로 전환하기';
   };
 
   return (
@@ -255,7 +253,7 @@ const MyPageScreen: React.FC<MyPageScreenProps> = ({ userRole }) => {
 
           <View className='flex-row items-center mt-2 mb-4'>
             <Text className='text-gray-600 ml-1 text-base'>
-              {userRole === 'guide' ? '가이드' : '여행자'}
+              {user?.role === 'GUIDE' ? '가이드' : '여행자'}
             </Text>
           </View>
         </View>
