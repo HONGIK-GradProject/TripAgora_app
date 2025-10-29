@@ -102,12 +102,12 @@ const SessionList: React.FC<SessionListProps> = ({
       getHref={(item) => {
         if (userRole === 'GUIDE') {
           return {
-            pathname: '/guide/template/[id]',
+            pathname: '/guide/session/[id]',
             params: { id: item.sessionId },
           };
         } else {
           return {
-            pathname: '/traveler/explore/[id]',
+            pathname: '/traveler/trip/[id]',
             params: { id: item.sessionId },
           };
         }
