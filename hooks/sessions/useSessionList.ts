@@ -1,12 +1,8 @@
 import { getSessionList as apiGetSessionList } from '@/services/sessions';
-import { SessionInfo } from '@/types/sessions';
 import { useEffect } from 'react';
 import { usePaginatedList } from '../usePaginatedList';
 
-async function sessionFetcher(
-  page: number,
-  statuses?: string[]
-): Promise<{ data: SessionInfo[]; hasNext: boolean } | null> {
+const fetcher = async(page: number, statuses?: string[]) => {
   const finalStatuses =
     statuses || ['RECRUITING', 'RECRUITMENT_CLOSED', 'IN_PROGRESS'];
   const response = await apiGetSessionList(finalStatuses, page);
@@ -19,7 +15,7 @@ async function sessionFetcher(
 
 export const useSessionList = () => {
   const { items, loadMore, refetch, isLoading, error, hasNextPage } =
-    usePaginatedList(sessionFetcher);
+    usePaginatedList(fetcher);
 
   useEffect(() => {
     refetch();
