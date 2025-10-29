@@ -38,7 +38,7 @@ type Fetcher<T, Args extends any[]> = (
  * - `loadMore`: 다음 페이지를 불러오는 함수.
  * - `refetch`: 목록을 새로고침하는 함수.
  */
-export function usePaginatedList<T, Args extends any[]>(
+export const usePaginatedList = <T, Args extends any[]>(
   fetcher: Fetcher<T, Args>
 ): {
   items: T[];
@@ -47,7 +47,7 @@ export function usePaginatedList<T, Args extends any[]>(
   hasNextPage: boolean;
   loadMore: (...args: Args) => void;
   refetch: (...args: Args) => void;
-} {
+} => {
   const [items, setItems] = useState<T[]>([]);
   const [page, setPage] = useState(0);
   const [hasNextPage, setHasNextPage] = useState(true);
