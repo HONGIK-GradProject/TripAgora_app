@@ -98,6 +98,33 @@ interface SessionGetListResponse extends APIResponse<SessionGetListData> {
 }
 
 /**
+ * 세션 검색 요청 데이터
+ */
+interface SessionSearchRequest {
+  params: {
+    keyword?: string;
+    searchStartDate?: string; // yyyy-MM-dd 형식
+    searchEndDate?: string; // yyyy-MM-dd 형식
+    regionIds?: number[];
+    tagIds?: number[];
+    page?: number; // 기본값 0
+    size?: number; // 기본값 10
+  };
+}
+
+/**
+ * 세션 검색 응답 데이터
+ */
+interface SessionSearchData {
+  sessions: SessionInfo[];
+  hasNext: boolean;
+}
+
+interface SessionSearchResponse extends APIResponse<SessionSearchData> {
+  // APIResponse의 모든 속성을 상속받습니다.
+}
+
+/**
  * 세션 상세 조회 요청 데이터 (빈 데이터)
  */
 interface SessionGetRequest {}
@@ -245,6 +272,9 @@ export {
   SessionParticipationData,
   SessionParticipationRequest,
   SessionParticipationResponse,
+  SessionSearchData,
+  SessionSearchRequest,
+  SessionSearchResponse,
   SessionStatus,
   SessionUpdateData,
   SessionUpdateRequest,
