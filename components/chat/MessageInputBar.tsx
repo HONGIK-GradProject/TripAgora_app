@@ -1,0 +1,35 @@
+import React from 'react';
+import { View, TextInput, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+
+interface MessageInputBarProps {
+  value: string;
+  onChangeText: (text: string) => void;
+  onSend: () => void;
+}
+
+const MessageInputBar: React.FC<MessageInputBarProps> = ({
+  value,
+  onChangeText,
+  onSend,
+}) => {
+  return (
+    <View className='flex-row items-center p-2 bg-white border-t border-gray-200'>
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        placeholder='메시지를 입력하세요...'
+        className='flex-1 bg-gray-100 rounded-2xl px-4 py-3 mr-2 text-base'
+        multiline
+      />
+      <TouchableOpacity
+        onPress={onSend}
+        className='bg-purple-500 w-11 h-11 rounded-full items-center justify-center'
+      >
+        <Ionicons name='arrow-up' size={22} color='white' />
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+export default MessageInputBar;
