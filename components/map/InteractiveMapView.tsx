@@ -13,6 +13,7 @@ import * as Location from 'expo-location';
 import React, {
   forwardRef,
   memo,
+  useEffect,
   useImperativeHandle,
   useRef,
   useState,
@@ -20,6 +21,11 @@ import React, {
 import { Alert, StyleSheet, View } from 'react-native';
 import { MapOverlay } from './MapOverlay';
 import { MapView } from './MapView';
+
+const DEFAULT_COORDS = [
+  { latitude: 0, longitude: 0},
+  { latitude: 0, longitude: 0}
+]
 
 export interface MapOverlayOptions {
   searchBar?: boolean;
@@ -35,30 +41,10 @@ interface InteractiveMapViewProps {
   onMarkerClick?: (markerIdentifier: string) => void;
 }
 
-interface MapPathViewProps {
-  coords: Coord[];
-  drawPath: boolean;
-}
-
 export interface InteractiveMapViewRef {
   animateCameraTo: (camera: CameraMoveBaseParams & Coord & { zoom: number }) => void
   animateRegionTo: (camera: CameraMoveBaseParams & Region) => void;
 }
-
-const MapPathView = ({ coords, drawPath }: MapPathViewProps) => {
-  if (!drawPath || coords.length < 2) {
-    return (<></>);
-  }
-  return (
-    <NaverMapPathOverlay
-      coords={coords}
-      width={8}
-      color="#8130FF"
-      outlineWidth={2}
-      outlineColor="#dbc7ff10"
-    />
-  );
-};
 
 export const InteractiveMapView = memo(
   forwardRef<InteractiveMapViewRef, InteractiveMapViewProps>(
@@ -69,6 +55,13 @@ export const InteractiveMapView = memo(
       const mapViewRef = useRef<NaverMapViewRef>(null);
       const { status, requestPermission } = useLocationPermission();
       const [searchQuery, setSearchQuery] = useState('');
+      const [isMapReady, setIsMapReady] = useState(false);
+      
+      // Child component의 렌더링 딜레이
+      useEffect(() => {
+        const timer = setTimeout(() => setIsMapReady(true), 100);
+        return () => clearTimeout(timer);
+      }, []);
 
       // 외부에서 지도를 제어할 수 있도록 ref를 노출
       useImperativeHandle(ref, () => ({
@@ -147,16 +140,21 @@ export const InteractiveMapView = memo(
             clusterMarkers={clusterMarkers.length > 0 ? clusterMarkers : undefined}
             onMarkerClick={onMarkerClick}
           >
-            <MapPathView
-              coords={clusterMarkers.map(
-                (marker) =>
-                  ({
-                    longitude: marker.longitude,
+            {isMapReady && (
+              <NaverMapPathOverlay
+                coords={clusterMarkers && clusterMarkers.length >= 2 ?
+                  clusterMarkers.map(marker => ({
                     latitude: marker.latitude,
-                  } as Coord)
-              )}
-              drawPath={options?.drawPath ? true : false}
-            />
+                    longitude: marker.longitude
+                  } as Coord)) :
+                  DEFAULT_COORDS
+                }
+                width={8}
+                color="#8130FF"
+                outlineWidth={2}
+                outlineColor="#dbc7ff"
+              />
+            )}
           </MapView>
           <MapOverlay
             options={options}
