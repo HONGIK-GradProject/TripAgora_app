@@ -15,6 +15,8 @@ import {
   SessionParticipationCancelResponse,
   SessionParticipationRequest,
   SessionParticipationResponse,
+  SessionSearchRequest,
+  SessionSearchResponse,
   SessionStatus,
   SessionUpdateRequest,
   SessionUpdateResponse,
@@ -108,29 +110,6 @@ const getSessionList = async (
 };
 
 /**
- * 전체 세션 목록을 상태별로 조회합니다.
- * @param statuses - 조회할 세션 상태 배열 (선택사항)
- * @param page - 조회할 페이지 번호
- * @returns 전체 세션 목록 정보를 담은 Promise
- */
-const getPublicSessionList = async (
-  statuses: SessionStatus[] | undefined,
-  page: number
-): Promise<SessionGetListResponse> => {
-  const requestData: SessionGetListRequest = {
-    params: {
-      statuses,
-      page,
-    },
-  };
-  const response = await apiClient.get<SessionGetListResponse>(
-    '/sessions',
-    requestData
-  );
-  return response.data;
-};
-
-/**
  * 여행자가 참여한 세션 목록을 상태별로 조회합니다.
  * @param statuses - 조회할 세션 상태 배열 (선택사항)
  * @param page - 조회할 페이지 번호
@@ -148,6 +127,46 @@ const getParticipatingSessionList = async (
   };
   const response = await apiClient.get<SessionGetListResponse>(
     '/sessions/participating',
+    requestData
+  );
+  return response.data;
+};
+
+/**
+ * 세션을 검색합니다.
+ * @param keyword - 검색 키워드 (선택사항)
+ * @param searchStartDate - 검색 시작 날짜 (yyyy-MM-dd 형식, 선택사항)
+ * @param searchEndDate - 검색 종료 날짜 (yyyy-MM-dd 형식, 선택사항)
+ * @param regionIds - 지역 ID 배열 (선택사항)
+ * @param tagIds - 태그 ID 배열 (선택사항)
+ * @param page - 페이지 번호 (기본값 0, 선택사항)
+ * @param size - 페이지 크기 (기본값 10, 선택사항)
+ * @returns 검색된 세션 목록 정보를 담은 Promise
+ */
+const searchSessions = async (
+  keyword?: string,
+  searchStartDate?: string,
+  searchEndDate?: string,
+  regionIds?: number[],
+  tagIds?: number[],
+  page?: number,
+  size?: number
+): Promise<SessionSearchResponse> => {
+  const requestData: SessionSearchRequest = {
+    params: {
+      ...(keyword !== undefined && keyword !== '' && { keyword }),
+      ...(searchStartDate !== undefined &&
+        searchStartDate !== '' && { searchStartDate }),
+      ...(searchEndDate !== undefined &&
+        searchEndDate !== '' && { searchEndDate }),
+      ...(regionIds !== undefined && regionIds.length > 0 && { regionIds }),
+      ...(tagIds !== undefined && tagIds.length > 0 && { tagIds }),
+      ...(page !== undefined && { page }),
+      ...(size !== undefined && { size }),
+    },
+  };
+  const response = await apiClient.get<SessionSearchResponse>(
+    '/sessions/search',
     requestData
   );
   return response.data;
@@ -241,8 +260,8 @@ export const sessionsApi = {
   updateSession,
   deleteSession,
   getSessionList,
-  getPublicSessionList,
   getParticipatingSessionList,
+  searchSessions,
   getSession,
   getSessionItineraries,
   closeSession,
