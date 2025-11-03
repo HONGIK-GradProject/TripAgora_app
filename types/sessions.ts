@@ -128,6 +128,7 @@ interface SessionGetData {
   status: SessionStatus;
   participants: Participant[];
   isParticipating: boolean;
+  isInWishlist: boolean;
 }
 
 interface SessionGetResponse extends APIResponse<SessionGetData> {

@@ -92,9 +92,6 @@ const TravelerProductList: React.FC<ProductListProps> = ({
               )}
             </View>
           </View>
-          <TouchableOpacity className='p-2'>
-            <Ionicons name='heart-outline' size={24} color='#999' />
-          </TouchableOpacity>
         </View>
       </TouchableOpacity>
     </Link>
