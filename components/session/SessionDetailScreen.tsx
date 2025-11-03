@@ -291,6 +291,15 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
     ]);
   }, [id, router]);
 
+  // 여행자용 리뷰 작성 처리
+  const handleWriteReview = useCallback(() => {
+    if (!id) return;
+    router.push({
+      pathname: '/ReviewWriteScreen',
+      params: { sessionId: id },
+    });
+  }, [id, router]);
+
   // 이미지 관련 함수들
   const openImageViewer = (index: number) => {
     setSelectedImageIndex(index);
@@ -708,6 +717,13 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
               </TouchableOpacity>
             )}
           </>
+        ) : status === 'COMPLETED' && isParticipating ? (
+          <TouchableOpacity
+            style={[styles.ctaButton, styles.completedButton]}
+            onPress={handleWriteReview}
+          >
+            <Text style={styles.completedButtonText}>리뷰 작성하기</Text>
+          </TouchableOpacity>
         ) : isParticipating ? (
           <TouchableOpacity
             style={[

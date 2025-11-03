@@ -1,7 +1,11 @@
+import { reviewsApi } from '@/api/reviews';
+import { getSession } from '@/services/sessions';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { Image } from 'expo-image';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   ScrollView,
   StyleSheet,
@@ -20,9 +24,49 @@ import Toast from 'react-native-toast-message';
 const ReviewWriteScreen: React.FC = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { sessionId } = useLocalSearchParams<{ sessionId: string }>();
 
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [sessionTitle, setSessionTitle] = useState('');
+  const [sessionImageUrl, setSessionImageUrl] = useState('');
+  const [guideNickname, setGuideNickname] = useState('');
+  const [guideProfileImageUrl, setGuideProfileImageUrl] = useState('');
+
+  // 세션 정보 로드
+  useEffect(() => {
+    const loadSessionData = async () => {
+      if (!sessionId) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const sessionData = await getSession(parseInt(sessionId));
+        if (sessionData) {
+          setSessionTitle(sessionData.title);
+          setSessionImageUrl(sessionData.imageUrls?.[0] || '');
+
+          // 가이드 정보 찾기
+          const guide = sessionData.participants.find(
+            (p) => p.role === 'GUIDE'
+          );
+          if (guide) {
+            setGuideNickname(guide.nickname);
+            setGuideProfileImageUrl(guide.profileImageUrl);
+          }
+        }
+      } catch (error) {
+        console.error('세션 정보 로드 실패:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadSessionData();
+  }, [sessionId]);
 
   // 별점 설정 (1-5개만 가능)
   const handleStarPress = (starCount: number) => {
@@ -30,7 +74,7 @@ const ReviewWriteScreen: React.FC = () => {
   };
 
   // 리뷰 제출
-  const handleSubmitReview = () => {
+  const handleSubmitReview = async () => {
     if (rating === 0) {
       Toast.show({
         type: 'error',
@@ -54,14 +98,41 @@ const ReviewWriteScreen: React.FC = () => {
       },
       {
         text: '작성',
-        onPress: () => {
-          // TODO: 실제 리뷰 작성 API 호출
-          Toast.show({
-            type: 'success',
-            text1: '리뷰가 작성되었습니다',
-            text2: '소중한 후기 감사합니다.',
-          });
-          router.back();
+        onPress: async () => {
+          if (!sessionId) {
+            Toast.show({
+              type: 'error',
+              text1: '세션 정보를 찾을 수 없습니다.',
+            });
+            return;
+          }
+
+          try {
+            setIsSubmitting(true);
+            const response = await reviewsApi.createReview(
+              parseInt(sessionId),
+              reviewText,
+              rating
+            );
+
+            if (response.code === 200 || response.code === 0) {
+              Toast.show({
+                type: 'success',
+                text1: '리뷰가 작성되었습니다',
+                text2: '소중한 후기 감사합니다.',
+              });
+              router.back();
+            }
+          } catch (error) {
+            console.error('리뷰 작성 에러:', error);
+            Toast.show({
+              type: 'error',
+              text1: '리뷰 작성에 실패했습니다',
+              text2: '잠시 후 다시 시도해주세요.',
+            });
+          } finally {
+            setIsSubmitting(false);
+          }
         },
       },
     ]);
@@ -91,24 +162,54 @@ const ReviewWriteScreen: React.FC = () => {
           {/* 여행 정보 카드 */}
           <View className='bg-white rounded-2xl p-5 border border-gray-200 shadow-sm'>
             {/* 여행 이미지 */}
-            <View className='w-full h-48 rounded-xl bg-gray-200 mb-4 overflow-hidden items-center justify-center'>
-              <Ionicons name='image-outline' size={48} color='#9CA3AF' />
-              <Text className='text-base text-gray-400 mt-3'>
-                대표 이미지 없음
-              </Text>
-            </View>
+            {isLoading ? (
+              <View className='w-full h-48 rounded-xl bg-gray-200 mb-4 overflow-hidden items-center justify-center'>
+                <ActivityIndicator size='large' color='#8130FF' />
+              </View>
+            ) : sessionImageUrl ? (
+              <View className='w-full h-48 rounded-xl mb-4 overflow-hidden'>
+                <Image
+                  source={{ uri: sessionImageUrl }}
+                  style={{ width: '100%', height: '100%' }}
+                  contentFit='cover'
+                />
+              </View>
+            ) : (
+              <View className='w-full h-48 rounded-xl bg-gray-200 mb-4 overflow-hidden items-center justify-center'>
+                <Ionicons name='image-outline' size={48} color='#9CA3AF' />
+                <Text className='text-base text-gray-400 mt-3'>
+                  대표 이미지 없음
+                </Text>
+              </View>
+            )}
 
             {/* 여행 제목 */}
             <Text className='text-2xl font-bold text-center mb-4'>
-              홍대거리 오후 번개
+              {isLoading ? '로딩 중...' : sessionTitle || '제목 없음'}
             </Text>
 
             {/* 가이드 정보 */}
             <View className='flex-row items-center justify-center'>
-              <View className='w-10 h-10 rounded-full bg-purple-100 items-center justify-center mr-3'>
-                <Text className='text-lg font-bold text-purple-700'>피</Text>
-              </View>
-              <Text className='text-lg text-gray-700'>피 카소 가이드</Text>
+              {isLoading ? (
+                <View className='w-10 h-10 rounded-full bg-purple-100 items-center justify-center mr-3' />
+              ) : guideProfileImageUrl ? (
+                <Image
+                  source={{ uri: guideProfileImageUrl }}
+                  style={{ width: 40, height: 40, borderRadius: 20 }}
+                  contentFit='cover'
+                />
+              ) : (
+                <View className='w-10 h-10 rounded-full bg-purple-100 items-center justify-center mr-3'>
+                  <Ionicons name='person-outline' size={20} color='#7C3AED' />
+                </View>
+              )}
+              <Text className='text-lg text-gray-700 ml-3'>
+                {isLoading
+                  ? '로딩 중...'
+                  : guideNickname
+                  ? `${guideNickname} 가이드`
+                  : '가이드'}
+              </Text>
             </View>
           </View>
         </View>
@@ -167,19 +268,21 @@ const ReviewWriteScreen: React.FC = () => {
       <View className='absolute bottom-0 left-0 right-0 bg-white px-5 py-5 border-t border-gray-200'>
         <TouchableOpacity
           className={`rounded-xl py-4 items-center justify-center ${
-            rating === 0 || !reviewText.trim() ? 'bg-gray-300' : 'bg-primary'
+            rating === 0 || !reviewText.trim() || isSubmitting
+              ? 'bg-gray-300'
+              : 'bg-primary'
           }`}
           onPress={handleSubmitReview}
-          disabled={rating === 0 || !reviewText.trim()}
+          disabled={rating === 0 || !reviewText.trim() || isSubmitting}
         >
           <Text
             className={`text-lg font-bold ${
-              rating === 0 || !reviewText.trim()
+              rating === 0 || !reviewText.trim() || isSubmitting
                 ? 'text-gray-500'
                 : 'text-white'
             }`}
           >
-            작성 완료하기
+            {isSubmitting ? '작성 중...' : '작성 완료하기'}
           </Text>
         </TouchableOpacity>
       </View>
