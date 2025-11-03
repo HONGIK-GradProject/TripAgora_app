@@ -496,21 +496,6 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
               )}
             </View>
           )}
-
-          {/* 여행자용 하트 버튼 */}
-          {userType === 'traveler' && (
-            <TouchableOpacity
-              style={styles.iconCircle}
-              onPress={handleToggleWishlist}
-              disabled={isWishlistSubmitting}
-            >
-              <Ionicons
-                name={isInWishlist ? 'heart' : 'heart-outline'}
-                size={20}
-                color={isInWishlist ? '#8130FF' : '#000'}
-              />
-            </TouchableOpacity>
-          )}
         </View>
 
         {/* 기본 정보 섹션 */}
@@ -773,34 +758,50 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
               </TouchableOpacity>
             )}
           </>
-        ) : isParticipating ? (
-          <TouchableOpacity
-            style={[
-              styles.ctaButton,
-              styles.cancelButton,
-              isSubmitting && { backgroundColor: '#9CA3AF' },
-            ]}
-            onPress={handleCancelParticipation}
-            disabled={isSubmitting}
-          >
-            <Text style={styles.cancelButtonText}>
-              {isSubmitting ? '취소 중...' : '참여 신청 취소'}
-            </Text>
-          </TouchableOpacity>
         ) : (
-          <TouchableOpacity
-            style={[
-              styles.ctaButton,
-              styles.primaryButton,
-              isSubmitting && { backgroundColor: '#9CA3AF' },
-            ]}
-            onPress={handleParticipation}
-            disabled={isSubmitting}
-          >
-            <Text style={styles.primaryButtonText}>
-              {isSubmitting ? '신청 중...' : '여행에 참여 신청하기'}
-            </Text>
-          </TouchableOpacity>
+          <>
+            {/* 여행자용 하트 버튼 */}
+            <TouchableOpacity
+              style={styles.wishlistButton}
+              onPress={handleToggleWishlist}
+              disabled={isWishlistSubmitting}
+            >
+              <Ionicons
+                name={isInWishlist ? 'heart' : 'heart-outline'}
+                size={24}
+                color={isInWishlist ? '#8130FF' : '#000'}
+              />
+            </TouchableOpacity>
+            {isParticipating ? (
+              <TouchableOpacity
+                style={[
+                  styles.ctaButton,
+                  styles.cancelButton,
+                  isSubmitting && { backgroundColor: '#9CA3AF' },
+                ]}
+                onPress={handleCancelParticipation}
+                disabled={isSubmitting}
+              >
+                <Text style={styles.cancelButtonText}>
+                  {isSubmitting ? '취소 중...' : '참여 신청 취소'}
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={[
+                  styles.ctaButton,
+                  styles.primaryButton,
+                  isSubmitting && { backgroundColor: '#9CA3AF' },
+                ]}
+                onPress={handleParticipation}
+                disabled={isSubmitting}
+              >
+                <Text style={styles.primaryButtonText}>
+                  {isSubmitting ? '신청 중...' : '여행에 참여 신청하기'}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </>
         )}
       </View>
 
@@ -1126,6 +1127,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#EF4444',
+  },
+  wishlistButton: {
+    width: 78,
+    height: 52,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   primaryButtonText: {
     color: '#FFFFFF',
