@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 
+import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import InterestTag from '@/components/InterestTag';
 import { INTEREST_TAGS } from '@/constants/Tags';
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
@@ -63,45 +64,47 @@ const EditTemplateTagsScreen: React.FC = () => {
   };
 
   return (
-    <View className='flex-1 items-center bg-white pt-20'>
-      <TouchableOpacity
-        className='absolute left-5 top-10 w-10 h-10 rounded-full bg-white/90 items-center justify-center'
-        onPress={() => router.back()}
-        accessibilityRole='button'
-        accessibilityLabel='뒤로가기'
-      >
-        <Ionicons name='arrow-back' size={24} color='#000' />
-      </TouchableOpacity>
-      <Text className='text-2xl text-black text-left w-4/5 mb-1'>
-        템플릿 태그 설정
-      </Text>
-      <Text className='text-base text-darkgray text-left w-4/5 mb-8'>
-        최대 5개까지 설정 가능합니다.
-      </Text>
+    <CustomSafeAreaView>
+      <View className='flex-1 items-center bg-white pt-20'>
+        <TouchableOpacity
+          className='absolute left-5 top-10 w-10 h-10 rounded-full bg-white/90 items-center justify-center'
+          onPress={() => router.back()}
+          accessibilityRole='button'
+          accessibilityLabel='뒤로가기'
+        >
+          <Ionicons name='arrow-back' size={24} color='#000' />
+        </TouchableOpacity>
+        <Text className='text-2xl text-black text-left w-4/5 mb-1'>
+          템플릿 태그 설정
+        </Text>
+        <Text className='text-base text-darkgray text-left w-4/5 mb-8'>
+          최대 5개까지 설정 가능합니다.
+        </Text>
 
-      <View className='flex-row flex-wrap justify-start w-4/5 mb-10'>
-        {INTEREST_TAGS.map((tag) => (
-          <InterestTag
-            key={tag.id}
-            tag={tag.name}
-            isSelected={selectedTags.includes(tag.id)}
-            onPress={() => handleToggleTag(tag.id)}
-          />
-        ))}
+        <View className='flex-row flex-wrap justify-start w-4/5 mb-10'>
+          {INTEREST_TAGS.map((tag) => (
+            <InterestTag
+              key={tag.id}
+              tag={tag.name}
+              isSelected={selectedTags.includes(tag.id)}
+              onPress={() => handleToggleTag(tag.id)}
+            />
+          ))}
+        </View>
+
+        <TouchableOpacity
+          className='w-[390px] h-[52px] bg-primary rounded-md justify-center items-center absolute bottom-7'
+          onPress={handleSave}
+          disabled={isSaving}
+        >
+          {isSaving ? (
+            <ActivityIndicator color='#fff' />
+          ) : (
+            <Text className='text-xl font-bold text-white'>저장</Text>
+          )}
+        </TouchableOpacity>
       </View>
-
-      <TouchableOpacity
-        className='w-[390px] h-[52px] bg-primary rounded-md justify-center items-center absolute bottom-7'
-        onPress={handleSave}
-        disabled={isSaving}
-      >
-        {isSaving ? (
-          <ActivityIndicator color='#fff' />
-        ) : (
-          <Text className='text-xl font-bold text-white'>저장</Text>
-        )}
-      </TouchableOpacity>
-    </View>
+    </CustomSafeAreaView>
   );
 };
 

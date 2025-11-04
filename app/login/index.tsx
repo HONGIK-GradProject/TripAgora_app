@@ -21,7 +21,7 @@ const LoginScreen: React.FC = () => {
   };
 
   return (
-    <CustomSafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+    <CustomSafeAreaView>
       <View className='flex-1 items-center justify-center bg-white'>
         {/* 로고 */}
         <View className='w-[133px] h-[133px] rounded-full bg-[#D9D9D9] items-center justify-center mb-16'>
