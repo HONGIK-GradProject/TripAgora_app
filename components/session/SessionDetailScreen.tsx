@@ -11,7 +11,12 @@ import {
 } from '@/services/sessions';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import {
+  useFocusEffect,
+  useLocalSearchParams,
+  useRouter,
+  useSegments,
+} from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
@@ -43,6 +48,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
 }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const segments = useSegments();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   // 세션 상세 정보 가져오기
@@ -456,7 +462,25 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
           {(() => {
             const guide = participants.find((p) => p.role === 'GUIDE');
             return (
-              <View style={styles.guideContainer}>
+              <TouchableOpacity
+                style={styles.guideContainer}
+                onPress={() => {
+                  if (guide && id) {
+                    // 현재 세션 스택 내에서 가이드 프로필 화면으로 이동
+                    // userType과 현재 경로에 따라 올바른 스택 내 경로로 이동
+                    const profilePath =
+                      userType === 'guide'
+                        ? `/guide/session/${id}/${guide.userId}`
+                        : segments.join('/').includes('/trip/')
+                        ? `/traveler/trip/${id}/${guide.userId}`
+                        : `/traveler/explore/${id}/${guide.userId}`;
+                    // Expo Router 타입 정의 제한으로 인한 타입 캐스팅
+                    router.push(profilePath as any);
+                  }
+                }}
+                activeOpacity={0.7}
+                disabled={!guide}
+              >
                 {guide ? (
                   <Image
                     source={{ uri: guide.profileImageUrl }}
@@ -474,7 +498,15 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
                     {guide ? guide.nickname : '알 수 없음'}
                   </Text>
                 </View>
-              </View>
+                {guide && (
+                  <Ionicons
+                    name='chevron-forward'
+                    size={20}
+                    color='#9CA3AF'
+                    style={{ marginLeft: 'auto' }}
+                  />
+                )}
+              </TouchableOpacity>
             );
           })()}
 
