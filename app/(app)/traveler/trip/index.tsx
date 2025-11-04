@@ -1,3 +1,4 @@
+import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { useParticipatingSessionList } from '@/hooks/sessions/useParticipatingSessionList';
 import { SessionInfo } from '@/types/sessions';
@@ -6,12 +7,12 @@ import { Image } from 'expo-image';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
-  FlatList,
-  RefreshControl,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    FlatList,
+    RefreshControl,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
 const TravelerTripListScreen: React.FC = () => {
@@ -214,176 +215,178 @@ const TravelerTripListScreen: React.FC = () => {
   };
 
   return (
-    <View className='flex-1 bg-gray-50'>
-      {/* 헤더 */}
-      <View className='bg-white pt-12 pb-4 px-6'>
-        <Text className='text-3xl font-bold text-gray-900'>나의 여행 목록</Text>
-      </View>
+    <CustomSafeAreaView>
+      <View className='flex-1 bg-gray-50'>
+        {/* 헤더 */}
+        <View className='bg-white pt-6 pb-4 px-6'>
+          <Text className='text-3xl font-bold text-gray-900'>나의 여행 목록</Text>
+        </View>
 
-      {/* 현재 진행 중인 여행 섹션 */}
-      {currentSession && (
-        <View className='px-6 py-4'>
-          <Text className='text-xl font-semibold text-gray-800 mb-3'>
-            현재 진행 중인 여행
-          </Text>
+        {/* 현재 진행 중인 여행 섹션 */}
+        {currentSession && (
+          <View className='px-6 py-4'>
+            <Text className='text-xl font-semibold text-gray-800 mb-3'>
+              현재 진행 중인 여행
+            </Text>
 
-          <TouchableOpacity
-            className='bg-blue-500 rounded-2xl p-5'
-            onPress={() => {
-              // 진행 중인 여행은 세션 룸으로 이동
-              router.push(
-                `/traveler/trip/${currentSession.sessionId}/session-room` as any
-              );
-            }}
-          >
-            <View className='flex-row items-center'>
-              <Image
-                source={{ uri: currentSession.firstImageUrl }}
-                style={{
-                  width: 80,
-                  height: 80,
-                  borderRadius: 12,
-                  marginRight: 16,
-                }}
-                contentFit='cover'
-              />
-              <View className='flex-1'>
-                <View className='flex-row items-center mb-2'>
-                  <View className='bg-white/20 px-3 py-1 rounded-full mr-2'>
-                    <Text className='text-sm font-semibold text-white'>
-                      진행중
+            <TouchableOpacity
+              className='bg-blue-500 rounded-2xl p-5'
+              onPress={() => {
+                // 진행 중인 여행은 세션 룸으로 이동
+                router.push(
+                  `/traveler/trip/${currentSession.sessionId}/session-room` as any
+                );
+              }}
+            >
+              <View className='flex-row items-center'>
+                <Image
+                  source={{ uri: currentSession.firstImageUrl }}
+                  style={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: 12,
+                    marginRight: 16,
+                  }}
+                  contentFit='cover'
+                />
+                <View className='flex-1'>
+                  <View className='flex-row items-center mb-2'>
+                    <View className='bg-white/20 px-3 py-1 rounded-full mr-2'>
+                      <Text className='text-sm font-semibold text-white'>
+                        진행중
+                      </Text>
+                    </View>
+                  </View>
+                  <Text className='text-xl font-bold text-white mb-1'>
+                    {currentSession.title}
+                  </Text>
+                  <Text className='text-white/90 mb-2'>
+                    {currentSession.startDate} ~ {currentSession.endDate}
+                  </Text>
+                  <View className='flex-row items-start'>
+                    <MaterialIcons
+                      name='person-outline'
+                      size={16}
+                      color='white'
+                      style={{ marginTop: 2 }}
+                    />
+                    <Text className='text-white/90 ml-1 mr-4'>
+                      {currentSession.currentParticipants}명
+                    </Text>
+                    <Ionicons
+                      name='location-outline'
+                      size={16}
+                      color='white'
+                      style={{ marginTop: 2 }}
+                    />
+                    <Text
+                      className='text-white/90 ml-1 flex-1'
+                      numberOfLines={2}
+                      ellipsizeMode='tail'
+                    >
+                      {(Array.isArray(currentSession.regionIds) &&
+                      currentSession.regionIds.length > 0
+                        ? currentSession.regionIds.map(
+                            (id) => REGION_ID_TO_NAME_MAP[id]
+                          )
+                        : (currentSession as any).regionNames || []
+                      )
+                        .filter(Boolean)
+                        .join(', ')}
                     </Text>
                   </View>
                 </View>
-                <Text className='text-xl font-bold text-white mb-1'>
-                  {currentSession.title}
-                </Text>
-                <Text className='text-white/90 mb-2'>
-                  {currentSession.startDate} ~ {currentSession.endDate}
-                </Text>
-                <View className='flex-row items-start'>
-                  <MaterialIcons
-                    name='person-outline'
-                    size={16}
-                    color='white'
-                    style={{ marginTop: 2 }}
-                  />
-                  <Text className='text-white/90 ml-1 mr-4'>
-                    {currentSession.currentParticipants}명
-                  </Text>
-                  <Ionicons
-                    name='location-outline'
-                    size={16}
-                    color='white'
-                    style={{ marginTop: 2 }}
-                  />
-                  <Text
-                    className='text-white/90 ml-1 flex-1'
-                    numberOfLines={2}
-                    ellipsizeMode='tail'
-                  >
-                    {(Array.isArray(currentSession.regionIds) &&
-                    currentSession.regionIds.length > 0
-                      ? currentSession.regionIds.map(
-                          (id) => REGION_ID_TO_NAME_MAP[id]
-                        )
-                      : (currentSession as any).regionNames || []
-                    )
-                      .filter(Boolean)
-                      .join(', ')}
-                  </Text>
-                </View>
               </View>
-            </View>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {/* 탭 메뉴 */}
-      <View className='bg-white px-6 py-2 border-b border-gray-200'>
-        <View className='flex-row bg-gray-100 rounded-xl p-1'>
-          <TouchableOpacity
-            className={`flex-1 py-3 rounded-lg ${
-              activeTab === 'upcoming' ? 'bg-white' : ''
-            }`}
-            onPress={() => handleTabChange('upcoming')}
-          >
-            <Text
-              className={`text-center font-medium ${
-                activeTab === 'upcoming' ? 'text-gray-900' : 'text-gray-500'
-              }`}
-            >
-              예정
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className={`flex-1 py-3 rounded-lg ${
-              activeTab === 'completed' ? 'bg-white' : ''
-            }`}
-            onPress={() => handleTabChange('completed')}
-          >
-            <Text
-              className={`text-center font-medium ${
-                activeTab === 'completed' ? 'text-gray-900' : 'text-gray-500'
-              }`}
-            >
-              완료
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* 여행 목록 */}
-      <View className='flex-1 px-6 py-4'>
-        {isLoading && filteredSessions.length === 0 ? (
-          <View className='flex-1 items-center justify-center py-20'>
-            <ActivityIndicator size='large' color='#3B82F6' />
-            <Text className='text-gray-500 text-lg mt-4'>로딩 중...</Text>
+            </TouchableOpacity>
           </View>
-        ) : error ? (
-          <View className='flex-1 items-center justify-center py-20'>
-            <Text className='text-red-500 text-lg'>오류가 발생했습니다.</Text>
-          </View>
-        ) : filteredSessions.length === 0 ? (
-          <View className='flex-1 items-center justify-center py-20'>
-            <Text className='text-gray-500 text-lg'>
-              {activeTab === 'upcoming'
-                ? '예정된 여행이 없습니다.'
-                : '완료된 여행이 없습니다.'}
-            </Text>
-          </View>
-        ) : (
-          <FlatList
-            data={filteredSessions}
-            renderItem={renderSessionItem}
-            keyExtractor={(item) => item.sessionId.toString()}
-            showsVerticalScrollIndicator={false}
-            onEndReached={() => {
-              const statuses =
-                activeTab === 'upcoming'
-                  ? ['RECRUITING', 'RECRUITMENT_CLOSED']
-                  : ['COMPLETED'];
-              loadMore(statuses);
-            }}
-            onEndReachedThreshold={0.5}
-            ListFooterComponent={renderFooter}
-            refreshControl={
-              <RefreshControl
-                refreshing={isLoading && filteredSessions.length > 0}
-                onRefresh={() => {
-                  const statuses =
-                    activeTab === 'upcoming'
-                      ? ['RECRUITING', 'RECRUITMENT_CLOSED', 'IN_PROGRESS']
-                      : ['COMPLETED', 'IN_PROGRESS'];
-                  refetch(statuses);
-                }}
-              />
-            }
-            contentContainerStyle={{ paddingBottom: 24 }}
-          />
         )}
+
+        {/* 탭 메뉴 */}
+        <View className='bg-white px-6 py-2 border-b border-gray-200'>
+          <View className='flex-row bg-gray-100 rounded-xl p-1'>
+            <TouchableOpacity
+              className={`flex-1 py-3 rounded-lg ${
+                activeTab === 'upcoming' ? 'bg-white' : ''
+              }`}
+              onPress={() => handleTabChange('upcoming')}
+            >
+              <Text
+                className={`text-center font-medium ${
+                  activeTab === 'upcoming' ? 'text-gray-900' : 'text-gray-500'
+                }`}
+              >
+                예정
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              className={`flex-1 py-3 rounded-lg ${
+                activeTab === 'completed' ? 'bg-white' : ''
+              }`}
+              onPress={() => handleTabChange('completed')}
+            >
+              <Text
+                className={`text-center font-medium ${
+                  activeTab === 'completed' ? 'text-gray-900' : 'text-gray-500'
+                }`}
+              >
+                완료
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* 여행 목록 */}
+        <View className='flex-1 px-6 py-4'>
+          {isLoading && filteredSessions.length === 0 ? (
+            <View className='flex-1 items-center justify-center py-20'>
+              <ActivityIndicator size='large' color='#3B82F6' />
+              <Text className='text-gray-500 text-lg mt-4'>로딩 중...</Text>
+            </View>
+          ) : error ? (
+            <View className='flex-1 items-center justify-center py-20'>
+              <Text className='text-red-500 text-lg'>오류가 발생했습니다.</Text>
+            </View>
+          ) : filteredSessions.length === 0 ? (
+            <View className='flex-1 items-center justify-center py-20'>
+              <Text className='text-gray-500 text-lg'>
+                {activeTab === 'upcoming'
+                  ? '예정된 여행이 없습니다.'
+                  : '완료된 여행이 없습니다.'}
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              data={filteredSessions}
+              renderItem={renderSessionItem}
+              keyExtractor={(item) => item.sessionId.toString()}
+              showsVerticalScrollIndicator={false}
+              onEndReached={() => {
+                const statuses =
+                  activeTab === 'upcoming'
+                    ? ['RECRUITING', 'RECRUITMENT_CLOSED']
+                    : ['COMPLETED'];
+                loadMore(statuses);
+              }}
+              onEndReachedThreshold={0.5}
+              ListFooterComponent={renderFooter}
+              refreshControl={
+                <RefreshControl
+                  refreshing={isLoading && filteredSessions.length > 0}
+                  onRefresh={() => {
+                    const statuses =
+                      activeTab === 'upcoming'
+                        ? ['RECRUITING', 'RECRUITMENT_CLOSED', 'IN_PROGRESS']
+                        : ['COMPLETED', 'IN_PROGRESS'];
+                    refetch(statuses);
+                  }}
+                />
+              }
+              contentContainerStyle={{ paddingBottom: 24 }}
+            />
+          )}
+        </View>
       </View>
-    </View>
+    </CustomSafeAreaView>
   );
 };
 

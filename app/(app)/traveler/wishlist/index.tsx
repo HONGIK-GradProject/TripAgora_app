@@ -1,3 +1,4 @@
+import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import ProductList from '@/components/traveler/explore/TravelerProductList';
 import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { getWishlist } from '@/services/wishlist';
@@ -5,11 +6,11 @@ import { SessionInfo } from '@/types/sessions';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
-  RefreshControl,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    RefreshControl,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -74,110 +75,112 @@ const WishListScreen: React.FC = () => {
   }, [sessions, formatDate]);
 
   return (
-    <View className='flex-1 bg-white pt-12'>
-      <View className='flex-row items-center justify-center px-5 pb-2.5 mb-5'>
-        <Text className='text-4xl font-bold'>찜 목록</Text>
-      </View>
+    <CustomSafeAreaView>
+      <View className='flex-1 bg-white pt-6'>
+        <View className='flex-row items-center justify-center px-5 pb-2.5 mb-5'>
+          <Text className='text-4xl font-bold'>찜 목록</Text>
+        </View>
 
-      <View className='flex-row border-b border-gray-400 mx-5 mb-5'>
-        <TouchableOpacity
-          className={`flex-1 items-center py-2.5 border-b ${
-            activeTab === 'product' ? 'border-primary' : 'border-transparent'
-          }`}
-          onPress={() => setActiveTab('product')}
-        >
-          <Text
-            className={`text-xl ${
-              activeTab === 'product'
-                ? 'font-bold text-primary'
-                : 'text-gray-400'
+        <View className='flex-row border-b border-gray-400 mx-5 mb-5'>
+          <TouchableOpacity
+            className={`flex-1 items-center py-2.5 border-b ${
+              activeTab === 'product' ? 'border-primary' : 'border-transparent'
             }`}
+            onPress={() => setActiveTab('product')}
           >
-            상품
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          className={`flex-1 items-center py-2.5 border-b ${
-            activeTab === 'guide' ? 'border-primary' : 'border-transparent'
-          }`}
-          onPress={() => setActiveTab('guide')}
-        >
-          <Text
-            className={`text-xl ${
-              activeTab === 'guide' ? 'font-bold text-primary' : 'text-gray-400'
+            <Text
+              className={`text-xl ${
+                activeTab === 'product'
+                  ? 'font-bold text-primary'
+                  : 'text-gray-400'
+              }`}
+            >
+              상품
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className={`flex-1 items-center py-2.5 border-b ${
+              activeTab === 'guide' ? 'border-primary' : 'border-transparent'
             }`}
+            onPress={() => setActiveTab('guide')}
           >
-            가이드
-          </Text>
-        </TouchableOpacity>
-      </View>
+            <Text
+              className={`text-xl ${
+                activeTab === 'guide' ? 'font-bold text-primary' : 'text-gray-400'
+              }`}
+            >
+              가이드
+            </Text>
+          </TouchableOpacity>
+        </View>
 
-      <View
-        className='bg-gray-50 rounded-2xl p-4'
-        style={{ marginBottom: 100 + insets.bottom }}
-      >
-        {activeTab === 'product' ? (
-          <>
-            {error ? (
-              <View className='flex-1 items-center justify-center py-20'>
-                <Text className='text-red-500 text-lg'>
-                  위시리스트를 불러오는데 실패했습니다.
-                </Text>
-                <TouchableOpacity
-                  className='mt-4 px-6 py-3 bg-primary rounded-lg'
-                  onPress={fetchWishlist}
-                >
-                  <Text className='text-white font-semibold'>다시 시도</Text>
-                </TouchableOpacity>
-              </View>
-            ) : products.length === 0 && !isLoading ? (
-              <View className='flex-1 items-center justify-center py-20'>
-                <Ionicons name='heart-outline' size={64} color='#D1D5DB' />
-                <Text className='text-gray-500 text-lg mt-4'>
-                  찜한 상품이 없습니다.
-                </Text>
-                <Text className='text-gray-400 text-sm mt-2'>
-                  여행 상품을 찜해보세요!
-                </Text>
-              </View>
-            ) : (
-              <ProductList
-                products={products}
-                detailPath='/traveler/wishlist/[id]'
-                refreshControl={
-                  <RefreshControl
-                    refreshing={isLoading && sessions.length === 0}
-                    onRefresh={fetchWishlist}
-                    colors={['#8130FF']}
-                    tintColor='#8130FF'
-                  />
-                }
-                ListFooterComponent={
-                  isLoading && sessions.length > 0 ? (
-                    <View className='py-4 items-center'>
-                      <ActivityIndicator size='small' color='#8130FF' />
-                      <Text className='text-gray-500 text-sm mt-2'>
-                        위시리스트를 불러오는 중...
-                      </Text>
-                    </View>
-                  ) : undefined
-                }
-              />
-            )}
-          </>
-        ) : (
-          <View className='flex-1 items-center justify-center py-20'>
-            <Ionicons name='people-outline' size={64} color='#D1D5DB' />
-            <Text className='text-gray-500 text-lg mt-4'>
-              찜한 가이드가 없습니다.
-            </Text>
-            <Text className='text-gray-400 text-sm mt-2'>
-              가이드를 찜해보세요!
-            </Text>
-          </View>
-        )}
+        <View
+          className='bg-gray-50 rounded-2xl p-4'
+          style={{ marginBottom: 100 + insets.bottom }}
+        >
+          {activeTab === 'product' ? (
+            <>
+              {error ? (
+                <View className='flex-1 items-center justify-center py-20'>
+                  <Text className='text-red-500 text-lg'>
+                    위시리스트를 불러오는데 실패했습니다.
+                  </Text>
+                  <TouchableOpacity
+                    className='mt-4 px-6 py-3 bg-primary rounded-lg'
+                    onPress={fetchWishlist}
+                  >
+                    <Text className='text-white font-semibold'>다시 시도</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : products.length === 0 && !isLoading ? (
+                <View className='flex-1 items-center justify-center py-20'>
+                  <Ionicons name='heart-outline' size={64} color='#D1D5DB' />
+                  <Text className='text-gray-500 text-lg mt-4'>
+                    찜한 상품이 없습니다.
+                  </Text>
+                  <Text className='text-gray-400 text-sm mt-2'>
+                    여행 상품을 찜해보세요!
+                  </Text>
+                </View>
+              ) : (
+                <ProductList
+                  products={products}
+                  detailPath='/traveler/wishlist/[id]'
+                  refreshControl={
+                    <RefreshControl
+                      refreshing={isLoading && sessions.length === 0}
+                      onRefresh={fetchWishlist}
+                      colors={['#8130FF']}
+                      tintColor='#8130FF'
+                    />
+                  }
+                  ListFooterComponent={
+                    isLoading && sessions.length > 0 ? (
+                      <View className='py-4 items-center'>
+                        <ActivityIndicator size='small' color='#8130FF' />
+                        <Text className='text-gray-500 text-sm mt-2'>
+                          위시리스트를 불러오는 중...
+                        </Text>
+                      </View>
+                    ) : undefined
+                  }
+                />
+              )}
+            </>
+          ) : (
+            <View className='flex-1 items-center justify-center py-20'>
+              <Ionicons name='people-outline' size={64} color='#D1D5DB' />
+              <Text className='text-gray-500 text-lg mt-4'>
+                찜한 가이드가 없습니다.
+              </Text>
+              <Text className='text-gray-400 text-sm mt-2'>
+                가이드를 찜해보세요!
+              </Text>
+            </View>
+          )}
+        </View>
       </View>
-    </View>
+    </CustomSafeAreaView>
   );
 };
 

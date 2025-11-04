@@ -1,3 +1,4 @@
+import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import {
   createNotice,
   deleteNotice,
@@ -299,223 +300,225 @@ const AnnounceScreen: React.FC<AnnounceScreenProps> = ({
   };
 
   return (
-    <View style={styles.container}>
-      {/* 상단 네비게이션 바 */}
-      <View style={[styles.topBar, { paddingTop: insets.top + 10 }]}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
+    <CustomSafeAreaView>
+      <View style={styles.container}>
+        {/* 상단 네비게이션 바 */}
+        <View style={[styles.topBar, { paddingTop: insets.top + 10 }]}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Ionicons name='arrow-back' size={24} color='#000' />
+          </TouchableOpacity>
+          <Text style={styles.title}>일행에게 공지하기</Text>
+          <View style={styles.placeholder} />
+        </View>
+
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
         >
-          <Ionicons name='arrow-back' size={24} color='#000' />
-        </TouchableOpacity>
-        <Text style={styles.title}>일행에게 공지하기</Text>
-        <View style={styles.placeholder} />
-      </View>
+          {/* 공지 작성 영역 - 가이드만 표시 */}
+          {!isTraveler && (
+            <View style={styles.writeSection}>
+              {/* 제목 입력 */}
+              <View style={styles.titleInputContainer}>
+                <TextInput
+                  style={styles.titleInput}
+                  value={announcementTitle}
+                  onChangeText={setAnnouncementTitle}
+                  placeholder='제목을 입력하세요'
+                  placeholderTextColor='#999999'
+                  maxLength={50}
+                />
+                <Text style={styles.titleCharacterCount}>
+                  {announcementTitle.length}/50
+                </Text>
+              </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* 공지 작성 영역 - 가이드만 표시 */}
-        {!isTraveler && (
-          <View style={styles.writeSection}>
-            {/* 제목 입력 */}
-            <View style={styles.titleInputContainer}>
-              <TextInput
-                style={styles.titleInput}
-                value={announcementTitle}
-                onChangeText={setAnnouncementTitle}
-                placeholder='제목을 입력하세요'
-                placeholderTextColor='#999999'
-                maxLength={50}
-              />
-              <Text style={styles.titleCharacterCount}>
-                {announcementTitle.length}/50
-              </Text>
-            </View>
+              {/* 내용 입력 */}
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.textInput}
+                  value={announcement}
+                  onChangeText={setAnnouncement}
+                  placeholder='내용을 입력하세요...'
+                  placeholderTextColor='#999999'
+                  multiline
+                  textAlignVertical='top'
+                  maxLength={500}
+                />
+                <Text style={styles.characterCount}>
+                  {announcement.length}/500
+                </Text>
+              </View>
 
-            {/* 내용 입력 */}
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.textInput}
-                value={announcement}
-                onChangeText={setAnnouncement}
-                placeholder='내용을 입력하세요...'
-                placeholderTextColor='#999999'
-                multiline
-                textAlignVertical='top'
-                maxLength={500}
-              />
-              <Text style={styles.characterCount}>
-                {announcement.length}/500
-              </Text>
-            </View>
-
-            {/* 발송/수정 버튼 */}
-            <View style={styles.sendButtonContainer}>
-              {editingNoticeId && (
+              {/* 발송/수정 버튼 */}
+              <View style={styles.sendButtonContainer}>
+                {editingNoticeId && (
+                  <TouchableOpacity
+                    style={[styles.cancelButton, { marginBottom: 8 }]}
+                    onPress={handleCancelEdit}
+                  >
+                    <Text style={styles.cancelButtonText}>수정 취소</Text>
+                  </TouchableOpacity>
+                )}
                 <TouchableOpacity
-                  style={[styles.cancelButton, { marginBottom: 8 }]}
-                  onPress={handleCancelEdit}
-                >
-                  <Text style={styles.cancelButtonText}>수정 취소</Text>
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity
-                style={[
-                  styles.sendButton,
-                  (!announcementTitle.trim() ||
-                    !announcement.trim() ||
-                    isSubmitting ||
-                    isUpdating) &&
-                    styles.sendButtonDisabled,
-                ]}
-                onPress={handleSendAnnouncement}
-                disabled={
-                  !announcementTitle.trim() ||
-                  !announcement.trim() ||
-                  isSubmitting ||
-                  isUpdating
-                }
-              >
-                <Text
                   style={[
-                    styles.sendButtonText,
+                    styles.sendButton,
                     (!announcementTitle.trim() ||
                       !announcement.trim() ||
                       isSubmitting ||
                       isUpdating) &&
-                      styles.sendButtonTextDisabled,
+                      styles.sendButtonDisabled,
                   ]}
+                  onPress={handleSendAnnouncement}
+                  disabled={
+                    !announcementTitle.trim() ||
+                    !announcement.trim() ||
+                    isSubmitting ||
+                    isUpdating
+                  }
                 >
-                  {isUpdating
-                    ? '수정 중...'
-                    : isSubmitting
-                    ? '발송 중...'
-                    : editingNoticeId
-                    ? '공지 수정하기'
-                    : '공지 발송하기'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-
-        {/* 공지 목록 */}
-        <View
-          style={[
-            styles.announcementsSection,
-            isTraveler && styles.announcementsSectionTraveler,
-          ]}
-        >
-          {isLoading ? (
-            <View style={styles.loadingContainer}>
-              <Text style={styles.loadingText}>공지 목록을 불러오는 중...</Text>
-            </View>
-          ) : error ? (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{error}</Text>
-              <TouchableOpacity
-                style={styles.retryButton}
-                onPress={fetchNotices}
-              >
-                <Text style={styles.retryButtonText}>다시 시도</Text>
-              </TouchableOpacity>
-            </View>
-          ) : notices.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>아직 발송된 공지가 없습니다.</Text>
-            </View>
-          ) : (
-            notices.map((notice) => (
-              <View key={notice.noticeId} style={styles.announcementCard}>
-                <View style={styles.announcementHeaderContainer}>
-                  <TouchableOpacity
-                    style={styles.announcementHeader}
-                    onPress={() => toggleNotice(notice.noticeId)}
-                    activeOpacity={0.7}
+                  <Text
+                    style={[
+                      styles.sendButtonText,
+                      (!announcementTitle.trim() ||
+                        !announcement.trim() ||
+                        isSubmitting ||
+                        isUpdating) &&
+                        styles.sendButtonTextDisabled,
+                    ]}
                   >
-                    <View style={styles.avatarContainer}>
-                      <Ionicons name='megaphone' size={20} color='#8130FF' />
-                    </View>
-                    <View style={styles.announcementContent}>
-                      <Text style={styles.announcementText}>
-                        {notice.title}
-                      </Text>
-                      <Text style={styles.announcementTime}>
-                        {new Date(notice.createdAt).toLocaleString('ko-KR', {
-                          year: 'numeric',
-                          month: '2-digit',
-                          day: '2-digit',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </Text>
-                    </View>
-                    <View style={styles.expandIcon}>
-                      <Ionicons
-                        name={
-                          expandedNoticeId === notice.noticeId
-                            ? 'chevron-up'
-                            : 'chevron-down'
-                        }
-                        size={20}
-                        color='#9CA3AF'
-                      />
-                    </View>
-                  </TouchableOpacity>
-                  {/* 수정/삭제 버튼 - 가이드만 표시 */}
-                  {!isTraveler && (
-                    <View style={styles.actionButtons}>
-                      <TouchableOpacity
-                        style={styles.actionButton}
-                        onPress={() => handleEditNotice(notice.noticeId)}
-                        disabled={isDeleting || !!editingNoticeId}
-                      >
+                    {isUpdating
+                      ? '수정 중...'
+                      : isSubmitting
+                      ? '발송 중...'
+                      : editingNoticeId
+                      ? '공지 수정하기'
+                      : '공지 발송하기'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* 공지 목록 */}
+          <View
+            style={[
+              styles.announcementsSection,
+              isTraveler && styles.announcementsSectionTraveler,
+            ]}
+          >
+            {isLoading ? (
+              <View style={styles.loadingContainer}>
+                <Text style={styles.loadingText}>공지 목록을 불러오는 중...</Text>
+              </View>
+            ) : error ? (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{error}</Text>
+                <TouchableOpacity
+                  style={styles.retryButton}
+                  onPress={fetchNotices}
+                >
+                  <Text style={styles.retryButtonText}>다시 시도</Text>
+                </TouchableOpacity>
+              </View>
+            ) : notices.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>아직 발송된 공지가 없습니다.</Text>
+              </View>
+            ) : (
+              notices.map((notice) => (
+                <View key={notice.noticeId} style={styles.announcementCard}>
+                  <View style={styles.announcementHeaderContainer}>
+                    <TouchableOpacity
+                      style={styles.announcementHeader}
+                      onPress={() => toggleNotice(notice.noticeId)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.avatarContainer}>
+                        <Ionicons name='megaphone' size={20} color='#8130FF' />
+                      </View>
+                      <View style={styles.announcementContent}>
+                        <Text style={styles.announcementText}>
+                          {notice.title}
+                        </Text>
+                        <Text style={styles.announcementTime}>
+                          {new Date(notice.createdAt).toLocaleString('ko-KR', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </Text>
+                      </View>
+                      <View style={styles.expandIcon}>
                         <Ionicons
-                          name='create-outline'
-                          size={18}
-                          color='#8130FF'
+                          name={
+                            expandedNoticeId === notice.noticeId
+                              ? 'chevron-up'
+                              : 'chevron-down'
+                          }
+                          size={20}
+                          color='#9CA3AF'
                         />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.actionButton}
-                        onPress={() => handleDeleteNotice(notice.noticeId)}
-                        disabled={isDeleting || !!editingNoticeId}
-                      >
-                        <Ionicons
-                          name='trash-outline'
-                          size={18}
-                          color='#EF4444'
-                        />
-                      </TouchableOpacity>
+                      </View>
+                    </TouchableOpacity>
+                    {/* 수정/삭제 버튼 - 가이드만 표시 */}
+                    {!isTraveler && (
+                      <View style={styles.actionButtons}>
+                        <TouchableOpacity
+                          style={styles.actionButton}
+                          onPress={() => handleEditNotice(notice.noticeId)}
+                          disabled={isDeleting || !!editingNoticeId}
+                        >
+                          <Ionicons
+                            name='create-outline'
+                            size={18}
+                            color='#8130FF'
+                          />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.actionButton}
+                          onPress={() => handleDeleteNotice(notice.noticeId)}
+                          disabled={isDeleting || !!editingNoticeId}
+                        >
+                          <Ionicons
+                            name='trash-outline'
+                            size={18}
+                            color='#EF4444'
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </View>
+
+                  {expandedNoticeId === notice.noticeId && (
+                    <View style={styles.announcementDetail}>
+                      {loadingDetails.has(notice.noticeId) ? (
+                        <View style={styles.detailLoading}>
+                          <Text style={styles.detailLoadingText}>
+                            상세 내용을 불러오는 중...
+                          </Text>
+                        </View>
+                      ) : (
+                        <Text style={styles.detailContent} numberOfLines={0}>
+                          {noticeDetails[notice.noticeId] ||
+                            '상세 내용을 불러올 수 없습니다.'}
+                        </Text>
+                      )}
                     </View>
                   )}
                 </View>
-
-                {expandedNoticeId === notice.noticeId && (
-                  <View style={styles.announcementDetail}>
-                    {loadingDetails.has(notice.noticeId) ? (
-                      <View style={styles.detailLoading}>
-                        <Text style={styles.detailLoadingText}>
-                          상세 내용을 불러오는 중...
-                        </Text>
-                      </View>
-                    ) : (
-                      <Text style={styles.detailContent} numberOfLines={0}>
-                        {noticeDetails[notice.noticeId] ||
-                          '상세 내용을 불러올 수 없습니다.'}
-                      </Text>
-                    )}
-                  </View>
-                )}
-              </View>
-            ))
-          )}
-        </View>
-      </ScrollView>
-    </View>
+              ))
+            )}
+          </View>
+        </ScrollView>
+      </View>
+    </CustomSafeAreaView>
   );
 };
 

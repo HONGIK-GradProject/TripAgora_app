@@ -1,7 +1,8 @@
+import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import GuideItineraryList from '@/components/guide/template/GuideItineraryList';
 import {
-    InteractiveMapView,
-    InteractiveMapViewRef,
+  InteractiveMapView,
+  InteractiveMapViewRef,
 } from '@/components/map/InteractiveMapView';
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import { setTemplateItineraries } from '@/services/templates';
@@ -9,18 +10,18 @@ import { TemplateItinerary } from '@/types/templates';
 import { flattenItineraries } from '@/utils/Itineraries';
 import { Ionicons } from '@expo/vector-icons';
 import {
-    CameraAnimationEasing,
-    ClusterMarkerProp,
+  CameraAnimationEasing,
+  ClusterMarkerProp,
 } from '@mj-studio/react-native-naver-map';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-    ActivityIndicator,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 import Toast from 'react-native-toast-message';
@@ -312,48 +313,50 @@ const EditTemplateItinerariesScreen: React.FC = () => {
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-          disabled={isSaving}
-        >
-          <Ionicons name='arrow-back' size={24} color='#000' />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>여행 일정 편집하기</Text>
-        <TouchableOpacity
-          style={styles.saveButton}
-          onPress={handleSave}
-          disabled={isSaving}
-        >
-          {isSaving ? (
-            <ActivityIndicator color='#8130FF' />
-          ) : (
-            <Text style={styles.saveButtonText}>저장</Text>
-          )}
-        </TouchableOpacity>
-      </View>
+    <CustomSafeAreaView>
+      <View>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+            disabled={isSaving}
+          >
+            <Ionicons name='arrow-back' size={24} color='#000' />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>여행 일정 편집하기</Text>
+          <TouchableOpacity
+            style={styles.saveButton}
+            onPress={handleSave}
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <ActivityIndicator color='#8130FF' />
+            ) : (
+              <Text style={styles.saveButtonText}>저장</Text>
+            )}
+          </TouchableOpacity>
+        </View>
 
-      {/* 선택된 날짜(day)에 해당하는 일정을 표시합니다. */}
-      {/* 데이터가 없는 경우를 대비해 '|| []'를 추가하여 안정성을 높입니다. */}
-      <GuideItineraryList
-        itineraries={itineraries[day] || []}
-        onUpdate={handleUpdate}
-        onDelete={handleDelete}
-        onItemPress={handleItemPress}
-        ListHeaderComponent={ListHeader}
-        contentContainerStyle={styles.scrollViewContent}
-        selectedItineraryId={selectedItineraryId}
-      />
+        {/* 선택된 날짜(day)에 해당하는 일정을 표시합니다. */}
+        {/* 데이터가 없는 경우를 대비해 '|| []'를 추가하여 안정성을 높입니다. */}
+        <GuideItineraryList
+          itineraries={itineraries[day] || []}
+          onUpdate={handleUpdate}
+          onDelete={handleDelete}
+          onItemPress={handleItemPress}
+          ListHeaderComponent={ListHeader}
+          contentContainerStyle={styles.scrollViewContent}
+          selectedItineraryId={selectedItineraryId}
+        />
 
-      <View style={styles.addButtonContainer}>
-        <TouchableOpacity style={styles.addItineraryButton} onPress={handleAdd}>
-          <Ionicons name='add-circle' size={24} color='#fff' />
-          <Text style={styles.addItineraryButtonText}>일정 추가</Text>
-        </TouchableOpacity>
+        <View style={styles.addButtonContainer}>
+          <TouchableOpacity style={styles.addItineraryButton} onPress={handleAdd}>
+            <Ionicons name='add-circle' size={24} color='#fff' />
+            <Text style={styles.addItineraryButtonText}>일정 추가</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </CustomSafeAreaView>
   );
 };
 
@@ -389,7 +392,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 50,
+    paddingTop: 12,
     paddingBottom: 10,
     backgroundColor: '#fff',
     borderBottomWidth: 1,

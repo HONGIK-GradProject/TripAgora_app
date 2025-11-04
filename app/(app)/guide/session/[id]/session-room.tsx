@@ -1,3 +1,4 @@
+import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import FullScreenLoader from '@/components/ui/FullScreenLoader';
 import { SessionDetailsProvider } from '@/contexts/SessionDetailsProvider';
 import { useSessionDetails } from '@/hooks/sessions/useSessionDetails';
@@ -211,9 +212,11 @@ const SessionRoomScreen: React.FC = () => {
   }
 
   return (
-    <SessionDetailsProvider id={id}>
-      <SessionRoomContent />
-    </SessionDetailsProvider>
+    <CustomSafeAreaView>
+      <SessionDetailsProvider id={id}>
+        <SessionRoomContent />
+      </SessionDetailsProvider>
+    </CustomSafeAreaView>
   );
 };
 

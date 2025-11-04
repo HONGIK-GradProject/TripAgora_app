@@ -1,3 +1,4 @@
+import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import SessionDetailScreen from '@/components/session/SessionDetailScreen';
 import React from 'react';
 
@@ -6,7 +7,11 @@ import React from 'react';
  * 제목, 소개, 지역, 태그, 일정 등을 확인하고 모집 취소/확정 기능을 제공합니다.
  */
 const GuideSessionDetailScreen: React.FC = () => {
-  return <SessionDetailScreen userType='guide' />;
+  return (
+    <CustomSafeAreaView>
+      <SessionDetailScreen userType='guide' />
+    </CustomSafeAreaView>
+  );
 };
 
 export default GuideSessionDetailScreen;
