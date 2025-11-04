@@ -1,6 +1,6 @@
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { Link } from 'expo-router';
+import { Href, Link } from 'expo-router';
 import React from 'react';
 import {
   FlatList,
@@ -26,6 +26,7 @@ interface ProductListProps {
   onEndReached?: () => void;
   refreshControl?: React.ReactElement<RefreshControlProps>;
   ListFooterComponent?: React.ReactElement | null;
+  detailPath?: string; // 세션 상세 페이지 경로 (기본값: '/traveler/explore/[id]')
 }
 
 const TravelerProductList: React.FC<ProductListProps> = ({
@@ -33,15 +34,18 @@ const TravelerProductList: React.FC<ProductListProps> = ({
   onEndReached,
   refreshControl,
   ListFooterComponent,
+  detailPath = '/traveler/explore/[id]',
 }) => {
   const renderItem = ({ item }: { item: Product }) => (
     <Link
-      href={{
-        pathname: '/traveler/explore/[id]',
-        params: {
-          id: item.id,
-        },
-      }}
+      href={
+        {
+          pathname: detailPath as any,
+          params: {
+            id: item.id,
+          },
+        } as Href
+      }
       asChild
     >
       <TouchableOpacity className='bg-white rounded-2xl mb-2 p-5 shadow-sm border border-gray-100'>
@@ -92,9 +96,6 @@ const TravelerProductList: React.FC<ProductListProps> = ({
               )}
             </View>
           </View>
-          <TouchableOpacity className='p-2'>
-            <Ionicons name='heart-outline' size={24} color='#999' />
-          </TouchableOpacity>
         </View>
       </TouchableOpacity>
     </Link>
