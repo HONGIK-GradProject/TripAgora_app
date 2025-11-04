@@ -50,11 +50,71 @@ interface GuideProfileGetData {
 
 interface GuideProfileGetResponse extends APIResponse<GuideProfileGetData> {}
 
+/**
+ * 가이드 프로필 bio 수정 요청 데이터
+ */
+interface GuideProfileUpdateBioRequest {
+  bio: string;
+}
+
+/**
+ * 가이드 프로필 bio 수정 응답 데이터
+ */
+interface GuideProfileUpdateBioData {
+  bio: string;
+}
+
+interface GuideProfileUpdateBioResponse
+  extends APIResponse<GuideProfileUpdateBioData> {}
+
+/**
+ * 가이드 프로필 이미지 수정 요청 데이터
+ */
+interface GuideProfileUpdateImageRequest {
+  imageUrl: string;
+}
+
+/**
+ * 가이드 프로필 이미지 수정 응답 데이터
+ */
+interface GuideProfileUpdateImageData {
+  imageUrl: string;
+}
+
+interface GuideProfileUpdateImageResponse
+  extends APIResponse<GuideProfileUpdateImageData> {}
+
+/**
+ * 가이드 프로필 포트폴리오 수정 요청 데이터
+ */
+interface GuideProfileUpdatePortfoliosRequest {
+  portfolios: Portfolio[];
+}
+
+/**
+ * 가이드 프로필 포트폴리오 수정 응답 데이터
+ */
+interface GuideProfileUpdatePortfoliosData {
+  portfolios: Portfolio[];
+}
+
+interface GuideProfileUpdatePortfoliosResponse
+  extends APIResponse<GuideProfileUpdatePortfoliosData> {}
+
 export {
   GuideProfileGetData,
   GuideProfileGetRequest,
   GuideProfileGetResponse,
   GuideProfileSessionList,
+  GuideProfileUpdateBioData,
+  GuideProfileUpdateBioRequest,
+  GuideProfileUpdateBioResponse,
+  GuideProfileUpdateImageData,
+  GuideProfileUpdateImageRequest,
+  GuideProfileUpdateImageResponse,
+  GuideProfileUpdatePortfoliosData,
+  GuideProfileUpdatePortfoliosRequest,
+  GuideProfileUpdatePortfoliosResponse,
   Portfolio,
   PortfolioType,
 };
