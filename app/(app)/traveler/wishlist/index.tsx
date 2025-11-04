@@ -143,6 +143,7 @@ const WishListScreen: React.FC = () => {
             ) : (
               <ProductList
                 products={products}
+                detailPath='/traveler/wishlist/[id]'
                 refreshControl={
                   <RefreshControl
                     refreshing={isLoading && sessions.length === 0}
