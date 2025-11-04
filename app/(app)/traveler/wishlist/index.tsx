@@ -45,6 +45,14 @@ const WishListScreen: React.FC = () => {
     fetchWishlist();
   }, [fetchWishlist]);
 
+  // 날짜 포맷팅 함수
+  const formatDate = useCallback((dateString: string) => {
+    const date = new Date(dateString);
+    return `${date.getFullYear()}.${(date.getMonth() + 1)
+      .toString()
+      .padStart(2, '0')}.${date.getDate().toString().padStart(2, '0')}`;
+  }, []);
+
   // 세션 데이터를 Product 형태로 변환
   const products = useMemo(() => {
     return sessions.map((session) => ({
@@ -63,15 +71,7 @@ const WishListScreen: React.FC = () => {
       rating: '-' as const,
       imageUrl: session.firstImageUrl,
     }));
-  }, [sessions]);
-
-  // 날짜 포맷팅 함수
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return `${date.getFullYear()}.${(date.getMonth() + 1)
-      .toString()
-      .padStart(2, '0')}.${date.getDate().toString().padStart(2, '0')}`;
-  };
+  }, [sessions, formatDate]);
 
   return (
     <View className='flex-1 bg-white pt-12'>
