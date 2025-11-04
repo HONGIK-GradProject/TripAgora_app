@@ -1,21 +1,31 @@
+import CustomImagePicker from '@/components/ui/ImagePicker';
 import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { TAG_ID_TO_NAME_MAP } from '@/constants/Tags';
 import { useAuth } from '@/hooks/useAuth';
-import { getGuideProfile } from '@/services/guideProfiles';
+import {
+  getGuideProfile,
+  updateGuideProfileBio,
+  updateGuideProfileImage,
+  updateGuideProfilePortfolios,
+} from '@/services/guideProfiles';
 import { GuideProfileGetData, Portfolio } from '@/types/guideProfiles';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { router, useSegments } from 'expo-router';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Linking,
+  Modal,
+  RefreshControl,
   ScrollView,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 
 interface GuideProfileScreenProps {
   guideProfileId?: number;
@@ -40,11 +50,25 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [profileError, setProfileError] = useState<string | null>(null);
 
-  // 가이드 프로필 조회
-  useEffect(() => {
-    const fetchGuideProfile = async () => {
-      // guideProfileId가 없으면 조회하지 않음
-      if (!guideProfileId) {
+  // 편집 상태
+  const [isEditingBio, setIsEditingBio] = useState(false);
+  const [editingBio, setEditingBio] = useState('');
+  const [isSavingBio, setIsSavingBio] = useState(false);
+
+  const [isEditingImage, setIsEditingImage] = useState(false);
+  const [isSavingImage, setIsSavingImage] = useState(false);
+
+  const [isEditingPortfolios, setIsEditingPortfolios] = useState(false);
+  const [editingPortfolios, setEditingPortfolios] = useState<Portfolio[]>([]);
+  const [isSavingPortfolios, setIsSavingPortfolios] = useState(false);
+
+  // 가이드 프로필 조회 함수
+  const fetchGuideProfile = useCallback(
+    async (profileId?: number) => {
+      const targetId = profileId || guideProfileId;
+
+      // guideProfileId가 없고 자신의 프로필도 아닌 경우 조회하지 않음
+      if (!targetId && !isOwnProfile) {
         setIsLoadingProfile(false);
         return;
       }
@@ -53,7 +77,16 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
       setProfileError(null);
 
       try {
-        const data = await getGuideProfile(guideProfileId, 0);
+        // 자신의 프로필인 경우 user.userId를 사용 (가이드 프로필 ID와 동일하다고 가정)
+        const idToFetch =
+          targetId || (isOwnProfile && user ? (user as any).userId : undefined);
+
+        if (!idToFetch) {
+          setIsLoadingProfile(false);
+          return;
+        }
+
+        const data = await getGuideProfile(idToFetch, 0);
         if (data) {
           setGuideProfile(data);
         } else {
@@ -65,10 +98,19 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
       } finally {
         setIsLoadingProfile(false);
       }
-    };
+    },
+    [guideProfileId, isOwnProfile, user]
+  );
 
+  // 가이드 프로필 조회
+  useEffect(() => {
     fetchGuideProfile();
-  }, [guideProfileId]);
+  }, [fetchGuideProfile]);
+
+  // 새로고침 핸들러
+  const handleRefresh = useCallback(async () => {
+    await fetchGuideProfile();
+  }, [fetchGuideProfile]);
 
   // 가이드 정보 (API 데이터 또는 기본값)
   const guideInfo = useMemo(() => {
@@ -106,8 +148,178 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
     return guideProfile?.SessionList?.sessions || [];
   }, [guideProfile]);
 
-  const handleEditProfile = () => {
-    // TODO: 프로필 편집 화면으로 이동하는 로직 추가
+  // bio 편집 시작
+  const handleStartEditBio = () => {
+    setEditingBio(guideInfo.bio);
+    setIsEditingBio(true);
+  };
+
+  // bio 편집 취소
+  const handleCancelEditBio = () => {
+    setIsEditingBio(false);
+    setEditingBio('');
+  };
+
+  // bio 저장
+  const handleSaveBio = async () => {
+    if (editingBio === guideInfo.bio) {
+      setIsEditingBio(false);
+      return;
+    }
+
+    setIsSavingBio(true);
+    try {
+      const result = await updateGuideProfileBio(editingBio);
+      if (result) {
+        setGuideProfile((prev) => {
+          if (prev) {
+            return { ...prev, bio: result.bio };
+          }
+          // 자신의 프로필인 경우 초기 데이터 생성
+          return {
+            nickname: user?.nickname || '닉네임 없음',
+            imageUrl: user?.profileImageUrl || '',
+            bio: result.bio,
+            tags: [],
+            portfolios: [],
+            SessionList: { sessions: [], hasNext: false },
+          };
+        });
+        setIsEditingBio(false);
+        Toast.show({
+          type: 'success',
+          text1: '소개글이 수정되었습니다.',
+        });
+      }
+    } catch (error) {
+      console.error('소개글 수정 실패:', error);
+      Toast.show({
+        type: 'error',
+        text1: '소개글 수정에 실패했습니다.',
+      });
+    } finally {
+      setIsSavingBio(false);
+    }
+  };
+
+  // 이미지 선택 핸들러
+  const handleImageSelected = async (uri: string | null) => {
+    if (!uri) return;
+
+    setIsSavingImage(true);
+    try {
+      const result = await updateGuideProfileImage(uri);
+      if (result) {
+        setGuideProfile((prev) => {
+          if (prev) {
+            return { ...prev, imageUrl: result.imageUrl };
+          }
+          // 자신의 프로필인 경우 초기 데이터 생성
+          return {
+            nickname: user?.nickname || '닉네임 없음',
+            imageUrl: result.imageUrl,
+            bio: '',
+            tags: [],
+            portfolios: [],
+            SessionList: { sessions: [], hasNext: false },
+          };
+        });
+        setIsEditingImage(false);
+        Toast.show({
+          type: 'success',
+          text1: '이미지가 변경되었습니다.',
+        });
+      }
+    } catch (error) {
+      console.error('이미지 변경 실패:', error);
+      Toast.show({
+        type: 'error',
+        text1: '이미지 변경에 실패했습니다.',
+      });
+    } finally {
+      setIsSavingImage(false);
+    }
+  };
+
+  // 포트폴리오 편집 시작
+  const handleStartEditPortfolios = () => {
+    setEditingPortfolios([...guideInfo.portfolios]);
+    setIsEditingPortfolios(true);
+  };
+
+  // 포트폴리오 편집 취소
+  const handleCancelEditPortfolios = () => {
+    setIsEditingPortfolios(false);
+    setEditingPortfolios([]);
+  };
+
+  // 포트폴리오 추가 상태
+  const [isAddingPortfolio, setIsAddingPortfolio] = useState(false);
+  const [newPortfolioType, setNewPortfolioType] = useState<
+    Portfolio['type'] | ''
+  >('');
+  const [newPortfolioUrl, setNewPortfolioUrl] = useState('');
+
+  // 포트폴리오 추가
+  const handleAddPortfolio = () => {
+    setIsAddingPortfolio(true);
+    setNewPortfolioType('');
+    setNewPortfolioUrl('');
+  };
+
+  // 포트폴리오 추가 완료
+  const handleConfirmAddPortfolio = () => {
+    if (newPortfolioType && newPortfolioUrl) {
+      setEditingPortfolios([
+        ...editingPortfolios,
+        { type: newPortfolioType, url: newPortfolioUrl },
+      ]);
+      setIsAddingPortfolio(false);
+      setNewPortfolioType('');
+      setNewPortfolioUrl('');
+    }
+  };
+
+  // 포트폴리오 삭제
+  const handleRemovePortfolio = (index: number) => {
+    setEditingPortfolios(editingPortfolios.filter((_, i) => i !== index));
+  };
+
+  // 포트폴리오 저장
+  const handleSavePortfolios = async () => {
+    setIsSavingPortfolios(true);
+    try {
+      const result = await updateGuideProfilePortfolios(editingPortfolios);
+      if (result) {
+        setGuideProfile((prev) => {
+          if (prev) {
+            return { ...prev, portfolios: result.portfolios };
+          }
+          // 자신의 프로필인 경우 초기 데이터 생성
+          return {
+            nickname: user?.nickname || '닉네임 없음',
+            imageUrl: user?.profileImageUrl || '',
+            bio: '',
+            tags: [],
+            portfolios: result.portfolios,
+            SessionList: { sessions: [], hasNext: false },
+          };
+        });
+        setIsEditingPortfolios(false);
+        Toast.show({
+          type: 'success',
+          text1: '포트폴리오가 수정되었습니다.',
+        });
+      }
+    } catch (error) {
+      console.error('포트폴리오 수정 실패:', error);
+      Toast.show({
+        type: 'error',
+        text1: '포트폴리오 수정에 실패했습니다.',
+      });
+    } finally {
+      setIsSavingPortfolios(false);
+    }
   };
 
   const handleSessionPress = (sessionId: number) => {
@@ -225,14 +437,34 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
         </View>
       )}
 
+      {/* 배너 이미지 */}
+      {guideInfo.profileImageUrl && (
+        <View className='mx-5 mt-5 relative'>
+          <Image
+            source={{ uri: guideInfo.profileImageUrl }}
+            style={{ width: '100%', height: 200, borderRadius: 16 }}
+            contentFit='cover'
+          />
+          {isOwnProfile && (
+            <TouchableOpacity
+              onPress={() => setIsEditingImage(true)}
+              className='absolute top-3 right-3 bg-black/50 rounded-full p-2'
+              activeOpacity={0.7}
+            >
+              <Ionicons name='camera-outline' size={20} color='#fff' />
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
       {/* 프로필 정보 */}
       <View className='bg-white mx-5 mt-5 rounded-2xl p-6 shadow-sm'>
         <View className='flex-row items-center justify-between mb-4'>
           <View className='flex-row items-center flex-1'>
             <View className='w-16 h-16 rounded-full bg-gray-100 justify-center items-center shadow-sm mr-3'>
-              {guideInfo.profileImageUrl ? (
+              {user?.profileImageUrl ? (
                 <Image
-                  source={{ uri: guideInfo.profileImageUrl }}
+                  source={{ uri: user.profileImageUrl }}
                   style={{ width: 64, height: 64, borderRadius: 32 }}
                   contentFit='cover'
                 />
@@ -248,27 +480,63 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
               {guideInfo.nickname}
             </Text>
           </View>
-          {isOwnProfile && (
-            <TouchableOpacity
-              className='bg-purple-50 border border-purple-200 rounded-xl py-2 px-4'
-              onPress={handleEditProfile}
-            >
-              <Text className='text-purple-700 font-semibold text-base'>
-                프로필 편집
-              </Text>
-            </TouchableOpacity>
-          )}
         </View>
 
         {/* 가이드 소개 */}
-        {guideInfo.bio && (
-          <View className='mb-4'>
-            <Text className='text-lg font-semibold text-gray-900 mb-2'>
+        <View className='mb-4'>
+          <View className='flex-row items-center justify-between mb-2'>
+            <Text className='text-lg font-semibold text-gray-900'>
               가이드 소개
             </Text>
-            <Text className='text-base text-gray-600'>{guideInfo.bio}</Text>
+            {isOwnProfile && !isEditingBio && (
+              <TouchableOpacity
+                onPress={handleStartEditBio}
+                className='p-1'
+                activeOpacity={0.7}
+              >
+                <Ionicons name='pencil-outline' size={18} color='#6B7280' />
+              </TouchableOpacity>
+            )}
           </View>
-        )}
+          {isEditingBio ? (
+            <View>
+              <TextInput
+                className='text-base text-gray-600 border border-gray-300 rounded-lg p-3 min-h-[100px]'
+                value={editingBio}
+                onChangeText={setEditingBio}
+                multiline
+                placeholder='소개글을 입력하세요'
+                placeholderTextColor='#9CA3AF'
+                style={{ textAlignVertical: 'top' }}
+              />
+              <View className='flex-row justify-end mt-2'>
+                <TouchableOpacity
+                  onPress={handleCancelEditBio}
+                  className='px-4 py-2 mr-2'
+                  activeOpacity={0.7}
+                >
+                  <Text className='text-gray-600'>취소</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleSaveBio}
+                  className='bg-purple-600 px-4 py-2 rounded-lg'
+                  activeOpacity={0.7}
+                  disabled={isSavingBio}
+                >
+                  {isSavingBio ? (
+                    <ActivityIndicator size='small' color='#fff' />
+                  ) : (
+                    <Text className='text-white font-semibold'>저장</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            <Text className='text-base text-gray-600'>
+              {guideInfo.bio || (isOwnProfile ? '소개글을 작성해주세요' : '')}
+            </Text>
+          )}
+        </View>
 
         {/* 관심사 태그 */}
         {guideInfo.tags && guideInfo.tags.length > 0 && (
@@ -292,11 +560,22 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
         )}
 
         {/* 포트폴리오 링크 */}
-        {guideInfo.portfolios && guideInfo.portfolios.length > 0 && (
-          <View className='border-t border-gray-100 pt-4'>
-            <Text className='text-lg font-semibold text-gray-900 mb-2'>
+        <View className='border-t border-gray-100 pt-4'>
+          <View className='flex-row items-center justify-between mb-2'>
+            <Text className='text-lg font-semibold text-gray-900'>
               포트폴리오
             </Text>
+            {isOwnProfile && !isEditingPortfolios && (
+              <TouchableOpacity
+                onPress={handleStartEditPortfolios}
+                className='p-1'
+                activeOpacity={0.7}
+              >
+                <Ionicons name='pencil-outline' size={18} color='#6B7280' />
+              </TouchableOpacity>
+            )}
+          </View>
+          {guideInfo.portfolios && guideInfo.portfolios.length > 0 ? (
             <View className='flex-row flex-wrap'>
               {guideInfo.portfolios.map((portfolio, index) => (
                 <TouchableOpacity
@@ -316,14 +595,30 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
                 </TouchableOpacity>
               ))}
             </View>
-          </View>
-        )}
+          ) : (
+            isOwnProfile && (
+              <Text className='text-gray-500 text-sm'>
+                포트폴리오를 추가해주세요
+              </Text>
+            )
+          )}
+        </View>
       </View>
 
       <ScrollView
         className='flex-1 mt-5'
         contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          isOwnProfile ? (
+            <RefreshControl
+              refreshing={isLoadingProfile}
+              onRefresh={handleRefresh}
+              colors={['#8130FF']}
+              tintColor='#8130FF'
+            />
+          ) : undefined
+        }
       >
         {/* 모집 중인 세션 목록 */}
         <View className='mx-5 mb-5'>
@@ -401,6 +696,221 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
           </View>
         </View>
       </ScrollView>
+
+      {/* 이미지 편집 모달 */}
+      <Modal
+        visible={isEditingImage}
+        transparent={true}
+        animationType='fade'
+        onRequestClose={() => setIsEditingImage(false)}
+      >
+        <View className='flex-1 bg-black/50 justify-center items-center px-5'>
+          <View className='bg-white rounded-2xl p-6 w-full max-w-sm'>
+            <Text className='text-xl font-bold text-gray-900 mb-4 text-center'>
+              프로필 이미지 변경
+            </Text>
+            <CustomImagePicker
+              onImageSelected={handleImageSelected}
+              aspect={[4, 3]}
+            >
+              <View className='bg-purple-600 rounded-xl px-6 py-3 items-center mb-3'>
+                {isSavingImage ? (
+                  <ActivityIndicator size='small' color='#fff' />
+                ) : (
+                  <Text className='text-white font-semibold'>이미지 선택</Text>
+                )}
+              </View>
+            </CustomImagePicker>
+            <TouchableOpacity
+              onPress={() => setIsEditingImage(false)}
+              className='bg-gray-200 rounded-xl px-6 py-3 items-center'
+              activeOpacity={0.7}
+            >
+              <Text className='text-gray-700 font-semibold'>취소</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* 포트폴리오 편집 모달 */}
+      <Modal
+        visible={isEditingPortfolios}
+        transparent={true}
+        animationType='slide'
+        onRequestClose={handleCancelEditPortfolios}
+      >
+        <View
+          className='flex-1 bg-black/50 justify-end'
+          style={{ paddingTop: insets.top }}
+        >
+          <View
+            className='bg-white rounded-t-3xl p-6'
+            style={{ paddingBottom: insets.bottom + 20 }}
+          >
+            <View className='flex-row items-center justify-between mb-4'>
+              <Text className='text-2xl font-bold text-gray-900'>
+                포트폴리오 편집
+              </Text>
+              <TouchableOpacity
+                onPress={handleCancelEditPortfolios}
+                activeOpacity={0.7}
+              >
+                <Ionicons name='close' size={24} color='#6B7280' />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView className='max-h-96'>
+              {editingPortfolios.map((portfolio, index) => (
+                <View
+                  key={index}
+                  className='flex-row items-center justify-between bg-gray-50 rounded-lg p-3 mb-2'
+                >
+                  <View className='flex-row items-center flex-1'>
+                    <Ionicons
+                      name={getPortfolioIcon(portfolio.type)}
+                      size={20}
+                      color='#6B7280'
+                    />
+                    <View className='ml-3 flex-1'>
+                      <Text className='text-gray-900 font-medium'>
+                        {portfolio.type}
+                      </Text>
+                      <Text className='text-gray-500 text-sm' numberOfLines={1}>
+                        {portfolio.url}
+                      </Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => handleRemovePortfolio(index)}
+                    activeOpacity={0.7}
+                    className='ml-2'
+                  >
+                    <Ionicons name='trash-outline' size={20} color='#EF4444' />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </ScrollView>
+
+            {/* 포트폴리오 추가 폼 */}
+            {isAddingPortfolio && (
+              <View className='bg-purple-50 rounded-lg p-4 mb-3 mt-4'>
+                <Text className='text-gray-900 font-semibold mb-2'>
+                  포트폴리오 추가
+                </Text>
+                <View className='mb-3'>
+                  <Text className='text-gray-700 text-sm mb-1'>타입</Text>
+                  <View className='flex-row flex-wrap'>
+                    {(
+                      [
+                        'FACEBOOK',
+                        'INSTAGRAM',
+                        'TWITTER',
+                        'YOUTUBE',
+                        'WEBSITE',
+                      ] as Portfolio['type'][]
+                    ).map((type) => (
+                      <TouchableOpacity
+                        key={type}
+                        onPress={() => setNewPortfolioType(type)}
+                        className={`mr-2 mb-2 px-3 py-1 rounded-full ${
+                          newPortfolioType === type
+                            ? 'bg-purple-600'
+                            : 'bg-white border border-gray-300'
+                        }`}
+                        activeOpacity={0.7}
+                      >
+                        <Text
+                          className={`text-sm ${
+                            newPortfolioType === type
+                              ? 'text-white'
+                              : 'text-gray-700'
+                          }`}
+                        >
+                          {type}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+                <View className='mb-3'>
+                  <Text className='text-gray-700 text-sm mb-1'>URL</Text>
+                  <TextInput
+                    className='bg-white border border-gray-300 rounded-lg p-3'
+                    value={newPortfolioUrl}
+                    onChangeText={setNewPortfolioUrl}
+                    placeholder='https://...'
+                    placeholderTextColor='#9CA3AF'
+                    autoCapitalize='none'
+                    keyboardType='url'
+                  />
+                </View>
+                <View className='flex-row'>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setIsAddingPortfolio(false);
+                      setNewPortfolioType('');
+                      setNewPortfolioUrl('');
+                    }}
+                    className='flex-1 bg-gray-200 rounded-lg px-4 py-2 items-center mr-2'
+                    activeOpacity={0.7}
+                  >
+                    <Text className='text-gray-700 font-semibold'>취소</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={handleConfirmAddPortfolio}
+                    className='flex-1 bg-purple-600 rounded-lg px-4 py-2 items-center ml-2'
+                    activeOpacity={0.7}
+                    disabled={!newPortfolioType || !newPortfolioUrl}
+                  >
+                    <Text className='text-white font-semibold'>추가</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+
+            {!isAddingPortfolio && (
+              <TouchableOpacity
+                onPress={handleAddPortfolio}
+                className='bg-purple-50 border border-purple-200 rounded-xl px-4 py-3 items-center mb-3 mt-4'
+                activeOpacity={0.7}
+              >
+                <View className='flex-row items-center'>
+                  <Ionicons
+                    name='add-circle-outline'
+                    size={20}
+                    color='#8130FF'
+                  />
+                  <Text className='text-purple-700 font-semibold ml-2'>
+                    포트폴리오 추가
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
+
+            <View className='flex-row'>
+              <TouchableOpacity
+                onPress={handleCancelEditPortfolios}
+                className='flex-1 bg-gray-200 rounded-xl px-6 py-3 items-center mr-2'
+                activeOpacity={0.7}
+              >
+                <Text className='text-gray-700 font-semibold'>취소</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleSavePortfolios}
+                className='flex-1 bg-purple-600 rounded-xl px-6 py-3 items-center ml-2'
+                activeOpacity={0.7}
+                disabled={isSavingPortfolios}
+              >
+                {isSavingPortfolios ? (
+                  <ActivityIndicator size='small' color='#fff' />
+                ) : (
+                  <Text className='text-white font-semibold'>저장</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
