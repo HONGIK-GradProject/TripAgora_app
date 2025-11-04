@@ -8,7 +8,8 @@ import {
   GuideProfileUpdatePortfoliosRequest,
   GuideProfileUpdatePortfoliosResponse,
 } from '@/types/guideProfiles';
-import apiClient from './client';
+import { createFileFromImageUri } from '@/utils/files';
+import apiClient, { apiClientMultipart } from './client';
 
 /**
  * 가이드 프로필을 조회합니다.
@@ -52,16 +53,17 @@ const updateBio = async (
 
 /**
  * 가이드 프로필의 이미지를 수정합니다.
- * @param imageUrl - 변경할 이미지 URL
+ * @param uri - 변경할 이미지 파일의 URI
  * @returns 변경된 이미지 URL을 담은 Promise
  */
 const updateImage = async (
-  imageUrl: string
+  uri: string
 ): Promise<GuideProfileUpdateImageResponse> => {
-  const requestData: GuideProfileUpdateImageRequest = { imageUrl };
-  const response = await apiClient.patch<GuideProfileUpdateImageResponse>(
+  const requestForm: GuideProfileUpdateImageRequest = new FormData();
+  requestForm.append('imageFile', createFileFromImageUri(uri));
+  const response = await apiClientMultipart.patch<GuideProfileUpdateImageResponse>(
     '/guide-profiles/me/image',
-    requestData
+    requestForm
   );
   return response.data;
 };

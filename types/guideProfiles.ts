@@ -70,9 +70,7 @@ interface GuideProfileUpdateBioResponse
 /**
  * 가이드 프로필 이미지 수정 요청 데이터
  */
-interface GuideProfileUpdateImageRequest {
-  imageUrl: string;
-}
+type GuideProfileUpdateImageRequest = FormData;
 
 /**
  * 가이드 프로필 이미지 수정 응답 데이터

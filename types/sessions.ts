@@ -155,6 +155,8 @@ interface SessionGetData {
   status: SessionStatus;
   participants: Participant[];
   isParticipating: boolean;
+  guideProfileId: number;
+  isMySession: boolean;
 }
 
 interface SessionGetResponse extends APIResponse<SessionGetData> {

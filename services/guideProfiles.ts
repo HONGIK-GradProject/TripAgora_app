@@ -56,14 +56,14 @@ export const updateGuideProfileBio = async (
 
 /**
  * 가이드 프로필의 이미지를 수정합니다.
- * @param imageUrl - 변경할 이미지 URL
+ * @param uri - 변경할 이미지 파일의 URI
  * @returns 성공 시 변경된 이미지 URL, 실패 시 undefined
  */
 export const updateGuideProfileImage = async (
-  imageUrl: string
+  uri: string
 ): Promise<GuideProfileUpdateImageData | undefined> => {
   try {
-    const response = await guideProfilesApi.updateImage(imageUrl);
+    const response = await guideProfilesApi.updateImage(uri);
 
     if (response && response.code === 200) {
       return response.data;
