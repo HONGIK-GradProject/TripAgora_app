@@ -12,7 +12,7 @@ interface ReviewCreateRequest {
 /**
  * 리뷰 생성 응답 데이터
  */
-interface ReviewCreateData {
+interface ReviewData {
   reviewId: number;
   authorNickname: string;
   authorProfile: string;
@@ -21,7 +21,7 @@ interface ReviewCreateData {
   createdAt: string; // LocalDateTime을 string으로 변환
 }
 
-type ReviewCreateResponse = APIResponse<ReviewCreateData>;
+type ReviewCreateResponse = APIResponse<ReviewData>;
 
 /**
  * 리뷰 수정 요청 데이터
@@ -31,7 +31,7 @@ interface ReviewUpdateRequest {
   rating: number;
 }
 
-type ReviewUpdateResponse = APIResponse<ReviewCreateData>;
+type ReviewUpdateResponse = APIResponse<ReviewData>;
 
 /**
  * 리뷰 삭제 요청 데이터 (빈 데이터)
@@ -45,13 +45,35 @@ interface ReviewDeleteData {}
 
 type ReviewDeleteResponse = APIResponse<ReviewDeleteData>;
 
+/**
+ * 가이드별 리뷰 목록 조회 응답 데이터
+ */
+interface ReviewGetByGuideData {
+  averageRating: number; // Float
+  totalReviewCount: number; // Int
+  review: ReviewData[]; // 리뷰 배열
+}
+
+type ReviewGetByGuideResponse = APIResponse<ReviewGetByGuideData>;
+
+/**
+ * 템플릿별 리뷰 목록 조회 응답 데이터 (가이드와 동일한 구조)
+ */
+type ReviewGetByTemplateData = ReviewGetByGuideData;
+
+type ReviewGetByTemplateResponse = APIResponse<ReviewGetByTemplateData>;
+
 export {
-  ReviewCreateData,
   ReviewCreateRequest,
   ReviewCreateResponse,
+  ReviewData,
   ReviewDeleteData,
   ReviewDeleteRequest,
   ReviewDeleteResponse,
+  ReviewGetByGuideData,
+  ReviewGetByGuideResponse,
+  ReviewGetByTemplateData,
+  ReviewGetByTemplateResponse,
   ReviewUpdateRequest,
   ReviewUpdateResponse,
 };

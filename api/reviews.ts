@@ -8,6 +8,8 @@ import {
   ReviewCreateResponse,
   ReviewDeleteRequest,
   ReviewDeleteResponse,
+  ReviewGetByGuideResponse,
+  ReviewGetByTemplateResponse,
   ReviewUpdateRequest,
   ReviewUpdateResponse,
 } from '@/types/reviews';
@@ -76,8 +78,38 @@ const deleteReview = async (
   return response.data;
 };
 
+/**
+ * 특정 가이드에 대한 리뷰 목록을 조회합니다.
+ * @param guideProfileId - 조회할 가이드의 프로필 ID
+ * @returns 가이드별 리뷰 목록을 포함한 응답 데이터
+ */
+const getReviewsByGuide = async (
+  guideProfileId: string | number
+): Promise<ReviewGetByGuideResponse> => {
+  const response = await apiClient.get<ReviewGetByGuideResponse>(
+    `/reviews/guide/${guideProfileId}`
+  );
+  return response.data;
+};
+
+/**
+ * 특정 템플릿에 대한 리뷰 목록을 조회합니다.
+ * @param templateId - 조회할 템플릿의 ID
+ * @returns 템플릿별 리뷰 목록을 포함한 응답 데이터
+ */
+const getReviewsByTemplate = async (
+  templateId: string | number
+): Promise<ReviewGetByTemplateResponse> => {
+  const response = await apiClient.get<ReviewGetByTemplateResponse>(
+    `/reviews/template/${templateId}`
+  );
+  return response.data;
+};
+
 export const reviewsApi = {
   createReview,
   updateReview,
   deleteReview,
+  getReviewsByGuide,
+  getReviewsByTemplate,
 };
