@@ -1,3 +1,4 @@
+import { reviewsApi } from '@/api/reviews';
 import FullScreenLoader from '@/components/ui/FullScreenLoader';
 import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { TAG_ID_TO_NAME_MAP } from '@/constants/Tags';
@@ -9,6 +10,7 @@ import {
   createParticipation,
   deleteSession,
 } from '@/services/sessions';
+import { ReviewGetByGuideData } from '@/types/reviews';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
@@ -80,16 +82,59 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // 리뷰 데이터 상태
+  // TODO: 가이드가 아닌 이 세션이 기반으로 하는 템플릿의 리뷰를 가져와야 함. 관련 API 부재.
+  const [reviewData, setReviewData] = useState<ReviewGetByGuideData | null>(
+    null
+  );
+  const [isLoadingReviews, setIsLoadingReviews] = useState(false);
+
   // 컨텍스트의 isParticipating 상태가 변경되면 로컬 상태도 업데이트
   useEffect(() => {
     setIsParticipating(contextIsParticipating);
   }, [contextIsParticipating]);
+
+  // 가이드 정보 가져오기
+  const guide = useMemo(() => {
+    return participants.find((p) => p.role === 'GUIDE');
+  }, [participants]);
+
+  // 리뷰 데이터 로드
+  useEffect(() => {
+    const loadReviews = async () => {
+      if (!guide?.userId) return;
+
+      try {
+        setIsLoadingReviews(true);
+        const response = await reviewsApi.getReviewsByGuide(guide.userId);
+        if (response.data) {
+          setReviewData(response.data);
+        }
+      } catch (error) {
+        console.error('리뷰 로드 실패:', error);
+        // 에러가 발생해도 UI는 계속 표시
+      } finally {
+        setIsLoadingReviews(false);
+      }
+    };
+
+    loadReviews();
+  }, [guide?.userId]);
 
   // 이미지 관련 상태
   const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [scrollViewRef, setScrollViewRef] = useState<ScrollView | null>(null);
+
+  // 섹션 네비게이션 관련 상태
+  const sectionRefs = {
+    info: React.useRef<View>(null),
+    itinerary: React.useRef<View>(null),
+    review: React.useRef<View>(null),
+    participants: React.useRef<View>(null),
+  };
+  const mainScrollViewRef = React.useRef<ScrollView>(null);
 
   // 지역명과 태그명 변환
   const regionNames = useMemo(() => {
@@ -300,6 +345,41 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
     });
   }, [id, router]);
 
+  // 섹션으로 스크롤
+  const scrollToSection = useCallback(
+    (sectionName: keyof typeof sectionRefs) => {
+      const sectionRef = sectionRefs[sectionName].current;
+      const scrollView = mainScrollViewRef.current;
+
+      if (!sectionRef || !scrollView) return;
+
+      sectionRef.measureLayout(
+        scrollView as any,
+        (_x: number, y: number) => {
+          scrollView.scrollTo({
+            y: Math.max(0, y - 20), // 상단 여백 고려
+            animated: true,
+          });
+        },
+        () => {
+          // measureLayout 실패 시 기본 스크롤 시도
+          console.warn(`Failed to measure layout for section: ${sectionName}`);
+        }
+      );
+    },
+    []
+  );
+
+  // 맨 위로 스크롤
+  const scrollToTop = useCallback(() => {
+    if (mainScrollViewRef.current) {
+      mainScrollViewRef.current.scrollTo({
+        y: 0,
+        animated: true,
+      });
+    }
+  }, []);
+
   // 이미지 관련 함수들
   const openImageViewer = (index: number) => {
     setSelectedImageIndex(index);
@@ -354,6 +434,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
   return (
     <View style={styles.container}>
       <ScrollView
+        ref={mainScrollViewRef}
         contentContainerStyle={styles.scrollViewContent}
         refreshControl={
           userType === 'guide' ? (
@@ -462,30 +543,25 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
           <Text style={styles.title}>{title}</Text>
 
           {/* 가이드 정보 */}
-          {(() => {
-            const guide = participants.find((p) => p.role === 'GUIDE');
-            return (
-              <View style={styles.guideContainer}>
-                {guide ? (
-                  <Image
-                    source={{ uri: guide.profileImageUrl }}
-                    style={styles.guideAvatar}
-                    contentFit='cover'
-                  />
-                ) : (
-                  <View style={styles.guideAvatarPlaceholder}>
-                    <Ionicons name='person-outline' size={20} color='#9CA3AF' />
-                  </View>
-                )}
-                <View style={styles.guideInfo}>
-                  <Text style={styles.guideLabel}>가이드</Text>
-                  <Text style={styles.guideName}>
-                    {guide ? guide.nickname : '알 수 없음'}
-                  </Text>
-                </View>
+          <View style={styles.guideContainer}>
+            {guide ? (
+              <Image
+                source={{ uri: guide.profileImageUrl }}
+                style={styles.guideAvatar}
+                contentFit='cover'
+              />
+            ) : (
+              <View style={styles.guideAvatarPlaceholder}>
+                <Ionicons name='person-outline' size={20} color='#9CA3AF' />
               </View>
-            );
-          })()}
+            )}
+            <View style={styles.guideInfo}>
+              <Text style={styles.guideLabel}>가이드</Text>
+              <Text style={styles.guideName}>
+                {guide ? guide.nickname : '알 수 없음'}
+              </Text>
+            </View>
+          </View>
 
           {/* 상태 배지 */}
           <View style={styles.statusContainer}>
@@ -555,52 +631,53 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
         {/* 구분선 */}
         <View style={styles.divider} />
 
-        {/* 참여자 목록 섹션 */}
-        {(() => {
-          // 가이드를 제외한 여행자만 필터링
-          const travelers = participants.filter((p) => p.role === 'TRAVELER');
+        {/* 섹션 네비게이션 */}
+        <View style={styles.sectionNavigation}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.sectionNavContent}
+          >
+            <TouchableOpacity
+              style={styles.sectionNavButton}
+              onPress={() => scrollToSection('info')}
+            >
+              <Text style={styles.sectionNavText}>여행 정보</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.sectionNavButton}
+              onPress={() => scrollToSection('itinerary')}
+              disabled={availableDays.length === 0}
+            >
+              <Text
+                style={[
+                  styles.sectionNavText,
+                  availableDays.length === 0 && styles.sectionNavTextDisabled,
+                ]}
+              >
+                일정
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.sectionNavButton}
+              onPress={() => scrollToSection('review')}
+            >
+              <Text style={styles.sectionNavText}>리뷰</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.sectionNavButton}
+              onPress={() => scrollToSection('participants')}
+            >
+              <Text style={styles.sectionNavText}>참여자 목록</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
 
-          return travelers.length > 0 ? (
-            <>
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>참여자 목록</Text>
-                <View style={styles.participantsContainer}>
-                  {travelers.map((participant, index) => (
-                    <View key={index} style={styles.participantItem}>
-                      <Image
-                        source={{ uri: participant.profileImageUrl }}
-                        style={styles.participantAvatar}
-                        contentFit='cover'
-                      />
-                      <View style={styles.participantInfo}>
-                        <Text style={styles.participantName}>
-                          {participant.nickname}
-                        </Text>
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              </View>
-              <View style={styles.divider} />
-            </>
-          ) : participants.length > 0 ? (
-            <>
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>참여자 목록</Text>
-                <View style={styles.emptyParticipantsContainer}>
-                  <Ionicons name='people-outline' size={48} color='#D1D5DB' />
-                  <Text style={styles.emptyParticipantsText}>
-                    아직 신청인원이 없습니다.
-                  </Text>
-                </View>
-              </View>
-              <View style={styles.divider} />
-            </>
-          ) : null;
-        })()}
+        {/* 구분선 */}
+        <View style={styles.divider} />
 
         {/* 여행 소개 섹션 */}
-        <View style={styles.section}>
+        <View ref={sectionRefs.info} style={styles.section}>
           <Text style={styles.sectionTitle}>여행 소개</Text>
           <Text style={styles.description}>{content}</Text>
         </View>
@@ -641,7 +718,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
         {/* 일정 섹션 */}
         {availableDays.length > 0 && (
           <>
-            <View style={styles.section}>
+            <View ref={sectionRefs.itinerary} style={styles.section}>
               <Text style={styles.sectionTitle}>일정</Text>
             </View>
 
@@ -690,11 +767,157 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
                   </View>
                 ))}
             </View>
+            <View style={styles.divider} />
           </>
         )}
 
+        {/* 리뷰 섹션 */}
+        <View ref={sectionRefs.review} style={styles.section}>
+          <Text style={styles.sectionTitle}>리뷰</Text>
+
+          {isLoadingReviews ? (
+            <View style={styles.reviewsLoadingContainer}>
+              <Text style={styles.reviewsLoadingText}>
+                리뷰를 불러오는 중...
+              </Text>
+            </View>
+          ) : reviewData && reviewData.totalReviewCount > 0 ? (
+            <>
+              {/* 평균 평점 및 총 리뷰 수 */}
+              <View style={styles.reviewSummary}>
+                <View style={styles.ratingContainer}>
+                  <Ionicons name='star' size={24} color='#FBBF24' />
+                  <Text style={styles.averageRating}>
+                    {reviewData.averageRating.toFixed(1)}
+                  </Text>
+                </View>
+                <Text style={styles.totalReviewCount}>
+                  총 {reviewData.totalReviewCount}개의 리뷰
+                </Text>
+              </View>
+
+              {/* 리뷰 목록 */}
+              <View style={styles.reviewsList}>
+                {reviewData.review.map((review, index) => (
+                  <View key={review.reviewId} style={styles.reviewItem}>
+                    <View style={styles.reviewHeader}>
+                      <View style={styles.reviewAuthor}>
+                        {review.authorProfile ? (
+                          <Image
+                            source={{ uri: review.authorProfile }}
+                            style={styles.reviewAuthorAvatar}
+                            contentFit='cover'
+                          />
+                        ) : (
+                          <View style={styles.reviewAuthorAvatarPlaceholder}>
+                            <Ionicons
+                              name='person-outline'
+                              size={16}
+                              color='#9CA3AF'
+                            />
+                          </View>
+                        )}
+                        <Text style={styles.reviewAuthorName}>
+                          {review.authorNickname}
+                        </Text>
+                      </View>
+                      <View style={styles.reviewRating}>
+                        {Array.from({ length: 5 }, (_, i) => (
+                          <Ionicons
+                            key={i}
+                            name={i < review.rating ? 'star' : 'star-outline'}
+                            size={16}
+                            color={i < review.rating ? '#FBBF24' : '#D1D5DB'}
+                          />
+                        ))}
+                      </View>
+                    </View>
+                    <Text style={styles.reviewContent}>{review.content}</Text>
+                    <Text style={styles.reviewDate}>
+                      {new Date(review.createdAt).toLocaleDateString('ko-KR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                    </Text>
+                    {index < reviewData.review.length - 1 && (
+                      <View style={styles.reviewDivider} />
+                    )}
+                  </View>
+                ))}
+              </View>
+            </>
+          ) : (
+            <View style={styles.emptyReviewsContainer}>
+              <Ionicons name='chatbubbles-outline' size={48} color='#9CA3AF' />
+              <Text style={styles.emptyReviewsText}>
+                아직 작성된 리뷰가 없습니다.
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* 구분선 */}
+        <View style={styles.divider} />
+
+        {/* 참여자 목록 섹션 */}
+        {(() => {
+          // 가이드를 제외한 여행자만 필터링
+          const travelers = participants.filter((p) => p.role === 'TRAVELER');
+
+          return travelers.length > 0 ? (
+            <>
+              <View ref={sectionRefs.participants} style={styles.section}>
+                <Text style={styles.sectionTitle}>참여자 목록</Text>
+                <View style={styles.participantsContainer}>
+                  {travelers.map((participant, index) => (
+                    <View key={index} style={styles.participantItem}>
+                      <Image
+                        source={{ uri: participant.profileImageUrl }}
+                        style={styles.participantAvatar}
+                        contentFit='cover'
+                      />
+                      <View style={styles.participantInfo}>
+                        <Text style={styles.participantName}>
+                          {participant.nickname}
+                        </Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              </View>
+              <View style={styles.divider} />
+            </>
+          ) : participants.length > 0 ? (
+            <>
+              <View ref={sectionRefs.participants} style={styles.section}>
+                <Text style={styles.sectionTitle}>참여자 목록</Text>
+                <View style={styles.emptyParticipantsContainer}>
+                  <Ionicons name='people-outline' size={48} color='#D1D5DB' />
+                  <Text style={styles.emptyParticipantsText}>
+                    아직 신청인원이 없습니다.
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.divider} />
+            </>
+          ) : null;
+        })()}
+
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      {/* 맨 위로 스크롤 버튼 */}
+      <TouchableOpacity
+        style={[
+          styles.scrollToTopButton,
+          { bottom: insets.bottom + 100 }, // 하단 액션 버튼 위에 위치
+        ]}
+        onPress={scrollToTop}
+        activeOpacity={0.8}
+      >
+        <Ionicons name='arrow-up' size={24} color='#FFFFFF' />
+      </TouchableOpacity>
 
       {/* 하단 액션 버튼 */}
       <View
@@ -1291,6 +1514,147 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
+  },
+  reviewsLoadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  reviewsLoadingText: {
+    fontSize: 16,
+    color: '#9CA3AF',
+  },
+  reviewSummary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  averageRating: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#000',
+  },
+  totalReviewCount: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  reviewsList: {
+    marginTop: 20,
+  },
+  reviewItem: {
+    paddingVertical: 16,
+  },
+  reviewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  reviewAuthor: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
+  reviewAuthorAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+  },
+  reviewAuthorAvatarPlaceholder: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  reviewAuthorName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000',
+  },
+  reviewRating: {
+    flexDirection: 'row',
+    gap: 2,
+  },
+  reviewContent: {
+    fontSize: 16,
+    lineHeight: 22,
+    color: '#000',
+    marginBottom: 8,
+  },
+  reviewDate: {
+    fontSize: 12,
+    color: '#9CA3AF',
+  },
+  reviewDivider: {
+    height: 1,
+    backgroundColor: '#E5E7EB',
+    marginTop: 16,
+  },
+  emptyReviewsContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  emptyReviewsText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#9CA3AF',
+  },
+  sectionNavigation: {
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  sectionNavContent: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    gap: 8,
+  },
+  sectionNavButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#F3F4F6',
+    marginRight: 8,
+  },
+  sectionNavText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  sectionNavTextDisabled: {
+    color: '#9CA3AF',
+  },
+  scrollToTopButton: {
+    position: 'absolute',
+    right: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#8130FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
 });
 
