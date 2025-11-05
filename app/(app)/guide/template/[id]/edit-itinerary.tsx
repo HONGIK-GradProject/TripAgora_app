@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
   },
   mapContainer: {
     width: '100%',
-    height: 200,
+    height: '35%',
     backgroundColor: '#D9D9D9',
     marginBottom: 20,
   },

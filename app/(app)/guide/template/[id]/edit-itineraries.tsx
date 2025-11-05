@@ -4,6 +4,7 @@ import {
   InteractiveMapView,
   InteractiveMapViewRef,
 } from '@/components/map/InteractiveMapView';
+import { Colors } from '@/constants/Colors';
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import { setTemplateItineraries } from '@/services/templates';
 import { TemplateItinerary } from '@/types/templates';
@@ -24,6 +25,7 @@ import {
   View,
 } from 'react-native';
 
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
 /**
@@ -39,6 +41,7 @@ const EditTemplateItinerariesScreen: React.FC = () => {
     null
   );
   const mapViewRef = useRef<InteractiveMapViewRef>(null);
+  const insets = useSafeAreaInsets();
 
   // useTemplateDetails 훅에서 여정 데이터 및 관리 함수들을 가져옵니다.
   const { itineraries, day, deleteItinerary, addItinerary, setDay } =
@@ -313,7 +316,7 @@ const EditTemplateItinerariesScreen: React.FC = () => {
   );
 
   return (
-    <CustomSafeAreaView>
+    <CustomSafeAreaView style={{ paddingBottom: insets.bottom }}>
       <View>
         <View style={styles.header}>
           <TouchableOpacity
@@ -349,7 +352,7 @@ const EditTemplateItinerariesScreen: React.FC = () => {
           selectedItineraryId={selectedItineraryId}
         />
 
-        <View style={styles.addButtonContainer}>
+        <View style={[styles.addButtonContainer]}>
           <TouchableOpacity style={styles.addItineraryButton} onPress={handleAdd}>
             <Ionicons name='add-circle' size={24} color='#fff' />
             <Text style={styles.addItineraryButtonText}>일정 추가</Text>
@@ -362,11 +365,13 @@ const EditTemplateItinerariesScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   addButtonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#E9E9E9',
+    paddingVertical: 20,
+    backgroundColor: Colors.primaryBackgroundColor,
   },
   addItineraryButton: {
     flexDirection: 'row',
@@ -374,8 +379,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#8130FF',
     borderRadius: 12,
-    paddingVertical: 14,
+    paddingVertical: 16,
     paddingHorizontal: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#E9E9E9',
   },
   addItineraryButtonText: {
     fontSize: 16,
@@ -415,7 +422,7 @@ const styles = StyleSheet.create({
     color: '#8130FF',
   },
   scrollViewContent: {
-    paddingBottom: 80, // 하단 버튼 공간 확보
+    paddingBottom: 100, // 하단 버튼 공간 확보
   },
   mapContainer: {
     width: '100%',
