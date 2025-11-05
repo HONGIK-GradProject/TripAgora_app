@@ -9,6 +9,7 @@ import {
   createParticipation,
   deleteSession,
 } from '@/services/sessions';
+import { addWishlist, deleteWishlist } from '@/services/wishlist';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
@@ -60,6 +61,8 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
     status = '',
     participants = [],
     isParticipating: contextIsParticipating = false,
+    isInWishlist: contextIsInWishlist = false,
+    setIsInWishlist,
     itineraries = {},
     isLoading = true,
     refetch = () => {},
@@ -80,10 +83,19 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // 위시리스트 상태 관리 (여행자용)
+  const [isInWishlist, setIsInWishlistLocal] = useState(contextIsInWishlist);
+  const [isWishlistSubmitting, setIsWishlistSubmitting] = useState(false);
+
   // 컨텍스트의 isParticipating 상태가 변경되면 로컬 상태도 업데이트
   useEffect(() => {
     setIsParticipating(contextIsParticipating);
   }, [contextIsParticipating]);
+
+  // 컨텍스트의 isInWishlist 상태가 변경되면 로컬 상태도 업데이트
+  useEffect(() => {
+    setIsInWishlistLocal(contextIsInWishlist);
+  }, [contextIsInWishlist]);
 
   // 이미지 관련 상태
   const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
@@ -170,6 +182,44 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
       },
     ]);
   }, [id, refetch]);
+
+  // 여행자용 위시리스트 토글 처리
+  const handleToggleWishlist = useCallback(async () => {
+    if (!id || isWishlistSubmitting) return;
+
+    try {
+      setIsWishlistSubmitting(true);
+
+      if (isInWishlist) {
+        // 위시리스트에서 제거
+        const success = await deleteWishlist(parseInt(id));
+        if (success) {
+          setIsInWishlistLocal(false);
+          setIsInWishlist?.(false);
+        } else {
+          throw new Error('위시리스트 제거 실패');
+        }
+      } else {
+        // 위시리스트에 추가
+        const success = await addWishlist(parseInt(id));
+        if (success) {
+          setIsInWishlistLocal(true);
+          setIsInWishlist?.(true);
+        } else {
+          throw new Error('위시리스트 추가 실패');
+        }
+      }
+    } catch (error) {
+      console.error('위시리스트 업데이트 에러:', error);
+      Toast.show({
+        type: 'error',
+        text1: '위시리스트 업데이트 실패',
+        text2: '잠시 후 다시 시도해주세요.',
+      });
+    } finally {
+      setIsWishlistSubmitting(false);
+    }
+  }, [id, isInWishlist, isWishlistSubmitting, setIsInWishlist]);
 
   // 여행자용 참여 취소 처리
   const handleCancelParticipation = useCallback(async () => {
@@ -708,34 +758,50 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
               </TouchableOpacity>
             )}
           </>
-        ) : isParticipating ? (
-          <TouchableOpacity
-            style={[
-              styles.ctaButton,
-              styles.cancelButton,
-              isSubmitting && { backgroundColor: '#9CA3AF' },
-            ]}
-            onPress={handleCancelParticipation}
-            disabled={isSubmitting}
-          >
-            <Text style={styles.cancelButtonText}>
-              {isSubmitting ? '취소 중...' : '참여 신청 취소'}
-            </Text>
-          </TouchableOpacity>
         ) : (
-          <TouchableOpacity
-            style={[
-              styles.ctaButton,
-              styles.primaryButton,
-              isSubmitting && { backgroundColor: '#9CA3AF' },
-            ]}
-            onPress={handleParticipation}
-            disabled={isSubmitting}
-          >
-            <Text style={styles.primaryButtonText}>
-              {isSubmitting ? '신청 중...' : '여행에 참여 신청하기'}
-            </Text>
-          </TouchableOpacity>
+          <>
+            {/* 여행자용 하트 버튼 */}
+            <TouchableOpacity
+              style={styles.wishlistButton}
+              onPress={handleToggleWishlist}
+              disabled={isWishlistSubmitting}
+            >
+              <Ionicons
+                name={isInWishlist ? 'heart' : 'heart-outline'}
+                size={24}
+                color={isInWishlist ? '#8130FF' : '#000'}
+              />
+            </TouchableOpacity>
+            {isParticipating ? (
+              <TouchableOpacity
+                style={[
+                  styles.ctaButton,
+                  styles.cancelButton,
+                  isSubmitting && { backgroundColor: '#9CA3AF' },
+                ]}
+                onPress={handleCancelParticipation}
+                disabled={isSubmitting}
+              >
+                <Text style={styles.cancelButtonText}>
+                  {isSubmitting ? '취소 중...' : '참여 신청 취소'}
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={[
+                  styles.ctaButton,
+                  styles.primaryButton,
+                  isSubmitting && { backgroundColor: '#9CA3AF' },
+                ]}
+                onPress={handleParticipation}
+                disabled={isSubmitting}
+              >
+                <Text style={styles.primaryButtonText}>
+                  {isSubmitting ? '신청 중...' : '여행에 참여 신청하기'}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </>
         )}
       </View>
 
@@ -1061,6 +1127,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#EF4444',
+  },
+  wishlistButton: {
+    width: 78,
+    height: 52,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   primaryButtonText: {
     color: '#FFFFFF',

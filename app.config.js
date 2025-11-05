@@ -1,11 +1,12 @@
 export default {
   expo: {
-    name: 'gradproj',
-    slug: 'gradproj',
+    owner: 'tripagora',
+    name: 'tripagora',
+    slug: 'tripagora',
     version: '1.0.0',
     orientation: 'portrait',
     icon: './assets/images/icon.png',
-    scheme: 'gradproj',
+    scheme: 'tripagora',
     userInterfaceStyle: 'automatic',
     newArchEnabled: true,
     ios: {
@@ -26,7 +27,7 @@ export default {
     },
     extra: {
       eas: {
-        projectId: 'b50316a6-3307-4d05-99a4-67a42fd6b048',
+        projectId: '9fc62066-f8cb-435a-bfe0-4fa6d2800e38',
       },
     },
     plugins: [
@@ -87,6 +88,9 @@ export default {
         {
           "photosPermission": "The app accesses your photos to let you share them with your friends."
         }
+      ],
+      [
+        "expo-web-browser",
       ],
     ],
     experiments: {
