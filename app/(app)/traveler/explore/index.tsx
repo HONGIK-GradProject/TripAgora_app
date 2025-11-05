@@ -1,7 +1,7 @@
 import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import InterestTag from '@/components/InterestTag';
 import SearchWithAutoComplete from '@/components/search-bar/SearchWithAutoComplete';
-import ProductList from '@/components/traveler/explore/TravelerProductList';
+import TravelerProductList from '@/components/traveler/explore/TravelerProductList';
 import { REGION_DATA, REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { INTEREST_TAGS } from '@/constants/Tags';
 import { searchSessions } from '@/services/sessions';
@@ -9,21 +9,21 @@ import { SessionInfo } from '@/types/sessions';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import React, {
-    useCallback,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
 } from 'react';
 import {
-    ActivityIndicator,
-    Modal,
-    Platform,
-    RefreshControl,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Modal,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -54,6 +54,8 @@ const TravelerExploreScreen: React.FC = () => {
   const [datePickerMode, setDatePickerMode] = useState<'start' | 'end'>(
     'start'
   );
+
+  const { bottom } = useSafeAreaInsets();
 
   // useRef를 사용하여 의존성 배열로 인한 무한 루프를 방지합니다.
   const stateRef = useRef({
@@ -287,7 +289,7 @@ const TravelerExploreScreen: React.FC = () => {
 
   return (
     <CustomSafeAreaView>
-      <View className='flex-1 bg-white pt-6 relative'>
+      <View className='bg-white pt-6 relative'>
         <SearchWithAutoComplete
           query={searchQuery}
           onQueryChange={handleQueryChange}
@@ -635,7 +637,7 @@ const TravelerExploreScreen: React.FC = () => {
               </Text>
             </View>
           ) : (
-            <ProductList
+            <TravelerProductList
               products={products}
               onEndReached={loadMore}
               refreshControl={
@@ -656,6 +658,7 @@ const TravelerExploreScreen: React.FC = () => {
                   </View>
                 ) : undefined
               }
+              contentContainerStyle={{ paddingBottom: bottom + 160 }}
             />
           )}
         </View>

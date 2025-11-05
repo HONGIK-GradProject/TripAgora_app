@@ -19,7 +19,7 @@ const CustomSafeAreaView = ({ children, style } : SafeViewProps) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F9FAFB',
   },
 });
 

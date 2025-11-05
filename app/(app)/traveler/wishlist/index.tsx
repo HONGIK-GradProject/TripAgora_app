@@ -6,11 +6,11 @@ import { SessionInfo } from '@/types/sessions';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-    ActivityIndicator,
-    RefreshControl,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  RefreshControl,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -76,7 +76,7 @@ const WishListScreen: React.FC = () => {
 
   return (
     <CustomSafeAreaView>
-      <View className='flex-1 bg-white pt-6'>
+      <View className='flex-1 pt-6'>
         <View className='flex-row items-center justify-center px-5 pb-2.5 mb-5'>
           <Text className='text-4xl font-bold'>찜 목록</Text>
         </View>
@@ -115,7 +115,7 @@ const WishListScreen: React.FC = () => {
         </View>
 
         <View
-          className='bg-gray-50 rounded-2xl p-4'
+          className='bg-gray-50 p-4'
           style={{ marginBottom: 100 + insets.bottom }}
         >
           {activeTab === 'product' ? (

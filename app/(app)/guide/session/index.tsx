@@ -7,12 +7,13 @@ import { Image } from 'expo-image';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
-    ActivityIndicator,
-    RefreshControl,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  RefreshControl,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const GuideTripListScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'ongoing' | 'completed'>(
@@ -21,6 +22,7 @@ const GuideTripListScreen: React.FC = () => {
   const router = useRouter();
 
   const { sessions, isLoading, error, loadMore, refetch } = useSessionList();
+  const { bottom } = useSafeAreaInsets();
 
   // 탭 변경 시 데이터 새로고침
   const handleTabChange = useCallback(
@@ -252,7 +254,7 @@ const GuideTripListScreen: React.FC = () => {
                   }}
                 />
               }
-              contentContainerStyle={{ paddingBottom: 24 }}
+              contentContainerStyle={{ paddingBottom: bottom }}
             />
           )}
         </View>

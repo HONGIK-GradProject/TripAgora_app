@@ -84,7 +84,7 @@ const MyTemplatesScreen: React.FC = () => {
 
   return (
     <CustomSafeAreaView>
-      <View className='flex-1 bg-white pt-6 relative'>
+      <View className='bg-gray-50 pt-6 relative'>
         {/* 초기 로딩 처리 */}
         {isLoading && templates.length === 0 ? (
           <FullScreenLoader />
@@ -104,10 +104,7 @@ const MyTemplatesScreen: React.FC = () => {
               onSearch={handleSearch}
               placeholder='제목으로 템플릿을 검색해보세요!'
             />
-            <View
-              className='bg-gray-50 rounded-2xl p-4'
-              style={{ marginBottom: 16 + bottom }}
-            >
+            <View className='bg-gray-50 rounded-2xl p-4'>
               <GuideTemplateList
                 templates={filteredTemplates}
                 onEndReached={handleLoadMore}
@@ -115,7 +112,7 @@ const MyTemplatesScreen: React.FC = () => {
                 ListFooterComponent={renderFooter}
                 onRefresh={handleRefetch}
                 refreshing={isLoading}
-                contentContainerStyle={{ paddingBottom: 80 + bottom }}
+                contentContainerStyle={{ paddingBottom: 180 + bottom }}
               />
             </View>
           </>
@@ -126,7 +123,7 @@ const MyTemplatesScreen: React.FC = () => {
           className='absolute right-6 w-16 h-16 rounded-full bg-white items-center justify-center'
           style={{
             elevation: 8,
-            bottom: bottom + 20,
+            bottom: bottom + 60,
           }}
           onPress={handleCreateTemplate}
         >

@@ -5,12 +5,14 @@ import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import React from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const GuideHomeScreen: React.FC = () => {
   const { user } = useAuth();
+  const { bottom } = useSafeAreaInsets();
   return (
     <CustomSafeAreaView>
-      <View className='flex-1 bg-gray-50'>
+      <View className='bg-gray-50'>
         {/* 헤더 */}
         <View className='bg-white pt-6 pb-4 px-6'>
           <TouchableOpacity
@@ -39,7 +41,7 @@ const GuideHomeScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        <ScrollView contentContainerClassName='pb-24'>
+        <ScrollView contentContainerStyle={{ paddingBottom: 70 + bottom + 24 }}>
           {/* 환영 배너 */}
           <View className='mx-6 mt-6'>
             <View className='bg-white rounded-2xl p-6 border border-gray-200'>
