@@ -16,6 +16,7 @@ import React, {
  */
 const useSessionDetailsLogic = (id: string) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [templateId, setTemplateId] = useState<number>(0);
   const [title, setTitle] = useState<string>('');
   const [content, setContent] = useState<string>('');
   const [regionIds, setRegionIds] = useState<number[]>([]);
@@ -45,6 +46,7 @@ const useSessionDetailsLogic = (id: string) => {
       ]);
 
       if (sessionResponse) {
+        setTemplateId(sessionResponse.templateId);
         setTitle(sessionResponse.title);
         setContent(sessionResponse.content);
         setRegionIds(sessionResponse.regionIds);
@@ -84,6 +86,7 @@ const useSessionDetailsLogic = (id: string) => {
 
   return {
     isLoading,
+    templateId,
     title,
     content,
     regionIds,
@@ -97,6 +100,7 @@ const useSessionDetailsLogic = (id: string) => {
     participants,
     isParticipating,
     itineraries,
+    setTemplateId,
     setTitle,
     setContent,
     setRegionIds,

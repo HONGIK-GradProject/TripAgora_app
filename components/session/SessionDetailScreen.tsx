@@ -10,7 +10,7 @@ import {
   createParticipation,
   deleteSession,
 } from '@/services/sessions';
-import { ReviewGetByGuideData } from '@/types/reviews';
+import { ReviewGetByTemplateData } from '@/types/reviews';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
@@ -50,6 +50,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
   // 세션 상세 정보 가져오기
   const sessionDetails = useSessionDetails();
   const {
+    templateId = 0,
     title = '',
     content = '',
     regionIds = [],
@@ -83,8 +84,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 리뷰 데이터 상태
-  // TODO: 가이드가 아닌 이 세션이 기반으로 하는 템플릿의 리뷰를 가져와야 함. 관련 API 부재.
-  const [reviewData, setReviewData] = useState<ReviewGetByGuideData | null>(
+  const [reviewData, setReviewData] = useState<ReviewGetByTemplateData | null>(
     null
   );
   const [isLoadingReviews, setIsLoadingReviews] = useState(false);
@@ -99,14 +99,14 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
     return participants.find((p) => p.role === 'GUIDE');
   }, [participants]);
 
-  // 리뷰 데이터 로드
+  // 템플릿 리뷰 데이터 로드
   useEffect(() => {
     const loadReviews = async () => {
-      if (!guide?.userId) return;
+      if (!templateId || templateId === 0) return;
 
       try {
         setIsLoadingReviews(true);
-        const response = await reviewsApi.getReviewsByGuide(guide.userId);
+        const response = await reviewsApi.getReviewsByTemplate(templateId);
         if (response.data) {
           setReviewData(response.data);
         }
@@ -119,7 +119,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
     };
 
     loadReviews();
-  }, [guide?.userId]);
+  }, [templateId]);
 
   // 이미지 관련 상태
   const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
@@ -367,7 +367,8 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
         }
       );
     },
-    []
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [] // sectionRefs는 ref 객체이므로 안정적이어서 의존성 배열에 포함할 필요 없음
   );
 
   // 맨 위로 스크롤

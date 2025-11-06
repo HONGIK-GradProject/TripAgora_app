@@ -143,6 +143,7 @@ interface Participant {
  * 세션 상세 조회 응답 데이터
  */
 interface SessionGetData {
+  templateId: number;
   title: string;
   content: string;
   regionIds: number[];
