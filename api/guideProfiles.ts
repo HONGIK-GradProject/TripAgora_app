@@ -36,6 +36,28 @@ const getGuideProfile = async (
 };
 
 /**
+ * 자신의 가이드 프로필을 조회합니다.
+ * @param page - 조회할 페이지 번호 (선택사항, 기본값 0)
+ * @returns 가이드 프로필 정보를 담은 Promise
+ */
+const getMyGuideProfile = async (
+  page: number = 0
+): Promise<GuideProfileGetResponse> => {
+  const requestData: GuideProfileGetRequest = {
+    params: {
+      page,
+    },
+  };
+  const response = await apiClient.get<GuideProfileGetResponse>(
+    '/guide-profiles/my',
+    {
+      params: requestData.params,
+    }
+  );
+  return response.data;
+};
+
+/**
  * 가이드 프로필의 소개글(bio)을 수정합니다.
  * @param bio - 변경할 소개글
  * @returns 변경된 소개글을 담은 Promise
@@ -86,6 +108,7 @@ const updatePortfolios = async (
 
 export const guideProfilesApi = {
   getGuideProfile,
+  getMyGuideProfile,
   updateBio,
   updateImage,
   updatePortfolios,

@@ -4,6 +4,7 @@ import { TAG_ID_TO_NAME_MAP } from '@/constants/Tags';
 import { useAuth } from '@/hooks/useAuth';
 import {
   getGuideProfile,
+  getMyGuideProfile,
   updateGuideProfileBio,
   updateGuideProfileImage,
   updateGuideProfilePortfolios,
@@ -77,16 +78,19 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
       setProfileError(null);
 
       try {
-        // 자신의 프로필인 경우 user.userId를 사용 (가이드 프로필 ID와 동일하다고 가정)
-        const idToFetch =
-          targetId || (isOwnProfile && user ? (user as any).userId : undefined);
+        let data: GuideProfileGetData | undefined;
 
-        if (!idToFetch) {
+        if (isOwnProfile) {
+          // 자신의 프로필인 경우 전용 API 사용
+          data = await getMyGuideProfile(0);
+        } else if (targetId) {
+          // 다른 가이드 프로필 조회
+          data = await getGuideProfile(targetId, 0);
+        } else {
           setIsLoadingProfile(false);
           return;
         }
 
-        const data = await getGuideProfile(idToFetch, 0);
         if (data) {
           setGuideProfile(data);
         } else {
@@ -99,7 +103,7 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
         setIsLoadingProfile(false);
       }
     },
-    [guideProfileId, isOwnProfile, user]
+    [guideProfileId, isOwnProfile]
   );
 
   // 가이드 프로필 조회
