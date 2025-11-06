@@ -313,7 +313,7 @@ const TravelerExploreScreen: React.FC = () => {
               color={searchStartDate ? '#8130FF' : '#6B7280'}
             />
             <View className='ml-2 flex-1'>
-              <Text className='text-xs text-gray-500 mb-0.5'>시작일</Text>
+              <Text className='text-xs text-gray-500 mb-0.5'>검색 시작일</Text>
               <Text
                 className={`text-sm ${
                   searchStartDate ? 'text-primary font-medium' : 'text-gray-600'
@@ -350,7 +350,7 @@ const TravelerExploreScreen: React.FC = () => {
               color={searchEndDate ? '#8130FF' : '#6B7280'}
             />
             <View className='ml-2 flex-1'>
-              <Text className='text-xs text-gray-500 mb-0.5'>종료일</Text>
+              <Text className='text-xs text-gray-500 mb-0.5'>검색 종료일</Text>
               <Text
                 className={`text-sm ${
                   searchEndDate ? 'text-primary font-medium' : 'text-gray-600'
