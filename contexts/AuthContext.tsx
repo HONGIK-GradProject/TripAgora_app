@@ -39,6 +39,7 @@ export interface AuthContextType {
   signOut: () => Promise<void>;
   switchUserRole: (newUserRole: UserRole) => Promise<void>;
   setUser: React.Dispatch<React.SetStateAction<UserState | null>>;
+  refreshUser: () => Promise<void>;
 }
 
 /**
@@ -201,6 +202,28 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 
   /**
+   * @description 현재 사용자의 정보를 서버로부터 다시 불러와 상태를 갱신합니다.
+   * @function refreshUserHandler
+   * @async
+   */
+  const refreshUserHandler = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const { accessToken: currentToken } = await getTokens();
+      if (currentToken) {
+        await processAndSetAuth(currentToken);
+      } else {
+        await signOutHandler();
+      }
+    } catch (error) {
+      console.error('Failed to refresh user:', error);
+      await signOutHandler();
+    } finally {
+      setIsLoading(false);
+    }
+  }, [processAndSetAuth, signOutHandler]);
+
+  /**
    * @description API 클라이언트 인터셉터를 설정합니다.
    * 컴포넌트 마운트 시, Axios 인터셉터를 설정하여 API 요청/응답을 가로채
    * 토큰 재발급과 같은 공통 로직을 처리합니다.
@@ -247,6 +270,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         signOut: signOutHandler,
         switchUserRole: switchUserRoleHandler,
         setUser,
+        refreshUser: refreshUserHandler,
       }}
     >
       {children}
