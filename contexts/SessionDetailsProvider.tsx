@@ -32,6 +32,7 @@ const useSessionDetailsLogic = (id: string) => {
     undefined
   );
   const [isMySession, setIsMySession] = useState<boolean>(false);
+  const [isInWishlist, setIsInWishlist] = useState<boolean>(false);
   const [itineraries, setItineraries] = useState<{
     [key: number]: SessionItinerary[];
   }>({});
@@ -63,6 +64,7 @@ const useSessionDetailsLogic = (id: string) => {
         setIsParticipating(sessionResponse.isParticipating);
         setGuideProfileId(sessionResponse.guideProfileId);
         setIsMySession(sessionResponse.isMySession);
+        setIsInWishlist(sessionResponse.isInWishlist);
       }
 
       if (itinerariesResponse) {
@@ -104,6 +106,7 @@ const useSessionDetailsLogic = (id: string) => {
     isParticipating,
     guideProfileId,
     isMySession,
+    isInWishlist,
     itineraries,
     setTitle,
     setContent,
@@ -119,6 +122,7 @@ const useSessionDetailsLogic = (id: string) => {
     setIsParticipating,
     setGuideProfileId,
     setIsMySession,
+    setIsInWishlist,
     setItineraries,
     refetch: fetchSessionDetails,
   };

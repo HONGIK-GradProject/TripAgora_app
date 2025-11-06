@@ -157,6 +157,7 @@ interface SessionGetData {
   isParticipating: boolean;
   guideProfileId: number;
   isMySession: boolean;
+  isInWishlist: boolean;
 }
 
 interface SessionGetResponse extends APIResponse<SessionGetData> {
