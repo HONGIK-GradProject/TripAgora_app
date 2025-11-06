@@ -441,192 +441,8 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
         </View>
       )}
 
-      {/* 배너 이미지 */}
-      <View className='mx-5 mt-5 relative'>
-        {guideInfo.profileImageUrl ? (
-          <>
-            <Image
-              source={{ uri: guideInfo.profileImageUrl }}
-              style={{ width: '100%', height: 200, borderRadius: 16 }}
-              contentFit='cover'
-            />
-            {isOwnProfile && (
-              <TouchableOpacity
-                onPress={() => setIsEditingImage(true)}
-                className='absolute top-3 right-3 bg-black/50 rounded-full p-2'
-                activeOpacity={0.7}
-              >
-                <Ionicons name='camera-outline' size={20} color='#fff' />
-              </TouchableOpacity>
-            )}
-          </>
-        ) : (
-          isOwnProfile && (
-            <TouchableOpacity
-              onPress={() => setIsEditingImage(true)}
-              activeOpacity={0.7}
-            >
-              <View className='w-full h-52 bg-gray-100 rounded-2xl border border-dashed border-gray-300 items-center justify-center'>
-                <Ionicons name='image-outline' size={36} color='#9CA3AF' />
-                <Text className='text-gray-500 mt-2'>
-                  배너 이미지를 추가하세요
-                </Text>
-              </View>
-            </TouchableOpacity>
-          )
-        )}
-      </View>
-
-      {/* 프로필 정보 */}
-      <View className='bg-white mx-5 mt-5 rounded-2xl p-6 shadow-sm'>
-        <View className='flex-row items-center justify-between mb-4'>
-          <View className='flex-row items-center flex-1'>
-            <View className='w-16 h-16 rounded-full bg-gray-100 justify-center items-center shadow-sm mr-3'>
-              {user?.profileImageUrl ? (
-                <Image
-                  source={{ uri: user.profileImageUrl }}
-                  style={{ width: 64, height: 64, borderRadius: 32 }}
-                  contentFit='cover'
-                />
-              ) : (
-                <Ionicons
-                  name='person-circle-outline'
-                  size={64}
-                  color='#9CA3AF'
-                />
-              )}
-            </View>
-            <Text className='text-2xl font-bold text-gray-900'>
-              {guideInfo.nickname}
-            </Text>
-          </View>
-        </View>
-
-        {/* 가이드 소개 */}
-        <View className='mb-4'>
-          <View className='flex-row items-center justify-between mb-2'>
-            <Text className='text-lg font-semibold text-gray-900'>
-              가이드 소개
-            </Text>
-            {isOwnProfile && !isEditingBio && (
-              <TouchableOpacity
-                onPress={handleStartEditBio}
-                className='p-1'
-                activeOpacity={0.7}
-              >
-                <Ionicons name='pencil-outline' size={18} color='#6B7280' />
-              </TouchableOpacity>
-            )}
-          </View>
-          {isEditingBio ? (
-            <View>
-              <TextInput
-                className='text-base text-gray-600 border border-gray-300 rounded-lg p-3 min-h-[100px]'
-                value={editingBio}
-                onChangeText={setEditingBio}
-                multiline
-                placeholder='소개글을 입력하세요'
-                placeholderTextColor='#9CA3AF'
-                style={{ textAlignVertical: 'top' }}
-              />
-              <View className='flex-row justify-end mt-2'>
-                <TouchableOpacity
-                  onPress={handleCancelEditBio}
-                  className='px-4 py-2 mr-2'
-                  activeOpacity={0.7}
-                >
-                  <Text className='text-gray-600'>취소</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={handleSaveBio}
-                  className='bg-purple-600 px-4 py-2 rounded-lg'
-                  activeOpacity={0.7}
-                  disabled={isSavingBio}
-                >
-                  {isSavingBio ? (
-                    <ActivityIndicator size='small' color='#fff' />
-                  ) : (
-                    <Text className='text-white font-semibold'>저장</Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
-          ) : (
-            <Text className='text-base text-gray-600'>
-              {guideInfo.bio || (isOwnProfile ? '소개글을 작성해주세요' : '')}
-            </Text>
-          )}
-        </View>
-
-        {/* 관심사 태그 */}
-        {guideInfo.tags && guideInfo.tags.length > 0 && (
-          <View className='mb-4'>
-            <Text className='text-lg font-semibold text-gray-900 mb-2'>
-              관심사
-            </Text>
-            <View className='flex-row flex-wrap'>
-              {guideInfo.tags.map((tagId) => (
-                <View
-                  key={tagId}
-                  className='bg-purple-50 border border-purple-200 rounded-full px-3 py-1 mr-2 mb-2'
-                >
-                  <Text className='text-purple-700 text-sm font-medium'>
-                    {TAG_ID_TO_NAME_MAP[tagId] || `태그 ${tagId}`}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* 포트폴리오 링크 */}
-        <View className='border-t border-gray-100 pt-4'>
-          <View className='flex-row items-center justify-between mb-2'>
-            <Text className='text-lg font-semibold text-gray-900'>
-              포트폴리오
-            </Text>
-            {isOwnProfile && !isEditingPortfolios && (
-              <TouchableOpacity
-                onPress={handleStartEditPortfolios}
-                className='p-1'
-                activeOpacity={0.7}
-              >
-                <Ionicons name='pencil-outline' size={18} color='#6B7280' />
-              </TouchableOpacity>
-            )}
-          </View>
-          {guideInfo.portfolios && guideInfo.portfolios.length > 0 ? (
-            <View className='flex-row flex-wrap'>
-              {guideInfo.portfolios.map((portfolio, index) => (
-                <TouchableOpacity
-                  key={index}
-                  className='flex-row items-center bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 mr-2 mb-2'
-                  onPress={() => handlePortfolioPress(portfolio)}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons
-                    name={getPortfolioIcon(portfolio.type)}
-                    size={18}
-                    color='#6B7280'
-                  />
-                  <Text className='text-gray-700 text-sm font-medium ml-2'>
-                    {portfolio.type}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          ) : (
-            isOwnProfile && (
-              <Text className='text-gray-500 text-sm'>
-                포트폴리오를 추가해주세요
-              </Text>
-            )
-          )}
-        </View>
-      </View>
-
       <ScrollView
-        className='flex-1 mt-5'
+        className='flex-1'
         contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -640,8 +456,192 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
           ) : undefined
         }
       >
+        {/* 배너 이미지 */}
+        <View className='mx-5 mt-5 relative'>
+          {guideInfo.profileImageUrl ? (
+            <>
+              <Image
+                source={{ uri: guideInfo.profileImageUrl }}
+                style={{ width: '100%', height: 200, borderRadius: 16 }}
+                contentFit='cover'
+              />
+              {isOwnProfile && (
+                <TouchableOpacity
+                  onPress={() => setIsEditingImage(true)}
+                  className='absolute top-3 right-3 bg-black/50 rounded-full p-2'
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name='camera-outline' size={20} color='#fff' />
+                </TouchableOpacity>
+              )}
+            </>
+          ) : (
+            isOwnProfile && (
+              <TouchableOpacity
+                onPress={() => setIsEditingImage(true)}
+                activeOpacity={0.7}
+              >
+                <View className='w-full h-52 bg-gray-100 rounded-2xl border border-dashed border-gray-300 items-center justify-center'>
+                  <Ionicons name='image-outline' size={36} color='#9CA3AF' />
+                  <Text className='text-gray-500 mt-2'>
+                    배너 이미지를 추가하세요
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )
+          )}
+        </View>
+
+        {/* 프로필 정보 */}
+        <View className='bg-white mx-5 mt-5 rounded-2xl p-6 shadow-sm'>
+          <View className='flex-row items-center justify-between mb-4'>
+            <View className='flex-row items-center flex-1'>
+              <View className='w-16 h-16 rounded-full bg-gray-100 justify-center items-center shadow-sm mr-3'>
+                {user?.profileImageUrl ? (
+                  <Image
+                    source={{ uri: user.profileImageUrl }}
+                    style={{ width: 64, height: 64, borderRadius: 32 }}
+                    contentFit='cover'
+                  />
+                ) : (
+                  <Ionicons
+                    name='person-circle-outline'
+                    size={64}
+                    color='#9CA3AF'
+                  />
+                )}
+              </View>
+              <Text className='text-2xl font-bold text-gray-900'>
+                {guideInfo.nickname}
+              </Text>
+            </View>
+          </View>
+
+          {/* 가이드 소개 */}
+          <View className='mb-4'>
+            <View className='flex-row items-center justify-between mb-2'>
+              <Text className='text-lg font-semibold text-gray-900'>
+                가이드 소개
+              </Text>
+              {isOwnProfile && !isEditingBio && (
+                <TouchableOpacity
+                  onPress={handleStartEditBio}
+                  className='p-1'
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name='pencil-outline' size={18} color='#6B7280' />
+                </TouchableOpacity>
+              )}
+            </View>
+            {isEditingBio ? (
+              <View>
+                <TextInput
+                  className='text-base text-gray-600 border border-gray-300 rounded-lg p-3 min-h-[100px]'
+                  value={editingBio}
+                  onChangeText={setEditingBio}
+                  multiline
+                  placeholder='소개글을 입력하세요'
+                  placeholderTextColor='#9CA3AF'
+                  style={{ textAlignVertical: 'top' }}
+                />
+                <View className='flex-row justify-end mt-2'>
+                  <TouchableOpacity
+                    onPress={handleCancelEditBio}
+                    className='px-4 py-2 mr-2'
+                    activeOpacity={0.7}
+                  >
+                    <Text className='text-gray-600'>취소</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={handleSaveBio}
+                    className='bg-purple-600 px-4 py-2 rounded-lg'
+                    activeOpacity={0.7}
+                    disabled={isSavingBio}
+                  >
+                    {isSavingBio ? (
+                      <ActivityIndicator size='small' color='#fff' />
+                    ) : (
+                      <Text className='text-white font-semibold'>저장</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : (
+              <Text className='text-base text-gray-600'>
+                {guideInfo.bio || (isOwnProfile ? '소개글을 작성해주세요' : '')}
+              </Text>
+            )}
+          </View>
+
+          {/* 관심사 태그 */}
+          {guideInfo.tags && guideInfo.tags.length > 0 && (
+            <View className='mb-4'>
+              <Text className='text-lg font-semibold text-gray-900 mb-2'>
+                관심사
+              </Text>
+              <View className='flex-row flex-wrap'>
+                {guideInfo.tags.map((tagId) => (
+                  <View
+                    key={tagId}
+                    className='bg-purple-50 border border-purple-200 rounded-full px-3 py-1 mr-2 mb-2'
+                  >
+                    <Text className='text-purple-700 text-sm font-medium'>
+                      {TAG_ID_TO_NAME_MAP[tagId] || `태그 ${tagId}`}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* 포트폴리오 링크 */}
+          <View className='border-t border-gray-100 pt-4'>
+            <View className='flex-row items-center justify-between mb-2'>
+              <Text className='text-lg font-semibold text-gray-900'>
+                포트폴리오
+              </Text>
+              {isOwnProfile && !isEditingPortfolios && (
+                <TouchableOpacity
+                  onPress={handleStartEditPortfolios}
+                  className='p-1'
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name='pencil-outline' size={18} color='#6B7280' />
+                </TouchableOpacity>
+              )}
+            </View>
+            {guideInfo.portfolios && guideInfo.portfolios.length > 0 ? (
+              <View className='flex-row flex-wrap'>
+                {guideInfo.portfolios.map((portfolio, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    className='flex-row items-center bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 mr-2 mb-2'
+                    onPress={() => handlePortfolioPress(portfolio)}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons
+                      name={getPortfolioIcon(portfolio.type)}
+                      size={18}
+                      color='#6B7280'
+                    />
+                    <Text className='text-gray-700 text-sm font-medium ml-2'>
+                      {portfolio.type}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ) : (
+              isOwnProfile && (
+                <Text className='text-gray-500 text-sm'>
+                  포트폴리오를 추가해주세요
+                </Text>
+              )
+            )}
+          </View>
+        </View>
+
         {/* 모집 중인 세션 목록 */}
-        <View className='mx-5 mb-5'>
+        <View className='mx-5 mt-5 mb-5'>
           <View className='flex-row items-center justify-between mb-4'>
             <Text className='text-2xl font-bold text-gray-900'>
               모집 중인 세션
