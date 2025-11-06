@@ -442,24 +442,40 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
       )}
 
       {/* 배너 이미지 */}
-      {guideInfo.profileImageUrl && (
-        <View className='mx-5 mt-5 relative'>
-          <Image
-            source={{ uri: guideInfo.profileImageUrl }}
-            style={{ width: '100%', height: 200, borderRadius: 16 }}
-            contentFit='cover'
-          />
-          {isOwnProfile && (
+      <View className='mx-5 mt-5 relative'>
+        {guideInfo.profileImageUrl ? (
+          <>
+            <Image
+              source={{ uri: guideInfo.profileImageUrl }}
+              style={{ width: '100%', height: 200, borderRadius: 16 }}
+              contentFit='cover'
+            />
+            {isOwnProfile && (
+              <TouchableOpacity
+                onPress={() => setIsEditingImage(true)}
+                className='absolute top-3 right-3 bg-black/50 rounded-full p-2'
+                activeOpacity={0.7}
+              >
+                <Ionicons name='camera-outline' size={20} color='#fff' />
+              </TouchableOpacity>
+            )}
+          </>
+        ) : (
+          isOwnProfile && (
             <TouchableOpacity
               onPress={() => setIsEditingImage(true)}
-              className='absolute top-3 right-3 bg-black/50 rounded-full p-2'
               activeOpacity={0.7}
             >
-              <Ionicons name='camera-outline' size={20} color='#fff' />
+              <View className='w-full h-52 bg-gray-100 rounded-2xl border border-dashed border-gray-300 items-center justify-center'>
+                <Ionicons name='image-outline' size={36} color='#9CA3AF' />
+                <Text className='text-gray-500 mt-2'>
+                  배너 이미지를 추가하세요
+                </Text>
+              </View>
             </TouchableOpacity>
-          )}
-        </View>
-      )}
+          )
+        )}
+      </View>
 
       {/* 프로필 정보 */}
       <View className='bg-white mx-5 mt-5 rounded-2xl p-6 shadow-sm'>
