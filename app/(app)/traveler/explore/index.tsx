@@ -289,7 +289,7 @@ const TravelerExploreScreen: React.FC = () => {
 
   return (
     <CustomSafeAreaView>
-      <View className='bg-white pt-6 relative'>
+      <View className='bg-gray-50 pt-6 relative'>
         <SearchWithAutoComplete
           query={searchQuery}
           onQueryChange={handleQueryChange}
@@ -579,7 +579,7 @@ const TravelerExploreScreen: React.FC = () => {
           onRequestClose={() => setShowTagModal(false)}
         >
           <View className='flex-1 bg-black/50 justify-end'>
-            <View className='bg-white rounded-t-3xl max-h-[80%]'>
+            <View className='bg-gray-50 rounded-t-3xl max-h-[80%]'>
               <View className='flex-row justify-between items-center p-5 border-b border-gray-200'>
                 <View>
                   <Text className='text-xl font-bold'>관심사 선택</Text>
