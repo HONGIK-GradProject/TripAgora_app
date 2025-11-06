@@ -1,3 +1,4 @@
+import { useAuth } from '@/hooks/useAuth';
 import React, { useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 
@@ -7,6 +8,7 @@ import { INTEREST_TAGS } from '@/constants/Tags';
 import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
 const SetInterestsScreen: React.FC = () => {
+  const { refreshUser } = useAuth();
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
 
   /// selectedTags 디버깅용. 사용 시 useEffect import 필요
@@ -37,6 +39,7 @@ const SetInterestsScreen: React.FC = () => {
     // 태그 변경 요청
     try {
       await usersApi.setTags(selectedTags);
+      await refreshUser();
       router.replace('/(app)/traveler/home');
       return true;
     } catch (error) {
