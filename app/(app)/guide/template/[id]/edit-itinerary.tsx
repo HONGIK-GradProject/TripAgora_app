@@ -1,3 +1,4 @@
+import CustomKeyboardAvoidingView from '@/components/CustomKeyboardAvoidingView';
 import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import { InteractiveMapView } from '@/components/map/InteractiveMapView';
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
@@ -160,124 +161,126 @@ const EditTemplateItineraryScreen: React.FC = () => {
 
   return (
     <CustomSafeAreaView>
-      <View>
-        {!isMapExpanded && (
-          <View style={styles.header}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => router.back()}
-            >
-              <Ionicons name='arrow-back' size={24} color='#000' />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>일정 수정</Text>
-            <TouchableOpacity
-              style={styles.saveButton}
-              onPress={handleEditSchedule}
-            >
-              <Text style={styles.saveButtonText}>저장</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        <View
-          style={[styles.mapContainer, isMapExpanded && styles.mapContainerExpanded]}
-        >
-          <InteractiveMapView
-            cameraPosition={cameraPosition}
-            clusterMarkers={clusterMarkers}
-            options={{
-              searchBar: isMapExpanded,
-              currentLocationButton: true,
-            }}
-            onPlaceSelect={handlePlaceSelect}
-          />
-
-          {/* This overlay captures the press to expand, only when not expanded */}
+      <CustomKeyboardAvoidingView>
+        <View style={styles.container}>
           {!isMapExpanded && (
-            <TouchableOpacity
-              style={[StyleSheet.absoluteFill, { backgroundColor: 'transparent' }]}
-              onPress={() => toggleMapExpansion(true)}
-            />
-          )}
-
-          {isMapExpanded && (
-            <View
-              style={styles.expandedMapOverlayContainer}
-              pointerEvents="box-none"
-            >
+            <View style={styles.header}>
               <TouchableOpacity
-                onPress={() => toggleMapExpansion(false)}
-                style={styles.closeButton}
+                style={styles.backButton}
+                onPress={() => router.back()}
               >
-                <Ionicons name="close" size={28} color="#fff" />
+                <Ionicons name='arrow-back' size={24} color='#000' />
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}>일정 수정</Text>
+              <TouchableOpacity
+                style={styles.saveButton}
+                onPress={handleEditSchedule}
+              >
+                <Text style={styles.saveButtonText}>저장</Text>
               </TouchableOpacity>
             </View>
+          )}
+
+          <View
+            style={[styles.mapContainer, isMapExpanded && styles.mapContainerExpanded]}
+          >
+            <InteractiveMapView
+              cameraPosition={cameraPosition}
+              clusterMarkers={clusterMarkers}
+              options={{
+                searchBar: isMapExpanded,
+                currentLocationButton: true,
+              }}
+              onPlaceSelect={handlePlaceSelect}
+            />
+
+            {/* This overlay captures the press to expand, only when not expanded */}
+            {!isMapExpanded && (
+              <TouchableOpacity
+                style={[StyleSheet.absoluteFill, { backgroundColor: 'transparent' }]}
+                onPress={() => toggleMapExpansion(true)}
+              />
+            )}
+
+            {isMapExpanded && (
+              <View
+                style={styles.expandedMapOverlayContainer}
+                pointerEvents="box-none"
+              >
+                <TouchableOpacity
+                  onPress={() => toggleMapExpansion(false)}
+                  style={styles.closeButton}
+                >
+                  <Ionicons name="close" size={28} color="#fff" />
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+
+          {!isMapExpanded && (
+            <ScrollView contentContainerStyle={styles.scrollViewContent}>
+              <View style={styles.formSection}>
+                <Text style={styles.label}>장소명 또는 일정명</Text>
+                <TextInput
+                  value={title}
+                  onChangeText={setTitle}
+                  placeholder='장소명 또는 일정명을 입력하세요'
+                  placeholderTextColor={'#9A9A9A'}
+                  style={styles.input}
+                />
+              </View>
+
+              {/* Other form sections... */}
+              <View style={styles.formSection}>
+                <Text style={styles.label}>Day</Text>
+                <TextInput
+                  value={localDay}
+                  onChangeText={setLocalDay}
+                  placeholder='Day'
+                  placeholderTextColor={'#9A9A9A'}
+                  style={styles.input}
+                  keyboardType='number-pad'
+                />
+              </View>
+
+              <View style={styles.formSection}>
+                <Text style={styles.label}>일정 내용</Text>
+                <TextInput
+                  value={content}
+                  onChangeText={setContent}
+                  placeholder='설명을 입력하세요'
+                  placeholderTextColor={'#9A9A9A'}
+                  style={[styles.input, styles.multiline]}
+                  multiline
+                  textAlignVertical='top'
+                />
+              </View>
+
+              <View style={styles.formSection}>
+                <Text style={styles.label}>시작 시간</Text>
+                <TouchableOpacity
+                  onPress={() => setShowPicker(true)}
+                  style={styles.input}
+                >
+                  <View style={styles.timeInputContainer}>
+                    <Text style={styles.timeText}>{startTime.substring(0, 5)}</Text>
+                    <Ionicons name='time-outline' size={20} color='#8130FF' />
+                  </View>
+                </TouchableOpacity>
+                {showPicker && (
+                  <DateTimePicker
+                    value={date}
+                    mode={'time'}
+                    is24Hour={true}
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    onChange={onTimeChange}
+                  />
+                )}
+              </View>
+            </ScrollView>
           )}
         </View>
-
-        {!isMapExpanded && (
-          <ScrollView contentContainerStyle={styles.scrollViewContent}>
-            <View style={styles.formSection}>
-              <Text style={styles.label}>장소명 또는 일정명</Text>
-              <TextInput
-                value={title}
-                onChangeText={setTitle}
-                placeholder='장소명 또는 일정명을 입력하세요'
-                placeholderTextColor={'#9A9A9A'}
-                style={styles.input}
-              />
-            </View>
-
-            {/* Other form sections... */}
-            <View style={styles.formSection}>
-              <Text style={styles.label}>Day</Text>
-              <TextInput
-                value={localDay}
-                onChangeText={setLocalDay}
-                placeholder='Day'
-                placeholderTextColor={'#9A9A9A'}
-                style={styles.input}
-                keyboardType='number-pad'
-              />
-            </View>
-
-            <View style={styles.formSection}>
-              <Text style={styles.label}>일정 내용</Text>
-              <TextInput
-                value={content}
-                onChangeText={setContent}
-                placeholder='설명을 입력하세요'
-                placeholderTextColor={'#9A9A9A'}
-                style={[styles.input, styles.multiline]}
-                multiline
-                textAlignVertical='top'
-              />
-            </View>
-
-            <View style={styles.formSection}>
-              <Text style={styles.label}>시작 시간</Text>
-              <TouchableOpacity
-                onPress={() => setShowPicker(true)}
-                style={styles.input}
-              >
-                <View style={styles.timeInputContainer}>
-                  <Text style={styles.timeText}>{startTime.substring(0, 5)}</Text>
-                  <Ionicons name='time-outline' size={20} color='#8130FF' />
-                </View>
-              </TouchableOpacity>
-              {showPicker && (
-                <DateTimePicker
-                  value={date}
-                  mode={'time'}
-                  is24Hour={true}
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  onChange={onTimeChange}
-                />
-              )}
-            </View>
-          </ScrollView>
-        )}
-      </View>
+      </CustomKeyboardAvoidingView>
     </CustomSafeAreaView>
   );
 };

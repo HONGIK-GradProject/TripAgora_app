@@ -1,3 +1,4 @@
+import CustomKeyboardAvoidingView from '@/components/CustomKeyboardAvoidingView';
 import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { SessionDetailsProvider } from '@/contexts/SessionDetailsProvider';
@@ -316,9 +317,11 @@ const EditRecruitmentScreen: React.FC = () => {
 
   return (
     <CustomSafeAreaView>
-      <SessionDetailsProvider id={id}>
-        <EditRecruitmentContent />
-      </SessionDetailsProvider>
+      <CustomKeyboardAvoidingView>
+        <SessionDetailsProvider id={id}>
+          <EditRecruitmentContent />
+        </SessionDetailsProvider>
+      </CustomKeyboardAvoidingView>
     </CustomSafeAreaView>
   );
 };

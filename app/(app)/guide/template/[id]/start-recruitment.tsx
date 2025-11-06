@@ -1,3 +1,4 @@
+import CustomKeyboardAvoidingView from '@/components/CustomKeyboardAvoidingView';
 import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { TemplateDetailsProvider } from '@/contexts/TemplateDetailsProvider';
@@ -9,13 +10,13 @@ import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Platform,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
 
@@ -299,9 +300,11 @@ const StartRecruitmentScreen: React.FC = () => {
 
   return (
     <CustomSafeAreaView>
-      <TemplateDetailsProvider id={id}>
-        <StartRecruitmentContent />
-      </TemplateDetailsProvider>
+      <CustomKeyboardAvoidingView>
+        <TemplateDetailsProvider id={id}>
+          <StartRecruitmentContent />
+        </TemplateDetailsProvider>
+      </CustomKeyboardAvoidingView>
     </CustomSafeAreaView>
   );
 };
