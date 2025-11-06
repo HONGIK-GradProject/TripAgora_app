@@ -1190,6 +1190,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F4F6',
     borderWidth: 1,
     borderColor: '#D1D5DB',
+  },
   wishlistButton: {
     width: 78,
     height: 52,
