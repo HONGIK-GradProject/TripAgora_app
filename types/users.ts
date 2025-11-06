@@ -6,6 +6,7 @@ interface UserData {
   nickname: string;
   role: UserRole;
   profileImageUrl: string;
+  tagIds: string[];
 }
 
 interface UserSetNicknameRequest {
@@ -68,5 +69,6 @@ export {
   UserSwitchToGuideRequest,
   UserSwitchToGuideResponse,
   UserSwitchToTravelerRequest,
-  UserSwitchToTravelerResponse,
+  UserSwitchToTravelerResponse
 };
+
