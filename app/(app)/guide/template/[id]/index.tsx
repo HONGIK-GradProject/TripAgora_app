@@ -44,10 +44,6 @@ const ProductDetailScreen: React.FC = () => {
     regionIds,
     tagIds,
     imageUrls,
-    isEditingContent,
-    isEditingTitle,
-    setIsEditingContent,
-    setIsEditingTitle,
     setTitle,
     setContent,
     setImageUrls,
@@ -70,6 +66,10 @@ const ProductDetailScreen: React.FC = () => {
   const [scrollViewRef, setScrollViewRef] = useState<ScrollView | null>(null);
   const screenWidth = Dimensions.get('window').width;
 
+  // Local title and description
+  const [localTitle, setLocalTitle] = useState<string>(title);
+  const [localContent, setLocalContent] = useState<string>(content);
+
   // 초기 로딩과 새로고침을 구분하기 위한 변수
   // 데이터가 전혀 없을 때의 로딩만 전체 화면 로딩으로 간주
   const isInitialLoading = isLoading && Object.keys(itineraries).length === 0;
@@ -85,6 +85,11 @@ const ProductDetailScreen: React.FC = () => {
   const [selectedDay, setSelectedDay] = useState(
     availableDays.length > 0 ? availableDays[0] : 1
   );
+
+  useEffect(() => {
+    setLocalTitle(title);
+    setLocalContent(content);
+  }, [title, content]);
 
   useEffect(() => {
     if (availableDays.length > 0 && !availableDays.includes(selectedDay)) {
@@ -159,34 +164,39 @@ const ProductDetailScreen: React.FC = () => {
    * 템플릿 제목의 편집 모드를 토글하고, 편집 완료 시 서버에 변경사항을 저장합니다.
    */
   const handleEditTitle = async () => {
-    if (isEditingTitle) {
-      setIsSavingTitle(true);
-      try {
-        await setTemplateTitle(_id, title);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsSavingTitle(false);
-      }
+    if (localTitle === title) {
+      return;
     }
-    setIsEditingTitle((prev) => !prev);
+
+    setIsSavingTitle(true);
+    try {
+      await setTemplateTitle(_id, localTitle);
+      setTitle(localTitle);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      console.log(title, localTitle);
+      setIsSavingTitle(false);
+    }
   };
 
   /**
    * 템플릿 소개 내용의 편집 모드를 토글하고, 편집 완료 시 서버에 변경사항을 저장합니다.
    */
   const handleEditContent = async () => {
-    if (isEditingContent) {
-      setIsSavingContent(true);
-      try {
-        await setTemplateContent(_id, content);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsSavingContent(false);
-      }
+    if (localContent === content) {
+      return;
     }
-    setIsEditingContent((prev) => !prev);
+
+    setIsSavingContent(true);
+    try {
+      await setTemplateContent(_id, localContent);
+      setContent(localContent);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsSavingContent(false);
+    }
   };
 
   // Location and Tags will navigate to separate edit screens; no local edit state needed
@@ -312,29 +322,23 @@ const ProductDetailScreen: React.FC = () => {
 
         <View style={styles.section}>
           <View style={styles.rowBetween}>
-            {isEditingTitle ? (
-              <TextInput
-                value={title}
-                onChangeText={setTitle}
-                style={styles.titleInput}
-                placeholder='제목을 입력하세요'
-                editable={!isSavingTitle}
-              />
-            ) : (
-              <Text style={[styles.title, { flex: 1, marginBottom: 0 }]}>
-                {title}
-              </Text>
-            )}
+            <TextInput
+              value={localTitle}
+              onChangeText={setLocalTitle}
+              style={styles.titleInput}
+              placeholder='제목을 입력하세요'
+              editable={!isSavingTitle}
+            />
             <TouchableOpacity
-              style={styles.editButton}
+              style={[styles.editButton, (isSavingTitle || localTitle === title) && { opacity: 0.5 }]}
               onPress={handleEditTitle}
-              disabled={isSavingTitle}
+              disabled={isSavingTitle || localTitle === title}
             >
               {isSavingTitle ? (
                 <ActivityIndicator size='small' />
               ) : (
                 <Text style={styles.editButtonText}>
-                  {isEditingTitle ? '저장' : '편집'}
+                  저장
                 </Text>
               )}
             </TouchableOpacity>
@@ -380,32 +384,28 @@ const ProductDetailScreen: React.FC = () => {
               여행 소개
             </Text>
             <TouchableOpacity
-              style={styles.editButton}
+              style={[styles.editButton, (isSavingContent || localContent === content) && { opacity: 0.5 }]}
               onPress={handleEditContent}
-              disabled={isSavingContent}
+              disabled={(isSavingContent || localContent === content)}
             >
               {isSavingContent ? (
                 <ActivityIndicator size='small' />
               ) : (
                 <Text style={styles.editButtonText}>
-                  {isEditingContent ? '완료' : '편집'}
+                  저장
                 </Text>
               )}
             </TouchableOpacity>
           </View>
-          {isEditingContent ? (
-            <TextInput
-              value={content}
-              onChangeText={setContent}
-              style={styles.multilineInput}
-              multiline
-              textAlignVertical='top'
-              placeholder='여행 소개를 입력하세요'
-              editable={!isSavingContent}
-            />
-          ) : (
-            <Text style={styles.description}>{content}</Text>
-          )}
+          <TextInput
+            value={localContent}
+            onChangeText={setLocalContent}
+            style={styles.multilineInput}
+            multiline
+            textAlignVertical='top'
+            placeholder='여행 소개를 입력하세요'
+            editable={!isSavingContent}
+          />
         </View>
 
         <View style={styles.divider} />
@@ -537,7 +537,7 @@ const ProductDetailScreen: React.FC = () => {
         {/* 삭제 버튼 */}
         <View style={styles.rightIcons}>
           <TouchableOpacity
-            style={styles.deleteButton}
+            style={[styles.deleteButton, isDeleting && { opacity: 0.5 }]}
             onPress={handleDeleteTemplate}
             disabled={isDeleting}
           >
