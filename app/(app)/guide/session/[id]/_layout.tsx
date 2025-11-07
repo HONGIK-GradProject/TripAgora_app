@@ -8,6 +8,13 @@ export default function SessionLayout() {
       <Stack.Screen name='edit-recruitment' options={{ headerShown: false }} />
       <Stack.Screen name='session-room' options={{ headerShown: false }} />
       <Stack.Screen name='announce' options={{ headerShown: false }} />
+      <Stack.Screen
+        name='[guideId]'
+        options={{
+          presentation: 'modal',
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }
