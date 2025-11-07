@@ -1,3 +1,4 @@
+import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import GuideProfileScreen from '@/components/guide/GuideProfileScreen';
 import { useLocalSearchParams } from 'expo-router';
 import React from 'react';
@@ -10,7 +11,11 @@ const GuideProfileIndexScreen: React.FC = () => {
   const params = useLocalSearchParams<{ guideId?: string }>();
   const guideProfileId = params.guideId ? parseInt(params.guideId) : undefined;
 
-  return <GuideProfileScreen guideProfileId={guideProfileId} />;
+  return (
+    <CustomSafeAreaView>
+      <GuideProfileScreen guideProfileId={guideProfileId} />
+    </CustomSafeAreaView>
+  );
 };
 
 export default GuideProfileIndexScreen;

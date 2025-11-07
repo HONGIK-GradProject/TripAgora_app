@@ -525,7 +525,7 @@ const ProductDetailScreen: React.FC = () => {
         {/** 공유 및 찜 버튼은 여행자 쪽에서 세션을 볼 때 있어야 하는 아이콘입니다.
          * 여행자 쪽에서 보는 양식을 참고하기 위해 추가해 둔 것으로, 이후 여행자 쪽 화면으로 옮길 예정입니다.
          */}
-        {/* <View style={styles.rightIcons}>
+        {/* <View style={styles.rightIcons>
           <TouchableOpacity style={styles.iconCircle}>
             <Ionicons name='share-outline' size={20} color='#000' />
           </TouchableOpacity>
@@ -550,7 +550,12 @@ const ProductDetailScreen: React.FC = () => {
         </View>
       </View>
 
-      <View style={styles.bottomActionContainer}>
+      <View
+        style={[
+          styles.bottomActionContainer,
+          { paddingBottom: insets.bottom > 0 ? insets.bottom : 10 },
+        ]}
+      >
         {/* <TouchableOpacity style={[styles.ctaButton, styles.secondaryButton]}>
           <Ionicons
             name='chatbubble-ellipses-outline'
@@ -1014,7 +1019,6 @@ const styles = StyleSheet.create({
     right: 0,
     paddingHorizontal: 20,
     paddingTop: 10,
-    paddingBottom: 20,
     backgroundColor: '#fff',
     borderTopWidth: 1,
     borderTopColor: '#E9E9E9',

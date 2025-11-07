@@ -1,4 +1,5 @@
 import { usersApi } from '@/api/users';
+import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -42,31 +43,33 @@ const SetProfileScreen: React.FC = () => {
     }
   };
   return (
-    <View className='flex-1 items-center bg-white pt-20'>
-      <Text className='text-4xl text-center mb-1 font-normal'>환영합니다!</Text>
-      <Text className='text-4xl text-center mb-10 font-normal'>
-        당신에 대해 알려주세요.
-      </Text>
+    <CustomSafeAreaView>
+      <View className='flex-1 items-center bg-white pt-12'>
+        <Text className='text-4xl text-center mb-1 font-normal'>환영합니다!</Text>
+        <Text className='text-4xl text-center mb-10 font-normal'>
+          당신에 대해 알려주세요.
+        </Text>
 
-      {/* 닉네임 인풋 */}
-      <View className='w-4/5 mb-5'>
-        <Text className='text-2xl text-black mb-2'>닉네임</Text>
-        <TextInput
-          className='w-full h-12 border-b border-black px-0'
-          placeholder='2~20자 이내, 특수문자 및 공백 제외'
-          value={name}
-          onChangeText={handleNicknameChange}
-        />
+        {/* 닉네임 인풋 */}
+        <View className='w-4/5 mb-5'>
+          <Text className='text-2xl text-black mb-2'>닉네임</Text>
+          <TextInput
+            className='w-full h-12 border-b border-black px-0'
+            placeholder='2~20자 이내, 특수문자 및 공백 제외'
+            value={name}
+            onChangeText={handleNicknameChange}
+          />
+        </View>
+
+        {/* 다음으로 버튼 */}
+        <TouchableOpacity
+          className='w-[390px] h-[52px] bg-primary rounded-md justify-center items-center absolute bottom-7'
+          onPress={validateNickname.bind(null, name)}
+        >
+          <Text className='text-xl font-bold text-white'>다음으로</Text>
+        </TouchableOpacity>
       </View>
-
-      {/* 다음으로 버튼 */}
-      <TouchableOpacity
-        className='w-[390px] h-[52px] bg-primary rounded-md justify-center items-center absolute bottom-7'
-        onPress={validateNickname.bind(null, name)}
-      >
-        <Text className='text-xl font-bold text-white'>다음으로</Text>
-      </TouchableOpacity>
-    </View>
+    </CustomSafeAreaView>
   );
 };
 
