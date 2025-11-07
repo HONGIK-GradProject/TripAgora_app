@@ -502,7 +502,7 @@ const ProductDetailScreen: React.FC = () => {
                   </Text>
                 </View>
                 <View style={styles.itineraryContent}>
-                  <Text style={styles.itineraryTitle}>{item.title}</Text>
+                  <Text style={styles.itineraryTitle}>{item.location}</Text>
                   {item.content ? (
                     <Text style={styles.itineraryDesc}>{item.content}</Text>
                   ) : null}

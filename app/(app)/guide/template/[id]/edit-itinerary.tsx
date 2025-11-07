@@ -34,7 +34,7 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 type ItineraryParamProps = {
   day: string;
-  title: string;
+  location: string;
   content: string;
   startTime: string;
   latitude: string;
@@ -47,7 +47,7 @@ const EditTemplateItineraryScreen: React.FC = () => {
   const params = useLocalSearchParams<ItineraryParamProps>();
   const { updateItinerary, setDay } = useTemplateDetails();
 
-  const [title, setTitle] = useState(params.title || '');
+  const [location, setLocation] = useState(params.location || '');
   const [localDay, setLocalDay] = useState(params.day || '');
   const [content, setContent] = useState(params.content || '');
   const [startTime, setStartTime] = useState(params.startTime || '09:00');
@@ -123,7 +123,7 @@ const EditTemplateItineraryScreen: React.FC = () => {
   };
 
   const handleEditSchedule = () => {
-    if (!localDay || !title || !startTime || !latitude || !longitude) {
+    if (!localDay || !location || !startTime || !latitude || !longitude) {
       Toast.show({
         type: 'error',
         text1: '모든 필드를 채워주세요.',
@@ -135,7 +135,7 @@ const EditTemplateItineraryScreen: React.FC = () => {
     const newSchedule: TemplateItinerary = {
       id: +params.itineraryId,
       day: +localDay,
-      title: title,
+      location: location,
       content: content,
       startTime: startTime,
       latitude: +latitude,
@@ -152,10 +152,10 @@ const EditTemplateItineraryScreen: React.FC = () => {
     setIsMapExpanded(expand);
   };
 
-  const handlePlaceSelect = (place: { latitude: number; longitude: number }) => {
+  const handlePlaceSelect = (place: { name: string, latitude: number; longitude: number }) => {
     setLatitude(place.latitude.toString());
     setLongitude(place.longitude.toString());
-    // Optional: close map after selection
+    setLocation(place.name);
     toggleMapExpansion(false);
   };
 
@@ -220,13 +220,15 @@ const EditTemplateItineraryScreen: React.FC = () => {
           {!isMapExpanded && (
             <ScrollView contentContainerStyle={styles.scrollViewContent}>
               <View style={styles.formSection}>
-                <Text style={styles.label}>장소명 또는 일정명</Text>
+                <Text style={styles.label}>장소명</Text>
                 <TextInput
-                  value={title}
-                  onChangeText={setTitle}
-                  placeholder='장소명 또는 일정명을 입력하세요'
+                  value={location}
+                  onChangeText={setLocation}
+                  placeholder='장소명'
                   placeholderTextColor={'#9A9A9A'}
-                  style={styles.input}
+                  style={[styles.input, { opacity: 0.5 }]}
+                  editable={false}
+                  selectTextOnFocus={false}
                 />
               </View>
 

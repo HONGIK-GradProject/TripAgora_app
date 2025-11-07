@@ -67,7 +67,7 @@ const GuideItineraryList: React.FC<GuideItineraryListProps> = ({
             <View className='flex-row justify-between items-start'>
               <View className='flex-1 mr-3'>
                 <Text className='text-lg font-bold text-gray-900 mb-1 leading-5'>
-                  {item.title}
+                  {item.location}
                 </Text>
                 <Text className='text-sm text-gray-600 leading-5'>
                   {item.content}

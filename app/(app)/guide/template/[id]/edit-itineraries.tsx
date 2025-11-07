@@ -172,7 +172,7 @@ const EditTemplateItinerariesScreen: React.FC = () => {
   const handleAdd = () => {
     const newItinerary: TemplateItinerary = {
       day: day, // 현재 선택된 day에 추가하도록 수정
-      title: '',
+      location: '서울시청',
       content: '',
       startTime: '00:00',
       latitude: 37.5665,
