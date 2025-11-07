@@ -1,7 +1,12 @@
 import MyTagsScreen from "@/components/common/MyTagsScreen";
+import CustomSafeAreaView from "@/components/CustomSafeAreaView";
 
-const TravelerMyPageEditTagsScreen = () => {
-  return <MyTagsScreen />
+const GuideMyPageEditTagsScreen = () => {
+  return (
+    <CustomSafeAreaView>
+      <MyTagsScreen />
+    </CustomSafeAreaView>
+  );
 }
 
-export default TravelerMyPageEditTagsScreen;
+export default GuideMyPageEditTagsScreen;
