@@ -6,7 +6,7 @@ interface UserData {
   nickname: string;
   role: UserRole;
   profileImageUrl: string;
-  tagIds: string[];
+  tagIds: number[];
 }
 
 interface UserSetNicknameRequest {

@@ -5,17 +5,17 @@ import { Text } from 'react-native';
 import { usersApi } from '@/api/users';
 import InterestSelector from '@/components/common/InterestSelector';
 import { INTEREST_TAGS } from '@/constants/Tags';
-import { router } from 'expo-router';
+import { RelativePathString, router } from 'expo-router';
 import Toast from 'react-native-toast-message';
 
-const SetInterestsScreen: React.FC = () => {
-  const { refreshUser } = useAuth();
+const MyTagsScreen: React.FC = () => {
+  const { user, refreshUser } = useAuth();
 
   const handleStart = async (selectedTags: number[]) => {
     try {
       await usersApi.setTags(selectedTags);
       await refreshUser();
-      router.replace('/(app)/traveler/home');
+      router.replace(`/(app)/${user?.role.toLowerCase()}/my-page` as RelativePathString);
     } catch (error) {
       console.error('태그 업데이트 실패:', error);
       Toast.show({ type: 'error', text1: '태그 업데이트 실패' });
@@ -37,12 +37,13 @@ const SetInterestsScreen: React.FC = () => {
           </Text>
         </>
       }
-      buttonText='시작하기'
+      buttonText='저장'
       availableTags={INTEREST_TAGS}
       minSelection={3}
       onSubmit={handleStart}
+      initialSelectedTags={user?.tagIds}
     />
   );
 };
 
-export default SetInterestsScreen;
+export default MyTagsScreen;
