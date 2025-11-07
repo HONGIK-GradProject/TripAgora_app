@@ -1,4 +1,5 @@
 import AnnounceScreen from '@/app/(app)/guide/session/[id]/announce';
+import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import React from 'react';
 
 /**
@@ -6,7 +7,11 @@ import React from 'react';
  * 가이드가 작성한 공지를 조회할 수 있지만 작성/수정/삭제는 할 수 없습니다.
  */
 const TravelerNoticeScreen: React.FC = () => {
-  return <AnnounceScreen userType='traveler' />;
+  return (
+    <CustomSafeAreaView>
+      <AnnounceScreen userType='traveler' />
+    </CustomSafeAreaView>
+  );
 };
 
 export default TravelerNoticeScreen;

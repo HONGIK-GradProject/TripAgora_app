@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 
+import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import InterestSelector from '@/components/common/InterestSelector';
 import { INTEREST_TAGS } from '@/constants/Tags';
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
@@ -39,34 +40,36 @@ const EditTemplateTagsScreen: React.FC = () => {
   };
 
   return (
-    <View className='flex-1 bg-white'>
-      <TouchableOpacity
-        className='absolute left-5 top-10 w-10 h-10 rounded-full bg-white/90 items-center justify-center z-10'
-        onPress={() => router.back()}
-        accessibilityRole='button'
-        accessibilityLabel='뒤로가기'
-      >
-        <Ionicons name='arrow-back' size={24} color='#000' />
-      </TouchableOpacity>
-      <InterestSelector
-        header={
-          <>
-            <Text className='text-2xl text-black text-left w-4/5 mb-1'>
-              템플릿 태그 설정
-            </Text>
-            <Text className='text-base text-darkgray text-left w-4/5 mb-8'>
-              최대 5개까지 설정 가능합니다.
-            </Text>
-          </>
-        }
-        buttonText='저장'
-        availableTags={INTEREST_TAGS}
-        initialSelectedTags={tagIds}
-        maxSelection={5}
-        onSubmit={handleSave}
-        isSaving={isSaving}
-      />
-    </View>
+    <CustomSafeAreaView>
+      <View className='flex-1 bg-white'>
+        <TouchableOpacity
+          className='absolute left-5 top-10 w-10 h-10 rounded-full bg-white/90 items-center justify-center z-10'
+          onPress={() => router.back()}
+          accessibilityRole='button'
+          accessibilityLabel='뒤로가기'
+        >
+          <Ionicons name='arrow-back' size={24} color='#000' />
+        </TouchableOpacity>
+        <InterestSelector
+          header={
+            <>
+              <Text className='text-2xl text-black text-left w-4/5 mb-1'>
+                템플릿 태그 설정
+              </Text>
+              <Text className='text-base text-darkgray text-left w-4/5 mb-8'>
+                최대 5개까지 설정 가능합니다.
+              </Text>
+            </>
+          }
+          buttonText='저장'
+          availableTags={INTEREST_TAGS}
+          initialSelectedTags={tagIds}
+          maxSelection={5}
+          onSubmit={handleSave}
+          isSaving={isSaving}
+        />
+      </View>
+    </CustomSafeAreaView>
   );
 };
 
