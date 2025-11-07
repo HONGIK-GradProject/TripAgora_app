@@ -280,11 +280,11 @@ const MyPageScreen: React.FC = () => {
       >
         <View className='mx-5'>
           <View className='bg-white rounded-2xl shadow-sm overflow-hidden'>
-            <TouchableOpacity className='flex-row items-center py-4 px-6 border-b border-gray-100'>
+            <TouchableOpacity className='flex-row items-center py-4 px-6 border-b border-gray-100' onPress={handleEditTags}>
               <View className='w-10 h-10 rounded-full bg-blue-50 items-center justify-center mr-4'>
                 <Ionicons name='heart' size={20} color='#3B82F6' />
               </View>
-              <Text className='text-lg font-medium text-gray-900 flex-1' onPress={handleEditTags}>
+              <Text className='text-lg font-medium text-gray-900 flex-1'>
                 나의 관심사 설정
               </Text>
               <Ionicons name='chevron-forward' size={20} color='#9CA3AF' />
