@@ -5,7 +5,7 @@ import React from 'react';
 const TravelerMyPageScreen: React.FC = () => {
   return (
     <CustomSafeAreaView>
-      <MyPageScreen userRole='traveler' />
+      <MyPageScreen />
     </CustomSafeAreaView>
   )
 };

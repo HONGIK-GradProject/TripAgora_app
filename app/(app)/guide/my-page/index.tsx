@@ -5,7 +5,7 @@ import React from 'react';
 const GuideMyPageScreen: React.FC = () => {
   return (
     <CustomSafeAreaView>
-      <MyPageScreen userRole='guide' />
+      <MyPageScreen />
     </CustomSafeAreaView>
   );
 };

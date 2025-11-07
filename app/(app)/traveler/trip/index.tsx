@@ -128,8 +128,11 @@ const TravelerTripListScreen: React.FC = () => {
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={() => {
-            // RECRUITING, RECRUITMENT_CLOSED → 상세 / IN_PROGRESS → 룸
-            if (session.status === 'IN_PROGRESS') {
+            // RECRUITING → 상세 / RECRUITMENT_CLOSED, IN_PROGRESS → 룸
+            if (
+              session.status === 'IN_PROGRESS' ||
+              session.status === 'RECRUITMENT_CLOSED'
+            ) {
               router.push(
                 `/traveler/trip/${session.sessionId}/session-room` as any
               );
