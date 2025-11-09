@@ -1,3 +1,4 @@
+import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import {
   InteractiveMapView,
   InteractiveMapViewRef,
@@ -26,10 +27,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SessionItineraryDetailsContent: React.FC = () => {
   const router = useRouter();
@@ -180,7 +178,7 @@ const SessionItineraryDetailsContent: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <CustomSafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -288,7 +286,7 @@ const SessionItineraryDetailsContent: React.FC = () => {
       </ScrollView>
 
       <View style={[styles.bottomSpacer, { height: insets.bottom + 16 }]} />
-    </SafeAreaView>
+    </CustomSafeAreaView>
   );
 };
 
