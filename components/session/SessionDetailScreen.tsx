@@ -717,8 +717,26 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
         {/* 일정 섹션 */}
         {availableDays.length > 0 && (
           <>
-            <View style={styles.section}>
+            <View style={[styles.section, styles.itineraryHeader]}>
               <Text style={styles.sectionTitle}>일정</Text>
+              {userType === 'traveler' && (
+                <TouchableOpacity
+                  style={styles.viewMoreButton}
+                  onPress={() =>
+                    router.push(
+                      `/traveler/explore/${id}/itinerary-details` as any
+                    )
+                  }
+                >
+                  <Text style={styles.viewMoreButtonText}>일정 상세보기</Text>
+                  <Ionicons
+                    name='chevron-forward'
+                    size={16}
+                    color='#8130FF'
+                    style={{ marginLeft: 4 }}
+                  />
+                </TouchableOpacity>
+              )}
             </View>
 
             <ScrollView
@@ -1001,6 +1019,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 20,
   },
+  itineraryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   title: {
     fontSize: 22,
     fontWeight: '700',
@@ -1108,6 +1131,19 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
+  },
+  viewMoreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#F3ECFF',
+    borderRadius: 16,
+  },
+  viewMoreButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#8130FF',
   },
   description: {
     fontSize: 16,
