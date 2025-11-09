@@ -18,7 +18,7 @@ import {
   TextInput,
   TouchableOpacity,
   UIManager,
-  View
+  View,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
 
@@ -47,8 +47,13 @@ const EditTemplateItineraryScreen: React.FC = () => {
   const params = useLocalSearchParams<ItineraryParamProps>();
   const { updateItinerary, setDay } = useTemplateDetails();
 
+  const parseDay = (dayParam?: string) => {
+    const parsed = parseInt(dayParam ?? '', 10);
+    return isNaN(parsed) || parsed < 1 ? 1 : parsed;
+  };
+
   const [location, setLocation] = useState(params.location || '');
-  const [localDay, setLocalDay] = useState(params.day || '');
+  const [dayValue, setDayValue] = useState<number>(parseDay(params.day));
   const [content, setContent] = useState(params.content || '');
   const [startTime, setStartTime] = useState(params.startTime || '09:00');
   const [latitude, setLatitude] = useState(params.latitude || '37.5665');
@@ -62,7 +67,7 @@ const EditTemplateItineraryScreen: React.FC = () => {
       longitude: parseFloat(longitude) || 126.978,
       zoom: 16,
     }),
-    [latitude, longitude, isMapExpanded]
+    [latitude, longitude]
   );
 
   const clusterMarkers = useMemo(
@@ -123,7 +128,7 @@ const EditTemplateItineraryScreen: React.FC = () => {
   };
 
   const handleEditSchedule = () => {
-    if (!localDay || !location || !startTime || !latitude || !longitude) {
+    if (!dayValue || !location || !startTime || !latitude || !longitude) {
       Toast.show({
         type: 'error',
         text1: '모든 필드를 채워주세요.',
@@ -134,7 +139,7 @@ const EditTemplateItineraryScreen: React.FC = () => {
     }
     const newSchedule: TemplateItinerary = {
       id: +params.itineraryId,
-      day: +localDay,
+      day: dayValue,
       location: location,
       content: content,
       startTime: startTime,
@@ -152,11 +157,23 @@ const EditTemplateItineraryScreen: React.FC = () => {
     setIsMapExpanded(expand);
   };
 
-  const handlePlaceSelect = (place: { name: string, latitude: number; longitude: number }) => {
+  const handlePlaceSelect = (place: {
+    name: string;
+    latitude: number;
+    longitude: number;
+  }) => {
     setLatitude(place.latitude.toString());
     setLongitude(place.longitude.toString());
     setLocation(place.name);
     toggleMapExpansion(false);
+  };
+
+  const handleIncreaseDay = () => {
+    setDayValue((prev) => prev + 1);
+  };
+
+  const handleDecreaseDay = () => {
+    setDayValue((prev) => Math.max(prev - 1, 1));
   };
 
   return (
@@ -182,7 +199,10 @@ const EditTemplateItineraryScreen: React.FC = () => {
           )}
 
           <View
-            style={[styles.mapContainer, isMapExpanded && styles.mapContainerExpanded]}
+            style={[
+              styles.mapContainer,
+              isMapExpanded && styles.mapContainerExpanded,
+            ]}
           >
             <InteractiveMapView
               cameraPosition={cameraPosition}
@@ -197,7 +217,10 @@ const EditTemplateItineraryScreen: React.FC = () => {
             {/* This overlay captures the press to expand, only when not expanded */}
             {!isMapExpanded && (
               <TouchableOpacity
-                style={[StyleSheet.absoluteFill, { backgroundColor: 'transparent' }]}
+                style={[
+                  StyleSheet.absoluteFill,
+                  { backgroundColor: 'transparent' },
+                ]}
                 onPress={() => toggleMapExpansion(true)}
               />
             )}
@@ -205,13 +228,13 @@ const EditTemplateItineraryScreen: React.FC = () => {
             {isMapExpanded && (
               <View
                 style={styles.expandedMapOverlayContainer}
-                pointerEvents="box-none"
+                pointerEvents='box-none'
               >
                 <TouchableOpacity
                   onPress={() => toggleMapExpansion(false)}
                   style={styles.closeButton}
                 >
-                  <Ionicons name="close" size={28} color="#fff" />
+                  <Ionicons name='close' size={28} color='#fff' />
                 </TouchableOpacity>
               </View>
             )}
@@ -234,15 +257,22 @@ const EditTemplateItineraryScreen: React.FC = () => {
 
               {/* Other form sections... */}
               <View style={styles.formSection}>
-                <Text style={styles.label}>Day</Text>
-                <TextInput
-                  value={localDay}
-                  onChangeText={setLocalDay}
-                  placeholder='Day'
-                  placeholderTextColor={'#9A9A9A'}
-                  style={styles.input}
-                  keyboardType='number-pad'
-                />
+                <Text style={styles.label}>일차</Text>
+                <View style={styles.counterContainer}>
+                  <TouchableOpacity
+                    style={styles.counterButton}
+                    onPress={handleDecreaseDay}
+                  >
+                    <Ionicons name='remove' size={20} color='#613EEA' />
+                  </TouchableOpacity>
+                  <Text style={styles.counterValue}>{dayValue}</Text>
+                  <TouchableOpacity
+                    style={styles.counterButton}
+                    onPress={handleIncreaseDay}
+                  >
+                    <Ionicons name='add' size={20} color='#613EEA' />
+                  </TouchableOpacity>
+                </View>
               </View>
 
               <View style={styles.formSection}>
@@ -265,7 +295,9 @@ const EditTemplateItineraryScreen: React.FC = () => {
                   style={styles.input}
                 >
                   <View style={styles.timeInputContainer}>
-                    <Text style={styles.timeText}>{startTime.substring(0, 5)}</Text>
+                    <Text style={styles.timeText}>
+                      {startTime.substring(0, 5)}
+                    </Text>
                     <Ionicons name='time-outline' size={20} color='#8130FF' />
                   </View>
                 </TouchableOpacity>
@@ -385,6 +417,32 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  counterContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFF',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  counterButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+  },
+  counterValue: {
+    minWidth: 48,
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+    marginHorizontal: 16,
   },
 });
 
