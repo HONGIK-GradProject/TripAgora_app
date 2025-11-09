@@ -11,6 +11,7 @@ import {
 } from '@/services/templates';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -18,6 +19,8 @@ import {
   Alert,
   Dimensions,
   Modal,
+  Platform,
+  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -232,7 +235,7 @@ const ProductDetailScreen: React.FC = () => {
     );
   };
 
-  const handleSetImages = async (uris: string[]) => {
+  const handleSetImages = useCallback(async (uris: string[]) => {
     try {
       const newImageUrls = await setTemplateImageUrls(_id, uris);
       if (newImageUrls) {
@@ -242,7 +245,31 @@ const ProductDetailScreen: React.FC = () => {
     } catch (error) {
       console.error(error);
     }
-  };
+  }, [_id, setImageUrls]);
+
+  const handleOpenCoverImageEditor = useCallback(async () => {
+    if (Platform.OS !== 'web') {
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        alert('Sorry, we need camera roll permissions to make this work!');
+        return;
+      }
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsMultipleSelection: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const uris = result.assets.map((asset) => asset.uri);
+      await handleSetImages(uris);
+    } else {
+      await handleSetImages([]);
+    }
+  }, [handleSetImages]);
 
   if (isInitialLoading) {
     return <FullScreenLoader />;
@@ -271,11 +298,16 @@ const ProductDetailScreen: React.FC = () => {
                 bounces={false}
               >
                 {imageUrls.map((imageUrl, index) => (
-                  <Image
+                  <Pressable
                     key={index}
-                    source={{ uri: imageUrl }}
-                    style={styles.coverImage}
-                  />
+                    style={styles.coverImageWrapper}
+                    onPress={handleOpenCoverImageEditor}
+                  >
+                    <Image
+                      source={{ uri: imageUrl }}
+                      style={styles.coverImage}
+                    />
+                  </Pressable>
                 ))}
               </ScrollView>
 
@@ -298,10 +330,13 @@ const ProductDetailScreen: React.FC = () => {
               )}
             </>
           ) : (
-            <View style={styles.placeholderContainer}>
+            <Pressable
+              style={styles.placeholderContainer}
+              onPress={handleOpenCoverImageEditor}
+            >
               <Ionicons name='image-outline' size={48} color='#9CA3AF' />
               <Text style={styles.placeholderText}>대표 이미지 없음</Text>
-            </View>
+            </Pressable>
           )}
 
           {/* 페이지 인디케이터 */}
@@ -646,6 +681,10 @@ const styles = StyleSheet.create({
     width: Dimensions.get('window').width,
     height: '100%',
     resizeMode: 'cover',
+  },
+  coverImageWrapper: {
+    width: Dimensions.get('window').width,
+    height: '100%',
   },
   coverPlaceholder: {
     position: 'absolute',
