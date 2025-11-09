@@ -5,7 +5,8 @@ import React, {
   createContext,
   ReactNode,
   useCallback,
-  useState
+  useEffect,
+  useState,
 } from 'react';
 
 /**
@@ -104,6 +105,25 @@ const useTemplateDetailsLogic = (id: string) => {
       return groupItinerariesByDay(updatedList);
     });
   }, []);
+
+  useEffect(() => {
+    const availableDays = Object.keys(itineraries)
+      .map(Number)
+      .filter((value) => Number.isFinite(value))
+      .sort((a, b) => a - b);
+
+    if (availableDays.length === 0) {
+      if (day !== 1) {
+        setDay(1);
+      }
+      return;
+    }
+
+    if (!availableDays.includes(day)) {
+      const nextDay = availableDays.find((availableDay) => availableDay > day);
+      setDay(nextDay ?? availableDays[availableDays.length - 1]);
+    }
+  }, [itineraries, day]);
 
   return {
     isLoading,

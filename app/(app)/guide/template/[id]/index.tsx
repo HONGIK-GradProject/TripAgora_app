@@ -235,17 +235,20 @@ const ProductDetailScreen: React.FC = () => {
     );
   };
 
-  const handleSetImages = useCallback(async (uris: string[]) => {
-    try {
-      const newImageUrls = await setTemplateImageUrls(_id, uris);
-      if (newImageUrls) {
-        setImageUrls(newImageUrls);
-        console.log(newImageUrls);
+  const handleSetImages = useCallback(
+    async (uris: string[]) => {
+      try {
+        const newImageUrls = await setTemplateImageUrls(_id, uris);
+        if (newImageUrls) {
+          setImageUrls(newImageUrls);
+          console.log(newImageUrls);
+        }
+      } catch (error) {
+        console.error(error);
       }
-    } catch (error) {
-      console.error(error);
-    }
-  }, [_id, setImageUrls]);
+    },
+    [_id, setImageUrls]
+  );
 
   const handleOpenCoverImageEditor = useCallback(async () => {
     if (Platform.OS !== 'web') {
@@ -365,16 +368,17 @@ const ProductDetailScreen: React.FC = () => {
               editable={!isSavingTitle}
             />
             <TouchableOpacity
-              style={[styles.editButton, (isSavingTitle || localTitle === title) && { opacity: 0.5 }]}
+              style={[
+                styles.editButton,
+                (isSavingTitle || localTitle === title) && { opacity: 0.5 },
+              ]}
               onPress={handleEditTitle}
               disabled={isSavingTitle || localTitle === title}
             >
               {isSavingTitle ? (
                 <ActivityIndicator size='small' />
               ) : (
-                <Text style={styles.editButtonText}>
-                  저장
-                </Text>
+                <Text style={styles.editButtonText}>저장</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -419,16 +423,19 @@ const ProductDetailScreen: React.FC = () => {
               여행 소개
             </Text>
             <TouchableOpacity
-              style={[styles.editButton, (isSavingContent || localContent === content) && { opacity: 0.5 }]}
+              style={[
+                styles.editButton,
+                (isSavingContent || localContent === content) && {
+                  opacity: 0.5,
+                },
+              ]}
               onPress={handleEditContent}
-              disabled={(isSavingContent || localContent === content)}
+              disabled={isSavingContent || localContent === content}
             >
               {isSavingContent ? (
                 <ActivityIndicator size='small' />
               ) : (
-                <Text style={styles.editButtonText}>
-                  저장
-                </Text>
+                <Text style={styles.editButtonText}>저장</Text>
               )}
             </TouchableOpacity>
           </View>
