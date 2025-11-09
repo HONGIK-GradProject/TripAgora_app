@@ -49,6 +49,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
 }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const bottomActionPadding = Math.max(insets.bottom, 16);
   const segments = useSegments();
   const { id } = useLocalSearchParams<{ id: string }>();
 
@@ -774,7 +775,10 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
 
       {/* 하단 액션 버튼 */}
       <View
-        style={[styles.bottomActionContainer, { paddingBottom: insets.bottom }]}
+        style={[
+          styles.bottomActionContainer,
+          { paddingBottom: bottomActionPadding, bottom: -insets.bottom },
+        ]}
       >
         {userType === 'guide' ? (
           <>
