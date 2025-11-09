@@ -9,50 +9,43 @@ interface MessageItemProps {
 }
 
 const MessageItem: React.FC<MessageItemProps> = ({ item, isMyMessage }) => {
-  return (
-    <View
-      className={`flex-row items-end my-2 ${
-        isMyMessage ? 'justify-end' : 'justify-start'
-      }`}
-    >
-      {!isMyMessage && (
-        <View className='mr-3'>
-          <Image
-            source={{ uri: item.user.avatar }}
-            style={{ width: 32, height: 32, borderRadius: 16 }}
-          />
-        </View>
-      )}
-
-      {isMyMessage && (
+  if (isMyMessage) {
+    return (
+      <View className='flex-row items-end my-2 justify-end'>
         <Text className='text-xs text-gray-400 mr-2 mb-1'>
           {new Date(item.createdAt).toLocaleTimeString([], {
             hour: '2-digit',
             minute: '2-digit',
           })}
         </Text>
-      )}
-
-      <View
-        className={`max-w-[70%] rounded-2xl px-4 py-3 ${
-          isMyMessage
-            ? 'bg-purple-500 rounded-br-none'
-            : 'bg-white rounded-bl-none shadow-sm'
-        }`}
-      >
-        <Text className={isMyMessage ? 'text-white' : 'text-gray-900'}>
-          {item.text}
-        </Text>
+        <View className='max-w-[70%] rounded-2xl px-4 py-3 bg-purple-500 rounded-br-none'>
+          <Text className='text-white'>{item.text}</Text>
+        </View>
       </View>
+    );
+  }
 
-      {!isMyMessage && (
-        <Text className='text-xs text-gray-400 ml-2 mb-1'>
-          {new Date(item.createdAt).toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-          })}
-        </Text>
-      )}
+  return (
+    <View className='flex-row items-start my-2'>
+      <Image
+        source={{ uri: item.user.avatar }}
+        style={{ width: 32, height: 32, borderRadius: 16 }}
+        className='mr-3'
+      />
+      <View className='flex-1'>
+        <Text className='text-s text-gray-500 mb-1'>{'  ' + item.user.name}</Text>
+        <View className='flex-row items-end'>
+          <View className='max-w-[80%] rounded-2xl px-4 py-3 bg-white rounded-bl-none shadow-sm'>
+            <Text className='text-gray-900'>{item.text}</Text>
+          </View>
+          <Text className='text-xs text-gray-400 ml-2 mb-1'>
+            {new Date(item.createdAt).toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
+          </Text>
+        </View>
+      </View>
     </View>
   );
 };
