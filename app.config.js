@@ -19,6 +19,7 @@ export default {
       },
       edgeToEdgeEnabled: true,
       package: 'com.tripagora.app',
+      softwareKeyboardLayoutMode: "pan",
     },
     web: {
       bundler: 'metro',

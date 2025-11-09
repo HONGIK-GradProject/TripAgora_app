@@ -1,3 +1,4 @@
+import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import SessionDetailScreen from '@/components/session/SessionDetailScreen';
 import React from 'react';
 
@@ -6,7 +7,11 @@ import React from 'react';
  * 제목, 소개, 지역, 태그, 일정 등을 확인하고 참여 신청 기능을 제공합니다.
  */
 const WishlistSessionDetailScreen: React.FC = () => {
-  return <SessionDetailScreen userType='traveler' />;
+  return (
+    <CustomSafeAreaView>
+      <SessionDetailScreen userType='traveler' />
+    </CustomSafeAreaView>
+  );
 };
 
 export default WishlistSessionDetailScreen;

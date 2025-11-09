@@ -12,7 +12,12 @@ import {
 import { addWishlist, deleteWishlist } from '@/services/wishlist';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import {
+  useFocusEffect,
+  useLocalSearchParams,
+  useRouter,
+  useSegments,
+} from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
@@ -44,6 +49,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
 }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const segments = useSegments();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   // 세션 상세 정보 가져오기
@@ -64,6 +70,8 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
     isInWishlist: contextIsInWishlist = false,
     setIsInWishlist,
     itineraries = {},
+    guideProfileId,
+    isMySession = false,
     isLoading = true,
     refetch = () => {},
   } = sessionDetails || {};
@@ -506,7 +514,26 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
           {(() => {
             const guide = participants.find((p) => p.role === 'GUIDE');
             return (
-              <View style={styles.guideContainer}>
+              <TouchableOpacity
+                style={styles.guideContainer}
+                onPress={() => {
+                  if (guide && id && guideProfileId) {
+                    // 현재 세션 스택 내에서 가이드 프로필 화면으로 이동
+                    // userType과 현재 경로에 따라 올바른 스택 내 경로로 이동
+                    // guideProfileId를 사용하여 프로필 조회
+                    const profilePath =
+                      userType === 'guide'
+                        ? `/guide/session/${id}/${guideProfileId}`
+                        : segments.join('/').includes('/trip/')
+                        ? `/traveler/trip/${id}/${guideProfileId}`
+                        : `/traveler/explore/${id}/${guideProfileId}`;
+                    // Expo Router 타입 정의 제한으로 인한 타입 캐스팅
+                    router.push(profilePath as any);
+                  }
+                }}
+                activeOpacity={0.7}
+                disabled={!guide || !guideProfileId}
+              >
                 {guide ? (
                   <Image
                     source={{ uri: guide.profileImageUrl }}
@@ -524,7 +551,15 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
                     {guide ? guide.nickname : '알 수 없음'}
                   </Text>
                 </View>
-              </View>
+                {guide && (
+                  <Ionicons
+                    name='chevron-forward'
+                    size={20}
+                    color='#9CA3AF'
+                    style={{ marginLeft: 'auto' }}
+                  />
+                )}
+              </TouchableOpacity>
             );
           })()}
 
@@ -758,6 +793,29 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
               </TouchableOpacity>
             )}
           </>
+        ) : isMySession ? (
+          <TouchableOpacity
+            style={[styles.ctaButton, styles.disabledButton]}
+            disabled={true}
+          >
+            <Text style={styles.disabledButtonText}>
+              내가 개설한 세션입니다
+            </Text>
+          </TouchableOpacity>
+        ) : isParticipating ? (
+          <TouchableOpacity
+            style={[
+              styles.ctaButton,
+              styles.cancelButton,
+              isSubmitting && { backgroundColor: '#9CA3AF' },
+            ]}
+            onPress={handleCancelParticipation}
+            disabled={isSubmitting}
+          >
+            <Text style={styles.cancelButtonText}>
+              {isSubmitting ? '취소 중...' : '참여 신청 취소'}
+            </Text>
+          </TouchableOpacity>
         ) : (
           <>
             {/* 여행자용 하트 버튼 */}
@@ -1128,6 +1186,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#EF4444',
   },
+  disabledButton: {
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+  },
   wishlistButton: {
     width: 78,
     height: 52,
@@ -1158,6 +1221,12 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     color: '#EF4444',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  disabledButtonText: {
+    color: '#9CA3AF',
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',

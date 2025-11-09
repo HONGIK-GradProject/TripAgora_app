@@ -1,3 +1,5 @@
+import CustomKeyboardAvoidingView from '@/components/CustomKeyboardAvoidingView';
+import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { SessionDetailsProvider } from '@/contexts/SessionDetailsProvider';
 import { useSessionDetails } from '@/hooks/sessions/useSessionDetails';
@@ -151,7 +153,7 @@ const EditRecruitmentContent: React.FC = () => {
     <View className='flex-1 bg-white'>
       <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
         {/* 상단 네비게이션 */}
-        <View className='pt-12 pb-3 px-5 flex-row items-center justify-between border-b border-[#E9E9E9]'>
+        <View className='pt-6 pb-3 px-5 flex-row items-center justify-between border-b border-[#E9E9E9]'>
           <TouchableOpacity
             className='w-10 h-10 rounded-full bg-white/90 items-center justify-center'
             onPress={() => router.back()}
@@ -314,9 +316,13 @@ const EditRecruitmentScreen: React.FC = () => {
   }
 
   return (
-    <SessionDetailsProvider id={id}>
-      <EditRecruitmentContent />
-    </SessionDetailsProvider>
+    <CustomSafeAreaView>
+      <CustomKeyboardAvoidingView>
+        <SessionDetailsProvider id={id}>
+          <EditRecruitmentContent />
+        </SessionDetailsProvider>
+      </CustomKeyboardAvoidingView>
+    </CustomSafeAreaView>
   );
 };
 
