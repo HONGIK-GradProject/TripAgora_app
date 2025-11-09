@@ -645,7 +645,7 @@ const styles = StyleSheet.create({
   coverImage: {
     width: Dimensions.get('window').width,
     height: '100%',
-    resizeMode: 'cover',
+    contentFit: 'cover',
   },
   coverPlaceholder: {
     position: 'absolute',
@@ -721,7 +721,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: 8,
-    resizeMode: 'cover',
+    contentFit: 'cover',
   },
   emptyPhotoContainer: {
     alignItems: 'center',

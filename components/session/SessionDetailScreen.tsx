@@ -909,7 +909,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
                 <Image
                   source={{ uri: imageUrl }}
                   style={styles.imageViewerImage}
-                  resizeMode='contain'
+                  contentFit='contain'
                 />
               </View>
             ))}
@@ -962,7 +962,7 @@ const styles = StyleSheet.create({
   coverImage: {
     width: SCREEN_WIDTH,
     height: '100%',
-    resizeMode: 'cover',
+    contentFit: 'cover',
   },
   placeholderContainer: {
     width: '100%',
@@ -1398,7 +1398,7 @@ const styles = StyleSheet.create({
   photoGridImage: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
+    contentFit: 'cover',
   },
   emptyPhotoContainer: {
     alignItems: 'center',

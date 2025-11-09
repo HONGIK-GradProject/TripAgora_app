@@ -18,7 +18,7 @@ export function IconSymbol({
     <SymbolView
       weight={weight}
       tintColor={color}
-      resizeMode="scaleAspectFit"
+      contentFit='scaleAspectFit'
       name={name}
       style={[
         {
