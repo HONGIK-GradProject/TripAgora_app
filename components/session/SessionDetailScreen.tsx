@@ -10,7 +10,7 @@ import {
   createParticipation,
   deleteSession,
 } from '@/services/sessions';
-import { ReviewGetByTemplateData } from '@/types/reviews';
+import { ReviewData, ReviewGetByTemplateData } from '@/types/reviews';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
@@ -108,7 +108,46 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
         setIsLoadingReviews(true);
         const response = await reviewsApi.getReviewsByTemplate(templateId);
         if (response.data) {
-          setReviewData(response.data);
+          const { averageRating = 0, totalReviewCount = 0 } = response.data;
+          const rawReviews =
+            (response.data as any)?.review ??
+            (response.data as any)?.reviews ??
+            (response.data as any)?.reviewList ??
+            [];
+
+          const normalizedReviews = Array.isArray(rawReviews) ? rawReviews : [];
+
+          const mappedReviews = (
+            normalizedReviews as (Partial<ReviewData> & Record<string, any>)[]
+          ).map((review) => {
+            const fallbackProfile =
+              review.authorProfile ??
+              review.authorProfileUrl ??
+              review.authorProfileImageUrl ??
+              review.profileImageUrl ??
+              review.profileImage ??
+              '';
+
+            return {
+              ...review,
+              authorProfile: fallbackProfile,
+            } as ReviewData;
+          });
+
+          setReviewData({
+            averageRating,
+            totalReviewCount:
+              typeof totalReviewCount === 'number'
+                ? totalReviewCount
+                : mappedReviews.length,
+            review: mappedReviews,
+          });
+        } else {
+          setReviewData({
+            averageRating: 0,
+            totalReviewCount: 0,
+            review: [],
+          });
         }
       } catch (error) {
         console.error('리뷰 로드 실패:', error);
