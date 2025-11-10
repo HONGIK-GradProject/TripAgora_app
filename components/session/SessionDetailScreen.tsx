@@ -962,7 +962,7 @@ const styles = StyleSheet.create({
   coverImage: {
     width: SCREEN_WIDTH,
     height: '100%',
-    contentFit: 'cover',
+    resizeMode: 'cover',
   },
   placeholderContainer: {
     width: '100%',
@@ -1398,7 +1398,7 @@ const styles = StyleSheet.create({
   photoGridImage: {
     width: '100%',
     height: '100%',
-    contentFit: 'cover',
+    resizeMode: 'cover',
   },
   emptyPhotoContainer: {
     alignItems: 'center',
