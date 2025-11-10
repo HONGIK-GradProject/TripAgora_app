@@ -30,6 +30,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 
 /**
  * 특정 여행 템플릿의 모든 상세 정보를 보여주는 화면입니다.
@@ -163,6 +164,21 @@ const ProductDetailScreen: React.FC = () => {
 
   const _id: number = +id;
 
+  const showErrorToast = (error: unknown) => {
+    const message =
+      error instanceof Error && typeof error.message === 'string'
+        ? error.message
+        : '오류가 발생했습니다.';
+
+    Toast.show({
+      type: 'error',
+      text1: '요청 실패',
+      text2: message,
+      position: 'bottom',
+      bottomOffset: 100,
+    });
+  };
+
   /**
    * 템플릿 제목의 편집 모드를 토글하고, 편집 완료 시 서버에 변경사항을 저장합니다.
    */
@@ -177,6 +193,7 @@ const ProductDetailScreen: React.FC = () => {
       setTitle(localTitle);
     } catch (error) {
       console.error(error);
+      showErrorToast(error);
     } finally {
       console.log(title, localTitle);
       setIsSavingTitle(false);
@@ -197,6 +214,7 @@ const ProductDetailScreen: React.FC = () => {
       setContent(localContent);
     } catch (error) {
       console.error(error);
+      showErrorToast(error);
     } finally {
       setIsSavingContent(false);
     }
@@ -226,6 +244,7 @@ const ProductDetailScreen: React.FC = () => {
               router.back();
             } catch (error) {
               console.error(error);
+              showErrorToast(error);
             } finally {
               setIsDeleting(false);
             }
@@ -245,6 +264,7 @@ const ProductDetailScreen: React.FC = () => {
         }
       } catch (error) {
         console.error(error);
+        showErrorToast(error);
       }
     },
     [_id, setImageUrls]
