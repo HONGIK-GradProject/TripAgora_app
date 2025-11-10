@@ -257,7 +257,9 @@ const SessionItineraryDetailsContent: React.FC = () => {
                         onPress={() => handleItemPress(item)}
                         activeOpacity={0.8}
                       >
-                        <Text style={styles.itineraryTitle}>{item.title}</Text>
+                        <Text style={styles.itineraryTitle}>
+                          {item.location}
+                        </Text>
                         {item.content ? (
                           <Text style={styles.itineraryContent}>
                             {item.content}
