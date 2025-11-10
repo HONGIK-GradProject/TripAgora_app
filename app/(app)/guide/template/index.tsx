@@ -81,10 +81,9 @@ const MyTemplatesScreen: React.FC = () => {
     refetch();
   }, [refetch]);
 
-
   return (
     <CustomSafeAreaView>
-      <View className='bg-gray-50 pt-6 relative'>
+      <View className='flex-1 bg-gray-50 pt-6 relative'>
         {/* 초기 로딩 처리 */}
         {isLoading && templates.length === 0 ? (
           <FullScreenLoader />
@@ -107,6 +106,7 @@ const MyTemplatesScreen: React.FC = () => {
             <View className='bg-gray-50 rounded-2xl p-4'>
               <GuideTemplateList
                 templates={filteredTemplates}
+                userRole='GUIDE'
                 onEndReached={handleLoadMore}
                 onEndReachedThreshold={0.5}
                 ListFooterComponent={renderFooter}
@@ -123,7 +123,7 @@ const MyTemplatesScreen: React.FC = () => {
           className='absolute right-6 w-16 h-16 rounded-full bg-white items-center justify-center'
           style={{
             elevation: 8,
-            bottom: bottom + 60,
+            bottom: bottom,
           }}
           onPress={handleCreateTemplate}
         >
