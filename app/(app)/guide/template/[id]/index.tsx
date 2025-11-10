@@ -80,14 +80,15 @@ const ProductDetailScreen: React.FC = () => {
 
   const availableDays = useMemo(
     () =>
-      Object.keys(itineraries)
-        .map(Number)
+      Object.entries(itineraries)
+        .filter(([, items]) => Array.isArray(items) && items.length > 0)
+        .map(([day]) => Number(day))
         .sort((a, b) => a - b),
     [itineraries]
   );
 
-  const [selectedDay, setSelectedDay] = useState(
-    availableDays.length > 0 ? availableDays[0] : 1
+  const [selectedDay, setSelectedDay] = useState<number | null>(
+    availableDays.length > 0 ? availableDays[0] : null
   );
 
   useEffect(() => {
@@ -96,7 +97,12 @@ const ProductDetailScreen: React.FC = () => {
   }, [title, content]);
 
   useEffect(() => {
-    if (availableDays.length > 0 && !availableDays.includes(selectedDay)) {
+    if (availableDays.length === 0) {
+      setSelectedDay(null);
+      return;
+    }
+
+    if (selectedDay === null || !availableDays.includes(selectedDay)) {
       setSelectedDay(availableDays[0]);
     }
   }, [availableDays, selectedDay]);
@@ -527,51 +533,63 @@ const ProductDetailScreen: React.FC = () => {
           </View>
         </View>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.daySelection}
-        >
-          {availableDays.map((dayNumber) => (
-            <TouchableOpacity
-              key={dayNumber}
-              style={[
-                styles.dayButton,
-                selectedDay === dayNumber && styles.dayButtonActive,
-              ]}
-              onPress={() => setSelectedDay(dayNumber)}
+        {availableDays.length === 0 ? (
+          <View style={styles.emptyItineraryContainer}>
+            <Ionicons name='calendar-clear-outline' size={40} color='#9CA3AF' />
+            <Text style={styles.emptyItineraryTitle}>등록된 일정이 없어요</Text>
+            <Text style={styles.emptyItinerarySubtitle}>
+              편집 버튼을 눌러 일정을 추가해보세요.
+            </Text>
+          </View>
+        ) : (
+          <>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.daySelection}
             >
-              <Text
-                style={[
-                  styles.dayButtonText,
-                  selectedDay === dayNumber && styles.dayButtonTextActive,
-                ]}
-              >
-                {dayNumber}일차
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        <View style={[styles.section, { paddingTop: 0 }]}>
-          {(itineraries[selectedDay] || [])
-            .sort((a, b) => a.startTime.localeCompare(b.startTime))
-            .map((item) => (
-              <View key={item.id} style={styles.itineraryItem}>
-                <View style={styles.itineraryTime}>
-                  <Text style={styles.itineraryTimeText}>
-                    {item.startTime.substring(0, 5)}
+              {availableDays.map((dayNumber) => (
+                <TouchableOpacity
+                  key={dayNumber}
+                  style={[
+                    styles.dayButton,
+                    selectedDay === dayNumber && styles.dayButtonActive,
+                  ]}
+                  onPress={() => setSelectedDay(dayNumber)}
+                >
+                  <Text
+                    style={[
+                      styles.dayButtonText,
+                      selectedDay === dayNumber && styles.dayButtonTextActive,
+                    ]}
+                  >
+                    {dayNumber}일차
                   </Text>
-                </View>
-                <View style={styles.itineraryContent}>
-                  <Text style={styles.itineraryTitle}>{item.location}</Text>
-                  {item.content ? (
-                    <Text style={styles.itineraryDesc}>{item.content}</Text>
-                  ) : null}
-                </View>
-              </View>
-            ))}
-        </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <View style={[styles.section, { paddingTop: 0 }]}>
+              {(selectedDay !== null ? itineraries[selectedDay] || [] : [])
+                .sort((a, b) => a.startTime.localeCompare(b.startTime))
+                .map((item) => (
+                  <View key={item.id} style={styles.itineraryItem}>
+                    <View style={styles.itineraryTime}>
+                      <Text style={styles.itineraryTimeText}>
+                        {item.startTime.substring(0, 5)}
+                      </Text>
+                    </View>
+                    <View style={styles.itineraryContent}>
+                      <Text style={styles.itineraryTitle}>{item.location}</Text>
+                      {item.content ? (
+                        <Text style={styles.itineraryDesc}>{item.content}</Text>
+                      ) : null}
+                    </View>
+                  </View>
+                ))}
+            </View>
+          </>
+        )}
 
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -1077,6 +1095,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#444',
     lineHeight: 20,
+  },
+  emptyItineraryContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 48,
+    paddingHorizontal: 24,
+    gap: 8,
+  },
+  emptyItineraryTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4B5563',
+  },
+  emptyItinerarySubtitle: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    textAlign: 'center',
   },
   bottomActionContainer: {
     position: 'absolute',
