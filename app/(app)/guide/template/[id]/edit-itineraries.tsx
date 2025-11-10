@@ -60,8 +60,15 @@ const EditTemplateItinerariesScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
 
   // useTemplateDetails 훅에서 여정 데이터 및 관리 함수들을 가져옵니다.
-  const { itineraries, day, deleteItinerary, addItinerary, setDay, isLoading } =
-    useTemplateDetails();
+  const {
+    itineraries,
+    day,
+    deleteItinerary,
+    addItinerary,
+    setDay,
+    isLoading,
+    addDay: appendDay,
+  } = useTemplateDetails();
 
   useFocusEffect(
     useCallback(() => {
@@ -141,6 +148,11 @@ const EditTemplateItinerariesScreen: React.FC = () => {
 
   const serializeItineraries = useCallback(
     (data: Record<number, TemplateItinerary[]>) => {
+      const days = Object.keys(data)
+        .map(Number)
+        .filter((value) => Number.isFinite(value))
+        .sort((a, b) => a - b);
+
       const flattened = flattenItineraries(data)
         .map((item) => ({
           ...item,
@@ -157,7 +169,7 @@ const EditTemplateItinerariesScreen: React.FC = () => {
           return (a.id ?? 0) - (b.id ?? 0);
         });
 
-      return JSON.stringify(flattened);
+      return JSON.stringify({ days, items: flattened });
     },
     []
   );
@@ -282,6 +294,11 @@ const EditTemplateItinerariesScreen: React.FC = () => {
     });
   };
 
+  const handleAddDay = () => {
+    appendDay();
+    setSelectedItineraryId(null);
+  };
+
   /**
    * 현재까지의 모든 일정 변경사항(추가, 수정, 삭제)을 서버에 일괄 저장합니다.
    */
@@ -401,6 +418,13 @@ const EditTemplateItinerariesScreen: React.FC = () => {
               </Text>
             </TouchableOpacity>
           ))}
+          <TouchableOpacity
+            style={[styles.dayButton, styles.addDayButton]}
+            onPress={handleAddDay}
+          >
+            <Ionicons name='add' size={16} color='#8130FF' />
+            <Text style={styles.addDayButtonText}>일차 추가</Text>
+          </TouchableOpacity>
         </ScrollView>
       </View>
       <Text style={styles.listTitle}>상세 일정</Text>
@@ -552,6 +576,18 @@ const styles = StyleSheet.create({
     borderColor: '#949494',
     borderWidth: 1,
     marginRight: 12,
+  },
+  addDayButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderColor: '#8130FF',
+    borderStyle: 'dashed',
+  },
+  addDayButtonText: {
+    fontSize: 16,
+    color: '#8130FF',
+    fontWeight: '600',
+    marginLeft: 6,
   },
   dayButtonActive: {
     backgroundColor: '#8130FF',

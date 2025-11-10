@@ -53,7 +53,7 @@ const EditTemplateItineraryScreen: React.FC = () => {
   };
 
   const [location, setLocation] = useState(params.location || '');
-  const [dayValue, setDayValue] = useState<number>(parseDay(params.day));
+  const dayValue = useMemo(() => parseDay(params.day), [params.day]);
   const [content, setContent] = useState(params.content || '');
   const [startTime, setStartTime] = useState(params.startTime || '09:00');
   const [latitude, setLatitude] = useState(params.latitude || '37.5665');
@@ -168,14 +168,6 @@ const EditTemplateItineraryScreen: React.FC = () => {
     toggleMapExpansion(false);
   };
 
-  const handleIncreaseDay = () => {
-    setDayValue((prev) => prev + 1);
-  };
-
-  const handleDecreaseDay = () => {
-    setDayValue((prev) => Math.max(prev - 1, 1));
-  };
-
   return (
     <CustomSafeAreaView>
       <CustomKeyboardAvoidingView>
@@ -242,36 +234,33 @@ const EditTemplateItineraryScreen: React.FC = () => {
 
           {!isMapExpanded && (
             <ScrollView contentContainerStyle={styles.scrollViewContent}>
-              <View style={styles.formSection}>
-                <Text style={styles.label}>장소명</Text>
-                <TextInput
-                  value={location}
-                  onChangeText={setLocation}
-                  placeholder='장소명'
-                  placeholderTextColor={'#9A9A9A'}
-                  style={[styles.input, { opacity: 0.5 }]}
-                  editable={false}
-                  selectTextOnFocus={false}
-                />
-              </View>
-
-              {/* Other form sections... */}
-              <View style={styles.formSection}>
-                <Text style={styles.label}>일차</Text>
-                <View style={styles.counterContainer}>
-                  <TouchableOpacity
-                    style={styles.counterButton}
-                    onPress={handleDecreaseDay}
+              <View style={styles.infoRow}>
+                <View style={styles.dayInfoWrapper}>
+                  <View style={styles.dayInfoContainer}>
+                    <Ionicons
+                      name='calendar-outline'
+                      size={18}
+                      color='#4C2EE7'
+                      style={styles.dayInfoIcon}
+                    />
+                    <Text style={styles.dayInfoText}>{dayValue}일차</Text>
+                  </View>
+                </View>
+                <View style={styles.locationInfoContainer}>
+                  <Ionicons
+                    name='location-outline'
+                    size={18}
+                    color='#4C2EE7'
+                    style={styles.locationInfoIcon}
+                  />
+                  <Text style={styles.locationInfoLabel}>장소</Text>
+                  <Text
+                    style={styles.locationInfoText}
+                    numberOfLines={1}
+                    ellipsizeMode='tail'
                   >
-                    <Ionicons name='remove' size={20} color='#613EEA' />
-                  </TouchableOpacity>
-                  <Text style={styles.counterValue}>{dayValue}</Text>
-                  <TouchableOpacity
-                    style={styles.counterButton}
-                    onPress={handleIncreaseDay}
-                  >
-                    <Ionicons name='add' size={20} color='#613EEA' />
-                  </TouchableOpacity>
+                    {location || '장소를 선택하세요'}
+                  </Text>
                 </View>
               </View>
 
@@ -368,12 +357,12 @@ const styles = StyleSheet.create({
     width: screenWidth,
     height: screenHeight,
     marginBottom: 0,
-    zIndex: 10, // Make sure map is on top
+    zIndex: 10, // Ensure map is on top
   },
   expandedMapOverlayContainer: {
     flex: 1,
     justifyContent: 'space-between',
-    paddingTop: 40, // Safe area for status bar
+    paddingTop: 40,
   },
   closeButton: {
     position: 'absolute',
@@ -385,7 +374,7 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 20, // Ensure close button is on top of everything
+    zIndex: 20,
   },
   formSection: {
     marginBottom: 20,
@@ -418,31 +407,63 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  counterContainer: {
+  infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFF',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    justifyContent: 'space-between',
+    marginBottom: 24,
+    gap: 16,
   },
-  counterButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+  dayInfoWrapper: {
+    flexShrink: 0,
+  },
+  dayInfoContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFF',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 14,
+    backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#E5E5E5',
+    borderColor: '#DCD1FF',
   },
-  counterValue: {
-    minWidth: 48,
-    textAlign: 'center',
-    fontSize: 16,
+  dayInfoIcon: {
+    marginRight: 8,
+  },
+  dayInfoText: {
+    fontSize: 14,
     fontWeight: '600',
-    color: '#000',
-    marginHorizontal: 16,
+    color: '#4C2EE7',
+    letterSpacing: 0.2,
+  },
+  locationInfoContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 14,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#DCD1FF',
+  },
+  locationInfoIcon: {
+    marginRight: 8,
+  },
+  locationInfoLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6B5AF5',
+    marginRight: 8,
+    letterSpacing: 0.2,
+  },
+  locationInfoText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#1E1E1E',
+    letterSpacing: 0.2,
   },
 });
 
