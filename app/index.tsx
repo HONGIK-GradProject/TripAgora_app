@@ -15,12 +15,19 @@ export default function Index() {
     return <Redirect href="/login" />;
   }
 
-  // 토큰이 있고, 신규 사용자이면 프로필 설정 화면으로 보냅니다.
-  if (isNewUser) {
+  // 아래는 토큰이 있을 경우
+
+  // 신규 사용자이거나 닉네임이 비어있으면 프로필 설정 화면으로 보냅니다.
+  if (isNewUser || !user?.nickname || user?.nickname === '') {
     return <Redirect href="/login/set-profile" />;
   }
 
-  // 토큰이 있고, 기존 사용자이면 역할에 따라 홈 화면으로 보냅니다.
+  // 관심사 태그가 비어있으면 관심사 태그 설정 화면으로 보냅니다.
+  if (!user.tagIds || user.tagIds.length === 0) {
+    return <Redirect href="/login/set-interests" />;
+  }
+
+  // 기존 사용자면 역할에 따라 홈 화면으로 보냅니다.
   if (user?.role === 'GUIDE') {
     return <Redirect href="/guide/home" />;
   }
