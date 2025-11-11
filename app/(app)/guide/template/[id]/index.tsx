@@ -11,6 +11,7 @@ import {
 } from '@/services/templates';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -18,6 +19,8 @@ import {
   Alert,
   Dimensions,
   Modal,
+  Platform,
+  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -27,6 +30,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 
 /**
  * 특정 여행 템플릿의 모든 상세 정보를 보여주는 화면입니다.
@@ -44,10 +48,6 @@ const ProductDetailScreen: React.FC = () => {
     regionIds,
     tagIds,
     imageUrls,
-    isEditingContent,
-    isEditingTitle,
-    setIsEditingContent,
-    setIsEditingTitle,
     setTitle,
     setContent,
     setImageUrls,
@@ -70,24 +70,39 @@ const ProductDetailScreen: React.FC = () => {
   const [scrollViewRef, setScrollViewRef] = useState<ScrollView | null>(null);
   const screenWidth = Dimensions.get('window').width;
 
+  // Local title and description
+  const [localTitle, setLocalTitle] = useState<string>(title);
+  const [localContent, setLocalContent] = useState<string>(content);
+
   // 초기 로딩과 새로고침을 구분하기 위한 변수
   // 데이터가 전혀 없을 때의 로딩만 전체 화면 로딩으로 간주
   const isInitialLoading = isLoading && Object.keys(itineraries).length === 0;
 
   const availableDays = useMemo(
     () =>
-      Object.keys(itineraries)
-        .map(Number)
+      Object.entries(itineraries)
+        .filter(([, items]) => Array.isArray(items) && items.length > 0)
+        .map(([day]) => Number(day))
         .sort((a, b) => a - b),
     [itineraries]
   );
 
-  const [selectedDay, setSelectedDay] = useState(
-    availableDays.length > 0 ? availableDays[0] : 1
+  const [selectedDay, setSelectedDay] = useState<number | null>(
+    availableDays.length > 0 ? availableDays[0] : null
   );
 
   useEffect(() => {
-    if (availableDays.length > 0 && !availableDays.includes(selectedDay)) {
+    setLocalTitle(title);
+    setLocalContent(content);
+  }, [title, content]);
+
+  useEffect(() => {
+    if (availableDays.length === 0) {
+      setSelectedDay(null);
+      return;
+    }
+
+    if (selectedDay === null || !availableDays.includes(selectedDay)) {
       setSelectedDay(availableDays[0]);
     }
   }, [availableDays, selectedDay]);
@@ -155,38 +170,60 @@ const ProductDetailScreen: React.FC = () => {
 
   const _id: number = +id;
 
+  const showErrorToast = (error: unknown) => {
+    const message =
+      error instanceof Error && typeof error.message === 'string'
+        ? error.message
+        : '오류가 발생했습니다.';
+
+    Toast.show({
+      type: 'error',
+      text1: '요청 실패',
+      text2: message,
+      position: 'bottom',
+      bottomOffset: 100,
+    });
+  };
+
   /**
    * 템플릿 제목의 편집 모드를 토글하고, 편집 완료 시 서버에 변경사항을 저장합니다.
    */
   const handleEditTitle = async () => {
-    if (isEditingTitle) {
-      setIsSavingTitle(true);
-      try {
-        await setTemplateTitle(_id, title);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsSavingTitle(false);
-      }
+    if (localTitle === title) {
+      return;
     }
-    setIsEditingTitle((prev) => !prev);
+
+    setIsSavingTitle(true);
+    try {
+      await setTemplateTitle(_id, localTitle);
+      setTitle(localTitle);
+    } catch (error) {
+      console.error(error);
+      showErrorToast(error);
+    } finally {
+      console.log(title, localTitle);
+      setIsSavingTitle(false);
+    }
   };
 
   /**
    * 템플릿 소개 내용의 편집 모드를 토글하고, 편집 완료 시 서버에 변경사항을 저장합니다.
    */
   const handleEditContent = async () => {
-    if (isEditingContent) {
-      setIsSavingContent(true);
-      try {
-        await setTemplateContent(_id, content);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsSavingContent(false);
-      }
+    if (localContent === content) {
+      return;
     }
-    setIsEditingContent((prev) => !prev);
+
+    setIsSavingContent(true);
+    try {
+      await setTemplateContent(_id, localContent);
+      setContent(localContent);
+    } catch (error) {
+      console.error(error);
+      showErrorToast(error);
+    } finally {
+      setIsSavingContent(false);
+    }
   };
 
   // Location and Tags will navigate to separate edit screens; no local edit state needed
@@ -213,6 +250,7 @@ const ProductDetailScreen: React.FC = () => {
               router.back();
             } catch (error) {
               console.error(error);
+              showErrorToast(error);
             } finally {
               setIsDeleting(false);
             }
@@ -222,17 +260,45 @@ const ProductDetailScreen: React.FC = () => {
     );
   };
 
-  const handleSetImages = async (uris: string[]) => {
-    try {
-      const newImageUrls = await setTemplateImageUrls(_id, uris);
-      if (newImageUrls) {
-        setImageUrls(newImageUrls);
-        console.log(newImageUrls);
+  const handleSetImages = useCallback(
+    async (uris: string[]) => {
+      try {
+        const newImageUrls = await setTemplateImageUrls(_id, uris);
+        if (newImageUrls) {
+          setImageUrls(newImageUrls);
+          console.log(newImageUrls);
+        }
+      } catch (error) {
+        console.error(error);
+        showErrorToast(error);
       }
-    } catch (error) {
-      console.error(error);
+    },
+    [_id, setImageUrls]
+  );
+
+  const handleOpenCoverImageEditor = useCallback(async () => {
+    if (Platform.OS !== 'web') {
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        alert('Sorry, we need camera roll permissions to make this work!');
+        return;
+      }
     }
-  };
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsMultipleSelection: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const uris = result.assets.map((asset) => asset.uri);
+      await handleSetImages(uris);
+    } else {
+      await handleSetImages([]);
+    }
+  }, [handleSetImages]);
 
   if (isInitialLoading) {
     return <FullScreenLoader />;
@@ -261,11 +327,16 @@ const ProductDetailScreen: React.FC = () => {
                 bounces={false}
               >
                 {imageUrls.map((imageUrl, index) => (
-                  <Image
+                  <Pressable
                     key={index}
-                    source={{ uri: imageUrl }}
-                    style={styles.coverImage}
-                  />
+                    style={styles.coverImageWrapper}
+                    onPress={handleOpenCoverImageEditor}
+                  >
+                    <Image
+                      source={{ uri: imageUrl }}
+                      style={styles.coverImage}
+                    />
+                  </Pressable>
                 ))}
               </ScrollView>
 
@@ -288,10 +359,13 @@ const ProductDetailScreen: React.FC = () => {
               )}
             </>
           ) : (
-            <View style={styles.placeholderContainer}>
+            <Pressable
+              style={styles.placeholderContainer}
+              onPress={handleOpenCoverImageEditor}
+            >
               <Ionicons name='image-outline' size={48} color='#9CA3AF' />
               <Text style={styles.placeholderText}>대표 이미지 없음</Text>
-            </View>
+            </Pressable>
           )}
 
           {/* 페이지 인디케이터 */}
@@ -312,30 +386,25 @@ const ProductDetailScreen: React.FC = () => {
 
         <View style={styles.section}>
           <View style={styles.rowBetween}>
-            {isEditingTitle ? (
-              <TextInput
-                value={title}
-                onChangeText={setTitle}
-                style={styles.titleInput}
-                placeholder='제목을 입력하세요'
-                editable={!isSavingTitle}
-              />
-            ) : (
-              <Text style={[styles.title, { flex: 1, marginBottom: 0 }]}>
-                {title}
-              </Text>
-            )}
+            <TextInput
+              value={localTitle}
+              onChangeText={setLocalTitle}
+              style={styles.titleInput}
+              placeholder='제목을 입력하세요'
+              editable={!isSavingTitle}
+            />
             <TouchableOpacity
-              style={styles.editButton}
+              style={[
+                styles.editButton,
+                (isSavingTitle || localTitle === title) && { opacity: 0.5 },
+              ]}
               onPress={handleEditTitle}
-              disabled={isSavingTitle}
+              disabled={isSavingTitle || localTitle === title}
             >
               {isSavingTitle ? (
                 <ActivityIndicator size='small' />
               ) : (
-                <Text style={styles.editButtonText}>
-                  {isEditingTitle ? '저장' : '편집'}
-                </Text>
+                <Text style={styles.editButtonText}>저장</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -380,32 +449,31 @@ const ProductDetailScreen: React.FC = () => {
               여행 소개
             </Text>
             <TouchableOpacity
-              style={styles.editButton}
+              style={[
+                styles.editButton,
+                (isSavingContent || localContent === content) && {
+                  opacity: 0.5,
+                },
+              ]}
               onPress={handleEditContent}
-              disabled={isSavingContent}
+              disabled={isSavingContent || localContent === content}
             >
               {isSavingContent ? (
                 <ActivityIndicator size='small' />
               ) : (
-                <Text style={styles.editButtonText}>
-                  {isEditingContent ? '완료' : '편집'}
-                </Text>
+                <Text style={styles.editButtonText}>저장</Text>
               )}
             </TouchableOpacity>
           </View>
-          {isEditingContent ? (
-            <TextInput
-              value={content}
-              onChangeText={setContent}
-              style={styles.multilineInput}
-              multiline
-              textAlignVertical='top'
-              placeholder='여행 소개를 입력하세요'
-              editable={!isSavingContent}
-            />
-          ) : (
-            <Text style={styles.description}>{content}</Text>
-          )}
+          <TextInput
+            value={localContent}
+            onChangeText={setLocalContent}
+            style={styles.multilineInput}
+            multiline
+            textAlignVertical='top'
+            placeholder='여행 소개를 입력하세요'
+            editable={!isSavingContent}
+          />
         </View>
 
         <View style={styles.divider} />
@@ -465,51 +533,63 @@ const ProductDetailScreen: React.FC = () => {
           </View>
         </View>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.daySelection}
-        >
-          {availableDays.map((dayNumber) => (
-            <TouchableOpacity
-              key={dayNumber}
-              style={[
-                styles.dayButton,
-                selectedDay === dayNumber && styles.dayButtonActive,
-              ]}
-              onPress={() => setSelectedDay(dayNumber)}
+        {availableDays.length === 0 ? (
+          <View style={styles.emptyItineraryContainer}>
+            <Ionicons name='calendar-clear-outline' size={40} color='#9CA3AF' />
+            <Text style={styles.emptyItineraryTitle}>등록된 일정이 없어요</Text>
+            <Text style={styles.emptyItinerarySubtitle}>
+              편집 버튼을 눌러 일정을 추가해보세요.
+            </Text>
+          </View>
+        ) : (
+          <>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.daySelection}
             >
-              <Text
-                style={[
-                  styles.dayButtonText,
-                  selectedDay === dayNumber && styles.dayButtonTextActive,
-                ]}
-              >
-                {dayNumber}일차
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        <View style={[styles.section, { paddingTop: 0 }]}>
-          {(itineraries[selectedDay] || [])
-            .sort((a, b) => a.startTime.localeCompare(b.startTime))
-            .map((item) => (
-              <View key={item.id} style={styles.itineraryItem}>
-                <View style={styles.itineraryTime}>
-                  <Text style={styles.itineraryTimeText}>
-                    {item.startTime.substring(0, 5)}
+              {availableDays.map((dayNumber) => (
+                <TouchableOpacity
+                  key={dayNumber}
+                  style={[
+                    styles.dayButton,
+                    selectedDay === dayNumber && styles.dayButtonActive,
+                  ]}
+                  onPress={() => setSelectedDay(dayNumber)}
+                >
+                  <Text
+                    style={[
+                      styles.dayButtonText,
+                      selectedDay === dayNumber && styles.dayButtonTextActive,
+                    ]}
+                  >
+                    {dayNumber}일차
                   </Text>
-                </View>
-                <View style={styles.itineraryContent}>
-                  <Text style={styles.itineraryTitle}>{item.title}</Text>
-                  {item.content ? (
-                    <Text style={styles.itineraryDesc}>{item.content}</Text>
-                  ) : null}
-                </View>
-              </View>
-            ))}
-        </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <View style={[styles.section, { paddingTop: 0 }]}>
+              {(selectedDay !== null ? itineraries[selectedDay] || [] : [])
+                .sort((a, b) => a.startTime.localeCompare(b.startTime))
+                .map((item) => (
+                  <View key={item.id} style={styles.itineraryItem}>
+                    <View style={styles.itineraryTime}>
+                      <Text style={styles.itineraryTimeText}>
+                        {item.startTime.substring(0, 5)}
+                      </Text>
+                    </View>
+                    <View style={styles.itineraryContent}>
+                      <Text style={styles.itineraryTitle}>{item.location}</Text>
+                      {item.content ? (
+                        <Text style={styles.itineraryDesc}>{item.content}</Text>
+                      ) : null}
+                    </View>
+                  </View>
+                ))}
+            </View>
+          </>
+        )}
 
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -537,7 +617,7 @@ const ProductDetailScreen: React.FC = () => {
         {/* 삭제 버튼 */}
         <View style={styles.rightIcons}>
           <TouchableOpacity
-            style={styles.deleteButton}
+            style={[styles.deleteButton, isDeleting && { opacity: 0.5 }]}
             onPress={handleDeleteTemplate}
             disabled={isDeleting}
           >
@@ -646,6 +726,10 @@ const styles = StyleSheet.create({
     width: Dimensions.get('window').width,
     height: '100%',
     resizeMode: 'cover',
+  },
+  coverImageWrapper: {
+    width: Dimensions.get('window').width,
+    height: '100%',
   },
   coverPlaceholder: {
     position: 'absolute',
@@ -1011,6 +1095,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#444',
     lineHeight: 20,
+  },
+  emptyItineraryContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 48,
+    paddingHorizontal: 24,
+    gap: 8,
+  },
+  emptyItineraryTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4B5563',
+  },
+  emptyItinerarySubtitle: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    textAlign: 'center',
   },
   bottomActionContainer: {
     position: 'absolute',

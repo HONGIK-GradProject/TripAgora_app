@@ -14,10 +14,22 @@ import {
   CameraAnimationEasing,
   ClusterMarkerProp,
 } from '@mj-studio/react-native-naver-map';
-import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useFocusEffect,
+  useLocalSearchParams,
+  useNavigation,
+  useRouter,
+} from 'expo-router';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   ActivityIndicator,
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -34,18 +46,29 @@ import Toast from 'react-native-toast-message';
  */
 const EditTemplateItinerariesScreen: React.FC = () => {
   const router = useRouter();
+  const navigation = useNavigation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [isSaving, setIsSaving] = useState(false);
   const [mapKey, setMapKey] = useState(0);
   const [selectedItineraryId, setSelectedItineraryId] = useState<number | null>(
     null
   );
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const mapViewRef = useRef<InteractiveMapViewRef>(null);
+  const initialItinerariesSnapshotRef = useRef<string | null>(null);
+  const allowNavigationRef = useRef(false);
   const insets = useSafeAreaInsets();
 
   // useTemplateDetails 훅에서 여정 데이터 및 관리 함수들을 가져옵니다.
-  const { itineraries, day, deleteItinerary, addItinerary, setDay } =
-    useTemplateDetails();
+  const {
+    itineraries,
+    day,
+    deleteItinerary,
+    addItinerary,
+    setDay,
+    isLoading,
+    addDay: appendDay,
+  } = useTemplateDetails();
 
   useFocusEffect(
     useCallback(() => {
@@ -66,10 +89,10 @@ const EditTemplateItinerariesScreen: React.FC = () => {
         zoom: 16,
         easing: 'EaseIn',
       });
-      
+
       return;
     }
-    
+
     if (itineraries[day].length === 1) {
       const firstItinerary = itineraries[day][0];
       mapViewRef.current?.animateCameraTo({
@@ -123,6 +146,83 @@ const EditTemplateItinerariesScreen: React.FC = () => {
     }
   };
 
+  const serializeItineraries = useCallback(
+    (data: Record<number, TemplateItinerary[]>) => {
+      const days = Object.keys(data)
+        .map(Number)
+        .filter((value) => Number.isFinite(value))
+        .sort((a, b) => a - b);
+
+      const flattened = flattenItineraries(data)
+        .map((item) => ({
+          ...item,
+          startTime: item.startTime ?? '',
+        }))
+        .sort((a, b) => {
+          if (a.day !== b.day) {
+            return a.day - b.day;
+          }
+          const timeComparison = a.startTime.localeCompare(b.startTime);
+          if (timeComparison !== 0) {
+            return timeComparison;
+          }
+          return (a.id ?? 0) - (b.id ?? 0);
+        });
+
+      return JSON.stringify({ days, items: flattened });
+    },
+    []
+  );
+
+  const serializedCurrentItineraries = useMemo(
+    () => serializeItineraries(itineraries),
+    [itineraries, serializeItineraries]
+  );
+
+  useEffect(() => {
+    if (isLoading) {
+      return;
+    }
+
+    if (initialItinerariesSnapshotRef.current === null) {
+      initialItinerariesSnapshotRef.current = serializedCurrentItineraries;
+      setHasUnsavedChanges(false);
+      return;
+    }
+
+    setHasUnsavedChanges(
+      initialItinerariesSnapshotRef.current !== serializedCurrentItineraries
+    );
+  }, [isLoading, serializedCurrentItineraries]);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (event) => {
+      if (allowNavigationRef.current || !hasUnsavedChanges || isSaving) {
+        return;
+      }
+
+      event.preventDefault();
+
+      Alert.alert(
+        '저장되지 않은 변경 사항',
+        '변경 내용을 저장하지 않고 나가시겠어요?',
+        [
+          { text: '취소', style: 'cancel' },
+          {
+            text: '나가기',
+            style: 'destructive',
+            onPress: () => {
+              allowNavigationRef.current = true;
+              navigation.dispatch(event.data.action);
+            },
+          },
+        ]
+      );
+    });
+
+    return unsubscribe;
+  }, [navigation, hasUnsavedChanges, isSaving]);
+
   /**
    * 선택된 일정 항목의 편집 화면으로 이동합니다.
    * @param item - 수정할 일정 항목 객체
@@ -172,7 +272,7 @@ const EditTemplateItinerariesScreen: React.FC = () => {
   const handleAdd = () => {
     const newItinerary: TemplateItinerary = {
       day: day, // 현재 선택된 day에 추가하도록 수정
-      title: '',
+      location: '서울시청',
       content: '',
       startTime: '00:00',
       latitude: 37.5665,
@@ -194,6 +294,11 @@ const EditTemplateItinerariesScreen: React.FC = () => {
     });
   };
 
+  const handleAddDay = () => {
+    appendDay();
+    setSelectedItineraryId(null);
+  };
+
   /**
    * 현재까지의 모든 일정 변경사항(추가, 수정, 삭제)을 서버에 일괄 저장합니다.
    */
@@ -206,6 +311,10 @@ const EditTemplateItinerariesScreen: React.FC = () => {
       const result = await setTemplateItineraries(+id, newItineraries);
 
       if (result?.success) {
+        initialItinerariesSnapshotRef.current =
+          serializeItineraries(itineraries);
+        setHasUnsavedChanges(false);
+        allowNavigationRef.current = true;
         router.back();
       } else {
         // 에러가 발생한 경우 - 이전 화면으로 돌아가지 않음
@@ -309,6 +418,13 @@ const EditTemplateItinerariesScreen: React.FC = () => {
               </Text>
             </TouchableOpacity>
           ))}
+          <TouchableOpacity
+            style={[styles.dayButton, styles.addDayButton]}
+            onPress={handleAddDay}
+          >
+            <Ionicons name='add' size={16} color='#8130FF' />
+            <Text style={styles.addDayButtonText}>일차 추가</Text>
+          </TouchableOpacity>
         </ScrollView>
       </View>
       <Text style={styles.listTitle}>상세 일정</Text>
@@ -353,7 +469,10 @@ const EditTemplateItinerariesScreen: React.FC = () => {
         />
 
         <View style={[styles.addButtonContainer]}>
-          <TouchableOpacity style={styles.addItineraryButton} onPress={handleAdd}>
+          <TouchableOpacity
+            style={styles.addItineraryButton}
+            onPress={handleAdd}
+          >
             <Ionicons name='add-circle' size={24} color='#fff' />
             <Text style={styles.addItineraryButtonText}>일정 추가</Text>
           </TouchableOpacity>
@@ -457,6 +576,18 @@ const styles = StyleSheet.create({
     borderColor: '#949494',
     borderWidth: 1,
     marginRight: 12,
+  },
+  addDayButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderColor: '#8130FF',
+    borderStyle: 'dashed',
+  },
+  addDayButtonText: {
+    fontSize: 16,
+    color: '#8130FF',
+    fontWeight: '600',
+    marginLeft: 6,
   },
   dayButtonActive: {
     backgroundColor: '#8130FF',

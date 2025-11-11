@@ -4,7 +4,7 @@ import { SessionDetailsProvider } from '@/contexts/SessionDetailsProvider';
 import { useSessionDetails } from '@/hooks/sessions/useSessionDetails';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   ScrollView,
@@ -21,7 +21,6 @@ import {
 const TravelerSessionRoomContent: React.FC = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>(); // sessionId는 SessionDetailsProvider에서 관리
-  const [selectedDay, setSelectedDay] = useState(1);
 
   // 세션 상세 정보 가져오기
   const sessionDetails = useSessionDetails();
@@ -38,11 +37,31 @@ const TravelerSessionRoomContent: React.FC = () => {
   // 일정 관련 상태
   const availableDays = useMemo(
     () =>
-      Object.keys(itineraries)
-        .map(Number)
+      Object.entries(itineraries)
+        .filter(([, items]) => Array.isArray(items) && items.length > 0)
+        .map(([day]) => Number(day))
         .sort((a, b) => a - b),
     [itineraries]
   );
+
+  const [selectedDay, setSelectedDay] = useState<number | null>(
+    availableDays.length > 0 ? availableDays[0] : null
+  );
+
+  useEffect(() => {
+    if (availableDays.length === 0) {
+      setSelectedDay(null);
+      return;
+    }
+
+    setSelectedDay((prev) => {
+      if (prev !== null && availableDays.includes(prev)) {
+        return prev;
+      }
+
+      return availableDays[0];
+    });
+  }, [availableDays]);
 
   // 날짜 포맷팅
   const formatDate = (dateString: string) => {
@@ -190,25 +209,41 @@ const TravelerSessionRoomContent: React.FC = () => {
 
         {/* 일정 목록 */}
         <View style={styles.itinerarySection}>
-          {(itineraries[selectedDay] || [])
-            .sort((a, b) => a.startTime.localeCompare(b.startTime))
-            .map((item) => (
-              <View key={item.id} style={styles.itineraryItem}>
-                <View style={styles.itineraryTime}>
-                  <Text style={styles.itineraryTimeText}>
-                    {item.startTime.substring(0, 5)}
-                  </Text>
-                </View>
-                <View style={styles.itineraryContent}>
-                  <Text style={styles.itineraryTitle}>{item.title}</Text>
-                  {item.content ? (
-                    <Text style={styles.itineraryDescription}>
-                      {item.content}
+          {selectedDay === null ? (
+            <View style={styles.emptyItineraryContainer}>
+              <Ionicons
+                name='calendar-clear-outline'
+                size={40}
+                color='#9CA3AF'
+              />
+              <Text style={styles.emptyItineraryTitle}>
+                등록된 일정이 없어요
+              </Text>
+              <Text style={styles.emptyItinerarySubtitle}>
+                가이드가 일정을 추가하면 이곳에서 확인할 수 있어요.
+              </Text>
+            </View>
+          ) : (
+            (itineraries[selectedDay] || [])
+              .sort((a, b) => a.startTime.localeCompare(b.startTime))
+              .map((item) => (
+                <View key={item.id} style={styles.itineraryItem}>
+                  <View style={styles.itineraryTime}>
+                    <Text style={styles.itineraryTimeText}>
+                      {item.startTime.substring(0, 5)}
                     </Text>
-                  ) : null}
+                  </View>
+                  <View style={styles.itineraryContent}>
+                    <Text style={styles.itineraryTitle}>{item.location}</Text>
+                    {item.content ? (
+                      <Text style={styles.itineraryDescription}>
+                        {item.content}
+                      </Text>
+                    ) : null}
+                  </View>
                 </View>
-              </View>
-            ))}
+              ))
+          )}
         </View>
 
         <View style={{ height: 100 }} />
@@ -234,7 +269,6 @@ const TravelerSessionRoomScreen: React.FC = () => {
         <TravelerSessionRoomContent />
       </SessionDetailsProvider>
     </CustomSafeAreaView>
-    
   );
 };
 
@@ -441,6 +475,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6B7280',
     lineHeight: 20,
+  },
+  emptyItineraryContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 48,
+    paddingHorizontal: 24,
+    gap: 8,
+  },
+  emptyItineraryTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4B5563',
+  },
+  emptyItinerarySubtitle: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    textAlign: 'center',
   },
   errorContainer: {
     flex: 1,

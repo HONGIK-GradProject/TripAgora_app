@@ -1,4 +1,5 @@
 import APIResponse from './apiResponse';
+import { TemplateItinerary } from './templates';
 
 /**
  * 세션 생성 요청 데이터
@@ -167,15 +168,7 @@ interface SessionGetResponse extends APIResponse<SessionGetData> {
 /**
  * 세션 일정 정보 타입
  */
-interface SessionItinerary {
-  id: number;
-  day: number;
-  title: string;
-  content: string;
-  startTime: string; // HH:mm:ss 형식
-  latitude: number;
-  longitude: number;
-}
+type SessionItinerary = TemplateItinerary & { startDate: string }
 
 /**
  * 세션 일정 조회 요청 데이터 (빈 데이터)
@@ -281,5 +274,6 @@ export {
   SessionStatus,
   SessionUpdateData,
   SessionUpdateRequest,
-  SessionUpdateResponse,
+  SessionUpdateResponse
 };
+

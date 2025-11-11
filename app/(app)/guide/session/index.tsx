@@ -96,7 +96,9 @@ const GuideTripListScreen: React.FC = () => {
       <View className='flex-1 bg-gray-50'>
         {/* 헤더 */}
         <View className='bg-white pt-6 pb-4 px-6'>
-          <Text className='text-3xl font-bold text-gray-900'>나의 여행 목록</Text>
+          <Text className='text-3xl font-bold text-gray-900'>
+            나의 여행 목록
+          </Text>
         </View>
 
         {/* 현재 진행 중인 여행 섹션 */}
@@ -232,6 +234,7 @@ const GuideTripListScreen: React.FC = () => {
             </View>
           ) : (
             <GuideSessionList
+              userRole='GUIDE'
               sessions={filteredSessions}
               onEndReached={() => {
                 const statuses =

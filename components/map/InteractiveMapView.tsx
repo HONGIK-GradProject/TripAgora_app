@@ -31,7 +31,7 @@ interface InteractiveMapViewProps {
   cameraPosition: Camera;
   clusterMarkers: ClusterMarkerProp[];
   options?: MapOverlayOptions;
-  onPlaceSelect?: (place: { latitude: number; longitude: number }) => void;
+  onPlaceSelect?: (place: { name: string, latitude: number; longitude: number }) => void;
   onMarkerClick?: (markerIdentifier: string) => void;
 }
 
@@ -84,7 +84,7 @@ export const InteractiveMapView = memo(
         try {
           const data = await fetchKakaoPlaceSearch(query);
           if (data && data.documents.length > 0) {
-            const { x, y } = data.documents[0];
+            const { place_name, x, y } = data.documents[0];
             const latitude = parseFloat(y);
             const longitude = parseFloat(x);
 
@@ -97,7 +97,7 @@ export const InteractiveMapView = memo(
 
             // Notify the parent component of the selected place
             if (onPlaceSelect) {
-              onPlaceSelect({ latitude, longitude });
+              onPlaceSelect({ name: place_name, latitude, longitude });
             }
           } else {
             Alert.alert('검색 결과 없음', `'${query}'에 대한 결과가 없습니다.`);
