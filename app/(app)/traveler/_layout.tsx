@@ -18,7 +18,7 @@ const TravelerTabLayout: React.FC = () => {
 
   const segment = useSegments();
   const page = segment[segment.length - 1];
-  const pagesToHide = ['edit-itinerary', 'edit-itineraries', 'edit-regions', 'edit-tags'];
+  const pagesToHide = ['edit-tags'];
   return (
     <Tabs
       screenOptions={{
