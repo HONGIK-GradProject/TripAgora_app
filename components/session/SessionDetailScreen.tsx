@@ -49,6 +49,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
 }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const bottomActionPadding = Math.max(insets.bottom, 16);
   const segments = useSegments();
   const { id } = useLocalSearchParams<{ id: string }>();
 
@@ -135,21 +136,30 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
   // 일정 관련 상태
   const availableDays = useMemo(
     () =>
-      Object.keys(itineraries)
-        .map(Number)
+      Object.entries(itineraries)
+        .filter(([, items]) => Array.isArray(items) && items.length > 0)
+        .map(([day]) => Number(day))
         .sort((a, b) => a - b),
     [itineraries]
   );
 
-  const [selectedDay, setSelectedDay] = useState(
-    availableDays.length > 0 ? availableDays[0] : 1
+  const [selectedDay, setSelectedDay] = useState<number | null>(
+    availableDays.length > 0 ? availableDays[0] : null
   );
 
   useEffect(() => {
-    if (availableDays.length > 0 && !availableDays.includes(selectedDay)) {
-      setSelectedDay(availableDays[0]);
+    if (availableDays.length === 0) {
+      setSelectedDay(null);
+      return;
     }
-  }, [availableDays, selectedDay]);
+
+    setSelectedDay((prev) => {
+      if (prev !== null && availableDays.includes(prev)) {
+        return prev;
+      }
+      return availableDays[0];
+    });
+  }, [availableDays]);
 
   // 여행자용 참여 신청 처리
   const handleParticipation = useCallback(async () => {
@@ -715,30 +725,22 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
         <View style={styles.divider} />
 
         {/* 일정 섹션 */}
-        {availableDays.length > 0 && (
-          <>
-            <View style={[styles.section, styles.itineraryHeader]}>
-              <Text style={styles.sectionTitle}>일정</Text>
-              {userType === 'traveler' && (
-                <TouchableOpacity
-                  style={styles.viewMoreButton}
-                  onPress={() =>
-                    router.push(
-                      `/traveler/explore/${id}/itinerary-details` as any
-                    )
-                  }
-                >
-                  <Text style={styles.viewMoreButtonText}>일정 상세보기</Text>
-                  <Ionicons
-                    name='chevron-forward'
-                    size={16}
-                    color='#8130FF'
-                    style={{ marginLeft: 4 }}
-                  />
-                </TouchableOpacity>
-              )}
-            </View>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>일정</Text>
+        </View>
 
+        {availableDays.length === 0 ? (
+          <View style={styles.emptyItineraryContainer}>
+            <Ionicons name='calendar-clear-outline' size={40} color='#9CA3AF' />
+            <Text style={styles.emptyItineraryTitle}>등록된 일정이 없어요</Text>
+            <Text style={styles.emptyItinerarySubtitle}>
+              {userType === 'guide'
+                ? '편집 화면에서 일정을 추가해 보세요.'
+                : '가이드가 일정을 추가하면 이곳에서 확인할 수 있어요.'}
+            </Text>
+          </View>
+        ) : (
+          <>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -766,7 +768,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
             </ScrollView>
 
             <View style={[styles.section, { paddingTop: 0 }]}>
-              {(itineraries[selectedDay] || [])
+              {(selectedDay !== null ? itineraries[selectedDay] || [] : [])
                 .sort((a, b) => a.startTime.localeCompare(b.startTime))
                 .map((item) => (
                   <View key={item.id} style={styles.itineraryItem}>
@@ -792,7 +794,10 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
 
       {/* 하단 액션 버튼 */}
       <View
-        style={[styles.bottomActionContainer, { paddingBottom: insets.bottom }]}
+        style={[
+          styles.bottomActionContainer,
+          { paddingBottom: bottomActionPadding, bottom: -insets.bottom },
+        ]}
       >
         {userType === 'guide' ? (
           <>
@@ -1381,6 +1386,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#444',
     lineHeight: 20,
+  },
+  emptyItineraryContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 48,
+    paddingHorizontal: 24,
+    gap: 8,
+  },
+  emptyItineraryTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4B5563',
+  },
+  emptyItinerarySubtitle: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    textAlign: 'center',
   },
   photoGrid: {
     flexDirection: 'row',
