@@ -914,7 +914,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
                 <Image
                   source={{ uri: imageUrl }}
                   style={styles.imageViewerImage}
-                  resizeMode='contain'
+                  contentFit='contain'
                 />
               </View>
             ))}
@@ -1024,6 +1024,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 20,
   },
+  itineraryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   title: {
     fontSize: 22,
     fontWeight: '700',
@@ -1131,6 +1136,19 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
+  },
+  viewMoreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#F3ECFF',
+    borderRadius: 16,
+  },
+  viewMoreButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#8130FF',
   },
   description: {
     fontSize: 16,

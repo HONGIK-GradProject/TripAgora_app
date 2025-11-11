@@ -123,10 +123,11 @@ const SessionList: React.FC<SessionListProps> = ({
       data={sessions}
       keyExtractor={(item) => item.sessionId.toString()}
       getHref={(item) => {
-        return {
-          pathname: '/guide/session/[id]',
-          params: { id: item.sessionId },
-        };
+        if (userRole === 'GUIDE' && item.status === 'RECRUITMENT_CLOSED') {
+          return `/guide/session/${item.sessionId.toString()}/session-room`;
+        }
+
+        return `/guide/session/${item.sessionId.toString()}`;
       }}
       renderItemContent={SessionListElement}
       {...rest}
