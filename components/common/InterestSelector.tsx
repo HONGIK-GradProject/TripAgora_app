@@ -12,6 +12,7 @@ interface InterestSelectorProps {
   minSelection?: number;
   maxSelection?: number;
   initialSelectedTags?: number[];
+  noTopPadding?: boolean;
 }
 
 const InterestSelector: React.FC<InterestSelectorProps> = ({
@@ -23,10 +24,10 @@ const InterestSelector: React.FC<InterestSelectorProps> = ({
   minSelection,
   maxSelection,
   initialSelectedTags = [],
+  noTopPadding = false,
 }) => {
-  const [selectedTags, setSelectedTags] = useState<number[]>(
-    initialSelectedTags
-  );
+  const [selectedTags, setSelectedTags] =
+    useState<number[]>(initialSelectedTags);
 
   const handleToggleTag = (tagId: number) => {
     setSelectedTags((prev) =>
@@ -59,7 +60,9 @@ const InterestSelector: React.FC<InterestSelectorProps> = ({
   };
 
   return (
-    <View className='flex-1 items-center bg-white pt-20'>
+    <View
+      className={`flex-1 items-center bg-white ${noTopPadding ? '' : 'pt-20'}`}
+    >
       {header}
 
       <View className='flex-row flex-wrap justify-start w-4/5 mb-10'>

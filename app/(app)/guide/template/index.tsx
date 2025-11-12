@@ -123,7 +123,7 @@ const MyTemplatesScreen: React.FC = () => {
           className='absolute right-6 w-16 h-16 rounded-full bg-white items-center justify-center'
           style={{
             elevation: 8,
-            bottom: bottom,
+            bottom: 0,
           }}
           onPress={handleCreateTemplate}
         >

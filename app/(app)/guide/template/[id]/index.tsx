@@ -633,20 +633,11 @@ const ProductDetailScreen: React.FC = () => {
       <View
         style={[
           styles.bottomActionContainer,
-          { paddingBottom: insets.bottom > 0 ? insets.bottom : 10 },
+          {
+            paddingBottom: insets.bottom > 0 ? Math.min(insets.bottom, 24) : 24,
+          },
         ]}
       >
-        {/* <TouchableOpacity style={[styles.ctaButton, styles.secondaryButton]}>
-          <Ionicons
-            name='chatbubble-ellipses-outline'
-            size={20}
-            color='#8130FF'
-          />
-          <Text style={styles.secondaryButtonText}>가이드에게 문의</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.ctaButton, styles.primaryButton]}>
-          <Text style={styles.primaryButtonText}>예약하기</Text> */}
-
         <TouchableOpacity
           style={[styles.ctaButton, styles.primaryButton]}
           onPress={() => router.push(`/guide/template/${id}/start-recruitment`)}
@@ -725,7 +716,7 @@ const styles = StyleSheet.create({
   coverImage: {
     width: Dimensions.get('window').width,
     height: '100%',
-    contentFit: 'cover',
+    resizeMode: 'cover',
   },
   coverImageWrapper: {
     width: Dimensions.get('window').width,
@@ -805,7 +796,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: 8,
-    contentFit: 'cover',
+    resizeMode: 'cover',
   },
   emptyPhotoContainer: {
     alignItems: 'center',
@@ -1119,7 +1110,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingTop: 8,
     backgroundColor: '#fff',
     borderTopWidth: 1,
     borderTopColor: '#E9E9E9',

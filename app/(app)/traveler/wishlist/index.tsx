@@ -8,6 +8,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   RefreshControl,
+  ScrollView,
   Text,
   TouchableOpacity,
   View,
@@ -19,11 +20,16 @@ const WishListScreen: React.FC = () => {
   const [activeTab, setActiveTab] = React.useState('product');
   const [sessions, setSessions] = useState<SessionInfo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   // 위시리스트 목록 가져오기
-  const fetchWishlist = useCallback(async () => {
-    setIsLoading(true);
+  const fetchWishlist = useCallback(async (isRefresh = false) => {
+    if (isRefresh) {
+      setIsRefreshing(true);
+    } else {
+      setIsLoading(true);
+    }
     setError(null);
 
     try {
@@ -37,7 +43,11 @@ const WishListScreen: React.FC = () => {
       setError(err as Error);
       console.error('위시리스트 조회 에러:', err);
     } finally {
-      setIsLoading(false);
+      if (isRefresh) {
+        setIsRefreshing(false);
+      } else {
+        setIsLoading(false);
+      }
     }
   }, []);
 
@@ -58,16 +68,16 @@ const WishListScreen: React.FC = () => {
   const products = useMemo(() => {
     return sessions.map((session) => ({
       id: session.sessionId.toString(),
-      title: session.title,
+      title: session.title?.trim() || '제목 없음',
       date: `${formatDate(session.startDate)} - ${formatDate(session.endDate)}`,
       participants: `${session.currentParticipants}/${session.maxParticipants}명`,
-      location: (Array.isArray(session.regionIds) &&
-      session.regionIds.length > 0
-        ? session.regionIds.map((id) => REGION_ID_TO_NAME_MAP[id])
-        : []
-      )
-        .filter(Boolean)
-        .join(', '),
+      location:
+        (Array.isArray(session.regionIds) && session.regionIds.length > 0
+          ? session.regionIds.map((id) => REGION_ID_TO_NAME_MAP[id])
+          : []
+        )
+          .filter(Boolean)
+          .join(', ') || '지역 정보 없음',
       guide: '가이드', // TODO: 가이드 정보 추가 필요
       rating: '-' as const,
       imageUrl: session.firstImageUrl,
@@ -76,48 +86,12 @@ const WishListScreen: React.FC = () => {
 
   return (
     <CustomSafeAreaView>
-      <View className='flex-1 pt-6'>
-        <View className='flex-row items-center justify-center px-5 pb-2.5 mb-5'>
-          <Text className='text-4xl font-bold'>찜 목록</Text>
+      <View className='flex-1 pt-6 bg-white'>
+        <View className='pb-4 px-6'>
+          <Text className='text-3xl font-bold text-gray-900'>나의 찜 목록</Text>
         </View>
 
-        <View className='flex-row border-b border-gray-400 mx-5 mb-5'>
-          <TouchableOpacity
-            className={`flex-1 items-center py-2.5 border-b ${
-              activeTab === 'product' ? 'border-primary' : 'border-transparent'
-            }`}
-            onPress={() => setActiveTab('product')}
-          >
-            <Text
-              className={`text-xl ${
-                activeTab === 'product'
-                  ? 'font-bold text-primary'
-                  : 'text-gray-400'
-              }`}
-            >
-              상품
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className={`flex-1 items-center py-2.5 border-b ${
-              activeTab === 'guide' ? 'border-primary' : 'border-transparent'
-            }`}
-            onPress={() => setActiveTab('guide')}
-          >
-            <Text
-              className={`text-xl ${
-                activeTab === 'guide' ? 'font-bold text-primary' : 'text-gray-400'
-              }`}
-            >
-              가이드
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <View
-          className='bg-gray-50 p-4'
-          style={{ marginBottom: 100 + insets.bottom }}
-        >
+        <View className='flex-1 bg-gray-50 p-4'>
           {activeTab === 'product' ? (
             <>
               {error ? (
@@ -127,13 +101,29 @@ const WishListScreen: React.FC = () => {
                   </Text>
                   <TouchableOpacity
                     className='mt-4 px-6 py-3 bg-primary rounded-lg'
-                    onPress={fetchWishlist}
+                    onPress={() => fetchWishlist(false)}
                   >
                     <Text className='text-white font-semibold'>다시 시도</Text>
                   </TouchableOpacity>
                 </View>
               ) : products.length === 0 && !isLoading ? (
-                <View className='flex-1 items-center justify-center py-20'>
+                <ScrollView
+                  className='flex-1'
+                  contentContainerStyle={{
+                    flexGrow: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    paddingVertical: 80,
+                  }}
+                  refreshControl={
+                    <RefreshControl
+                      refreshing={isRefreshing}
+                      onRefresh={() => fetchWishlist(true)}
+                      colors={['#8130FF']}
+                      tintColor='#8130FF'
+                    />
+                  }
+                >
                   <Ionicons name='heart-outline' size={64} color='#D1D5DB' />
                   <Text className='text-gray-500 text-lg mt-4'>
                     찜한 상품이 없습니다.
@@ -141,19 +131,23 @@ const WishListScreen: React.FC = () => {
                   <Text className='text-gray-400 text-sm mt-2'>
                     여행 상품을 찜해보세요!
                   </Text>
-                </View>
+                </ScrollView>
               ) : (
                 <ProductList
                   products={products}
                   detailPath='/traveler/wishlist/[id]'
                   refreshControl={
                     <RefreshControl
-                      refreshing={isLoading && sessions.length === 0}
-                      onRefresh={fetchWishlist}
+                      refreshing={isRefreshing}
+                      onRefresh={() => fetchWishlist(true)}
                       colors={['#8130FF']}
                       tintColor='#8130FF'
                     />
                   }
+                  contentContainerStyle={{
+                    flexGrow: 1,
+                    paddingBottom: 100 + insets.bottom,
+                  }}
                   ListFooterComponent={
                     isLoading && sessions.length > 0 ? (
                       <View className='py-4 items-center'>

@@ -328,7 +328,7 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
 
   const handleSessionPress = (sessionId: number) => {
     // 현재 경로에 맞는 세션 상세 페이지로 이동
-    // 세션 상세 → 가이드 프로필 → 세션 상세 형태로 왔다갔다 가능하도록 구현
+    // 프로필에서 진입한 경우 쿼리 파라미터를 추가하여 뒤로 가기 시 프로필로 돌아가도록 처리
     // segments 배열을 통해 정확한 스택 경로 파악
     const isGuideStack = segments[1] === 'guide' && segments[2] === 'session';
     const isTravelerTripStack =
@@ -350,6 +350,10 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
       // 기본값: 사용자 역할에 따라 결정
       if (user?.role === 'GUIDE') {
         sessionDetailPath = `/guide/session/${sessionId}`;
+        // 프로필 탭에서 진입한 경우 쿼리 파라미터 추가
+        if (segments[1] === 'guide' && segments[2] === 'profile') {
+          sessionDetailPath += '?fromProfile=true';
+        }
       } else {
         sessionDetailPath = `/traveler/explore/${sessionId}`;
       }
@@ -672,16 +676,18 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
                       className='text-lg font-semibold text-gray-900 mb-1'
                       numberOfLines={1}
                     >
-                      {session.title}
+                      {session.title?.trim() || '제목 없음'}
                     </Text>
                     <Text className='text-sm text-gray-600 mb-2'>
                       {session.startDate} ~ {session.endDate}
                     </Text>
                     <Text className='text-sm text-gray-500' numberOfLines={1}>
-                      {session.regionIds
-                        .map((id) => REGION_ID_TO_NAME_MAP[id])
-                        .filter(Boolean)
-                        .join(', ')}
+                      {session.regionIds && session.regionIds.length > 0
+                        ? session.regionIds
+                            .map((id) => REGION_ID_TO_NAME_MAP[id])
+                            .filter(Boolean)
+                            .join(', ') || '지역 정보 없음'
+                        : '지역 정보 없음'}
                     </Text>
                   </View>
                   <View className='bg-purple-100 px-3 py-1 rounded-full ml-2'>

@@ -136,7 +136,7 @@ const GuideTripListScreen: React.FC = () => {
                     </View>
                   </View>
                   <Text className='text-xl font-bold text-white mb-1'>
-                    {currentSession.title}
+                    {currentSession.title?.trim() || '제목 없음'}
                   </Text>
                   <Text className='text-white/90 mb-2'>
                     {currentSession.startDate} ~ {currentSession.endDate}
@@ -170,7 +170,7 @@ const GuideTripListScreen: React.FC = () => {
                         : (currentSession as any).regionNames || []
                       )
                         .filter(Boolean)
-                        .join(', ')}
+                        .join(', ') || '지역 정보 없음'}
                     </Text>
                   </View>
                 </View>

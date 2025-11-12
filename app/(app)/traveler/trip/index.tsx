@@ -155,7 +155,7 @@ const TravelerTripListScreen: React.FC = () => {
               />
               <View className='flex-1'>
                 <Text className='text-lg font-semibold text-gray-900 mb-1'>
-                  {session.title}
+                  {session.title?.trim() || '제목 없음'}
                 </Text>
                 <Text className='text-gray-600 mb-2'>
                   {session.startDate} ~ {session.endDate}
@@ -181,13 +181,13 @@ const TravelerTripListScreen: React.FC = () => {
                     numberOfLines={2}
                     ellipsizeMode='tail'
                   >
-                    {(Array.isArray(session.regionIds) &&
+                    {((Array.isArray(session.regionIds) &&
                     session.regionIds.length > 0
                       ? session.regionIds.map((id) => REGION_ID_TO_NAME_MAP[id])
                       : (session as any).regionNames || []
                     )
                       .filter(Boolean)
-                      .join(', ')}
+                      .join(', ')) || '지역 정보 없음'}
                   </Text>
                 </View>
               </View>
@@ -261,7 +261,7 @@ const TravelerTripListScreen: React.FC = () => {
                     </View>
                   </View>
                   <Text className='text-xl font-bold text-white mb-1'>
-                    {currentSession.title}
+                    {currentSession.title?.trim() || '제목 없음'}
                   </Text>
                   <Text className='text-white/90 mb-2'>
                     {currentSession.startDate} ~ {currentSession.endDate}
@@ -287,7 +287,7 @@ const TravelerTripListScreen: React.FC = () => {
                       numberOfLines={2}
                       ellipsizeMode='tail'
                     >
-                      {(Array.isArray(currentSession.regionIds) &&
+                      {((Array.isArray(currentSession.regionIds) &&
                       currentSession.regionIds.length > 0
                         ? currentSession.regionIds.map(
                             (id) => REGION_ID_TO_NAME_MAP[id]
@@ -295,7 +295,7 @@ const TravelerTripListScreen: React.FC = () => {
                         : (currentSession as any).regionNames || []
                       )
                         .filter(Boolean)
-                        .join(', ')}
+                        .join(', ')) || '지역 정보 없음'}
                     </Text>
                   </View>
                 </View>

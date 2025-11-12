@@ -292,7 +292,7 @@ const StartRecruitmentContent: React.FC = () => {
       )}
 
       {/* 하단 버튼 */}
-      <View className='absolute bottom-0 left-0 right-0 px-5 pt-[10px] pb-5 bg-white border-t border-[#E9E9E9]'>
+      <View className='absolute bottom-0 left-0 right-0 px-5 pt-2 bg-white border-t border-[#E9E9E9]'>
         <TouchableOpacity
           className={`h-[52px] rounded-lg items-center justify-center ${
             isCreating ? 'bg-gray-400' : 'bg-[#8130FF]'

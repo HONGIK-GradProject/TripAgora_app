@@ -25,13 +25,10 @@ const ensureDayKeys = (
   }
 
   const sortedDays = Array.from(daySet).sort((a, b) => a - b);
-  return sortedDays.reduce<Record<number, TemplateItinerary[]>>(
-    (acc, day) => {
-      acc[day] = source[day] ? [...source[day]] : [];
-      return acc;
-    },
-    {}
-  );
+  return sortedDays.reduce<Record<number, TemplateItinerary[]>>((acc, day) => {
+    acc[day] = source[day] ? [...source[day]] : [];
+    return acc;
+  }, {});
 };
 
 /**
@@ -42,8 +39,8 @@ const ensureDayKeys = (
  */
 const useTemplateDetailsLogic = (id: string) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [title, setTitle] = useState<string>('샘플 여행 제목'); // 샘플 데이터용 제목
-  const [content, setContent] = useState<string>('샘플 여행 상세 내용입니다.'); // 샘플 데이터용 내용
+  const [title, setTitle] = useState<string>('');
+  const [content, setContent] = useState<string>('');
   const [regionIds, setRegionIds] = useState<number[]>([1]);
   const [tagIds, setTagIds] = useState<number[]>([]);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
@@ -102,7 +99,10 @@ const useTemplateDetailsLogic = (id: string) => {
         ...prev,
         [day]: updatedDayItineraries,
       };
-      return ensureDayKeys(draft, baseDays.includes(day) ? baseDays : [...baseDays, day]);
+      return ensureDayKeys(
+        draft,
+        baseDays.includes(day) ? baseDays : [...baseDays, day]
+      );
     });
   }, []);
 
@@ -110,23 +110,20 @@ const useTemplateDetailsLogic = (id: string) => {
    * 기존 일정 항목을 로컬 상태에서 업데이트합니다.
    * @param updatedItinerary - 업데이트할 일정 객체. ID를 기준으로 기존 항목을 찾습니다.
    */
-  const updateItinerary = useCallback(
-    (updatedItinerary: TemplateItinerary) => {
-      setItineraries((prev) => {
-        const baseDays = Object.keys(prev)
-          .map(Number)
-          .filter((value) => Number.isFinite(value));
-        const flatList = flattenItineraries(prev);
-        const updatedList = flatList.map((item) =>
-          item.id === updatedItinerary.id ? updatedItinerary : item
-        );
-        const newItineraries = groupItinerariesByDay(updatedList);
+  const updateItinerary = useCallback((updatedItinerary: TemplateItinerary) => {
+    setItineraries((prev) => {
+      const baseDays = Object.keys(prev)
+        .map(Number)
+        .filter((value) => Number.isFinite(value));
+      const flatList = flattenItineraries(prev);
+      const updatedList = flatList.map((item) =>
+        item.id === updatedItinerary.id ? updatedItinerary : item
+      );
+      const newItineraries = groupItinerariesByDay(updatedList);
 
-        return ensureDayKeys(newItineraries, baseDays);
-      });
-    },
-    []
-  );
+      return ensureDayKeys(newItineraries, baseDays);
+    });
+  }, []);
 
   /**
    * 특정 일정 항목을 로컬 상태에서 삭제합니다.
