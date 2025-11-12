@@ -12,7 +12,7 @@ import {
 import { GuideProfileGetData, Portfolio } from '@/types/guideProfiles';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { router, useSegments } from 'expo-router';
+import { router, useLocalSearchParams, useSegments } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -40,6 +40,10 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const segments = useSegments();
+  const params = useLocalSearchParams<{ profileImageUrl?: string }>();
+
+  // 세션 상세에서 전달된 가이드 프로필 사진 URL
+  const guideProfileImageUrl = params.profileImageUrl;
 
   // 현재 자신의 프로필인지 확인 (guideProfileId가 없으면 자신의 프로필)
   const isOwnProfile = !guideProfileId;
@@ -501,19 +505,36 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
           <View className='flex-row items-center justify-between mb-4'>
             <View className='flex-row items-center flex-1'>
               <View className='w-16 h-16 rounded-full bg-gray-100 justify-center items-center shadow-sm mr-3'>
-                {user?.profileImageUrl ? (
-                  <Image
-                    source={{ uri: user.profileImageUrl }}
-                    style={{ width: 64, height: 64, borderRadius: 32 }}
-                    contentFit='cover'
-                  />
-                ) : (
-                  <Ionicons
-                    name='person-circle-outline'
-                    size={64}
-                    color='#9CA3AF'
-                  />
-                )}
+                {(() => {
+                  // 세션 상세에서 전달된 프로필 사진 URL이 있으면 우선 사용
+                  if (guideProfileImageUrl) {
+                    return (
+                      <Image
+                        source={{ uri: guideProfileImageUrl }}
+                        style={{ width: 64, height: 64, borderRadius: 32 }}
+                        contentFit='cover'
+                      />
+                    );
+                  }
+                  // 자신의 프로필인 경우 user.profileImageUrl 사용
+                  if (isOwnProfile && user?.profileImageUrl) {
+                    return (
+                      <Image
+                        source={{ uri: user.profileImageUrl }}
+                        style={{ width: 64, height: 64, borderRadius: 32 }}
+                        contentFit='cover'
+                      />
+                    );
+                  }
+                  // 기본 아이콘
+                  return (
+                    <Ionicons
+                      name='person-circle-outline'
+                      size={48}
+                      color='#9CA3AF'
+                    />
+                  );
+                })()}
               </View>
               <Text className='text-2xl font-bold text-gray-900'>
                 {guideInfo.nickname}
