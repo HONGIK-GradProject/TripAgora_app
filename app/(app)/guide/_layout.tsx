@@ -22,7 +22,8 @@ const GuideTabLayout: React.FC = () => {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: Colors['light'].tint,
+        tabBarInactiveTintColor: Colors['light'].tabIconDefault,
         headerShown: false,
         tabBarButton: undefined,
         tabBarBackground: TabBarBackground,
@@ -30,11 +31,17 @@ const GuideTabLayout: React.FC = () => {
           ios: {
             // Use a transparent background on iOS to show the blur effect
             position: 'absolute',
+            borderTopWidth: 0,
+            shadowOpacity: 0,
+            elevation: 0,
           },
           default: {
             height: 70 + bottom,
             paddingTop: 5,
             display: pagesToHide.includes(page) ? 'none' : 'flex',
+            backgroundColor: Colors['light'].background,
+            borderTopWidth: 0,
+            elevation: 0,
           },
         }),
       }}
