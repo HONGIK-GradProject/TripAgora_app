@@ -1,3 +1,4 @@
+import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import GuideTemplateList from '@/components/guide/template/GuideTemplateList';
 import SearchWithAutoComplete from '@/components/search-bar/SearchWithAutoComplete';
 import FullScreenLoader from '@/components/ui/FullScreenLoader';
@@ -80,60 +81,58 @@ const MyTemplatesScreen: React.FC = () => {
     refetch();
   }, [refetch]);
 
-
   return (
-    <View className='flex-1 bg-white pt-12 relative'>
-      <SearchWithAutoComplete
-        query={searchQuery}
-        onQueryChange={setSearchQuery}
-        fetchSuggestions={handleFetchSuggestions}
-        onSearch={handleSearch}
-        placeholder='제목으로 템플릿을 검색해보세요!'
-      />
-
-      {/* 초기 로딩 처리 */}
-      {isLoading && templates.length === 0 ? (
-        <FullScreenLoader />
-      ) : error ? (
-        <Text style={{ textAlign: 'center', marginTop: 50 }}>
-          오류가 발생했습니다.
-        </Text>
-      ) : (
-        <>
-          <View className='px-5'>
-            <Text className='text-3xl font-bold mb-5'>내 상품 템플릿</Text>
-          </View>
-          <View
-            className='bg-gray-50 rounded-2xl p-4'
-            style={{ marginBottom: 16 + bottom }}
-          >
-            <GuideTemplateList
-              templates={filteredTemplates}
-              onEndReached={handleLoadMore}
-              onEndReachedThreshold={0.5}
-              ListFooterComponent={renderFooter}
-              onRefresh={handleRefetch}
-              refreshing={isLoading}
-              contentContainerStyle={{ paddingBottom: 80 + bottom }}
+    <CustomSafeAreaView>
+      <View className='flex-1 bg-gray-50 pt-6 relative'>
+        {/* 초기 로딩 처리 */}
+        {isLoading && templates.length === 0 ? (
+          <FullScreenLoader />
+        ) : error ? (
+          <Text style={{ textAlign: 'center', marginTop: 50 }}>
+            오류가 발생했습니다.
+          </Text>
+        ) : (
+          <>
+            <View className='px-5'>
+              <Text className='text-3xl font-bold mb-5'>내 상품 템플릿</Text>
+            </View>
+            <SearchWithAutoComplete
+              query={searchQuery}
+              onQueryChange={setSearchQuery}
+              fetchSuggestions={handleFetchSuggestions}
+              onSearch={handleSearch}
+              placeholder='제목으로 템플릿을 검색해보세요!'
             />
-          </View>
-        </>
-      )}
+            <View className='bg-gray-50 rounded-2xl p-4'>
+              <GuideTemplateList
+                templates={filteredTemplates}
+                userRole='GUIDE'
+                onEndReached={handleLoadMore}
+                onEndReachedThreshold={0.5}
+                ListFooterComponent={renderFooter}
+                onRefresh={handleRefetch}
+                refreshing={isLoading}
+                contentContainerStyle={{ paddingBottom: 180 + bottom }}
+              />
+            </View>
+          </>
+        )}
 
-      {/* Floating action button - bottom right above bottom navbar */}
-      <TouchableOpacity
-        className='absolute right-6 w-16 h-16 rounded-full bg-white items-center justify-center'
-        style={{
-          elevation: 8,
-          bottom: bottom + 20,
-        }}
-        onPress={handleCreateTemplate}
-      >
-        <View style={{ marginLeft: -6, marginTop: -6 }}>
-          <Ionicons name='add-circle' size={68} color={'#613eea'} />
-        </View>
-      </TouchableOpacity>
-    </View>
+        {/* Floating action button - bottom right above bottom navbar */}
+        <TouchableOpacity
+          className='absolute right-6 w-16 h-16 rounded-full bg-white items-center justify-center'
+          style={{
+            elevation: 8,
+            bottom: bottom,
+          }}
+          onPress={handleCreateTemplate}
+        >
+          <View style={{ marginLeft: -6, marginTop: -6 }}>
+            <Ionicons name='add-circle' size={68} color={'#613eea'} />
+          </View>
+        </TouchableOpacity>
+      </View>
+    </CustomSafeAreaView>
   );
 };
 

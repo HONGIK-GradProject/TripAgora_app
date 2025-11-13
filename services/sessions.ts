@@ -101,32 +101,6 @@ export const getSessionList = async (
 };
 
 /**
- * 전체 세션 목록을 상태별로 조회합니다.
- * @param statuses - 조회할 세션 상태 배열 (선택사항)
- * @param page - 조회할 페이지 번호
- * @returns 성공 시 전체 세션 목록 데이터, 실패 시 undefined
- */
-export const getPublicSessionList = async (
-  statuses: string[] | undefined,
-  page: number
-) => {
-  try {
-    const response = await sessionsApi.getPublicSessionList(
-      statuses as any,
-      page
-    );
-
-    if (response && response.code === 200) {
-      return response.data;
-    }
-
-    throw new Error('전체 세션 목록 조회 에러');
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-/**
  * 여행자가 참여한 세션 목록을 상태별로 조회합니다.
  * @param statuses - 조회할 세션 상태 배열 (선택사항)
  * @param page - 조회할 페이지 번호
@@ -147,6 +121,47 @@ export const getParticipatingSessionList = async (
     }
 
     throw new Error('참여한 세션 목록 조회 에러');
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+/**
+ * 세션을 검색합니다.
+ * @param keyword - 검색 키워드 (선택사항)
+ * @param searchStartDate - 검색 시작 날짜 (yyyy-MM-dd 형식, 선택사항)
+ * @param searchEndDate - 검색 종료 날짜 (yyyy-MM-dd 형식, 선택사항)
+ * @param regionIds - 지역 ID 배열 (선택사항)
+ * @param tagIds - 태그 ID 배열 (선택사항)
+ * @param page - 페이지 번호 (기본값 0, 선택사항)
+ * @param size - 페이지 크기 (기본값 10, 선택사항)
+ * @returns 성공 시 검색된 세션 목록 데이터, 실패 시 undefined
+ */
+export const searchSessions = async (
+  keyword?: string,
+  searchStartDate?: string,
+  searchEndDate?: string,
+  regionIds?: number[],
+  tagIds?: number[],
+  page?: number,
+  size?: number
+) => {
+  try {
+    const response = await sessionsApi.searchSessions(
+      keyword,
+      searchStartDate,
+      searchEndDate,
+      regionIds,
+      tagIds,
+      page,
+      size
+    );
+
+    if (response && response.code === 200) {
+      return response.data;
+    }
+
+    throw new Error('세션 검색 에러');
   } catch (error) {
     console.error(error);
   }

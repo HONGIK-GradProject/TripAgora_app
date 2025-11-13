@@ -1,3 +1,5 @@
+import CustomKeyboardAvoidingView from '@/components/CustomKeyboardAvoidingView';
+import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import { InteractiveMapView } from '@/components/map/InteractiveMapView';
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import { TemplateItinerary } from '@/types/templates';
@@ -10,7 +12,6 @@ import {
   Dimensions,
   LayoutAnimation,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -33,7 +34,7 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 type ItineraryParamProps = {
   day: string;
-  title: string;
+  location: string;
   content: string;
   startTime: string;
   latitude: string;
@@ -46,8 +47,13 @@ const EditTemplateItineraryScreen: React.FC = () => {
   const params = useLocalSearchParams<ItineraryParamProps>();
   const { updateItinerary, setDay } = useTemplateDetails();
 
-  const [title, setTitle] = useState(params.title || '');
-  const [localDay, setLocalDay] = useState(params.day || '');
+  const parseDay = (dayParam?: string) => {
+    const parsed = parseInt(dayParam ?? '', 10);
+    return isNaN(parsed) || parsed < 1 ? 1 : parsed;
+  };
+
+  const [location, setLocation] = useState(params.location || '');
+  const dayValue = useMemo(() => parseDay(params.day), [params.day]);
   const [content, setContent] = useState(params.content || '');
   const [startTime, setStartTime] = useState(params.startTime || '09:00');
   const [latitude, setLatitude] = useState(params.latitude || '37.5665');
@@ -61,7 +67,7 @@ const EditTemplateItineraryScreen: React.FC = () => {
       longitude: parseFloat(longitude) || 126.978,
       zoom: 16,
     }),
-    [latitude, longitude, isMapExpanded]
+    [latitude, longitude]
   );
 
   const clusterMarkers = useMemo(
@@ -122,7 +128,7 @@ const EditTemplateItineraryScreen: React.FC = () => {
   };
 
   const handleEditSchedule = () => {
-    if (!localDay || !title || !startTime || !latitude || !longitude) {
+    if (!dayValue || !location || !startTime || !latitude || !longitude) {
       Toast.show({
         type: 'error',
         text1: '모든 필드를 채워주세요.',
@@ -133,8 +139,8 @@ const EditTemplateItineraryScreen: React.FC = () => {
     }
     const newSchedule: TemplateItinerary = {
       id: +params.itineraryId,
-      day: +localDay,
-      title: title,
+      day: dayValue,
+      location: location,
       content: content,
       startTime: startTime,
       latitude: +latitude,
@@ -151,132 +157,154 @@ const EditTemplateItineraryScreen: React.FC = () => {
     setIsMapExpanded(expand);
   };
 
-  const handlePlaceSelect = (place: { latitude: number; longitude: number }) => {
+  const handlePlaceSelect = (place: {
+    name: string;
+    latitude: number;
+    longitude: number;
+  }) => {
     setLatitude(place.latitude.toString());
     setLongitude(place.longitude.toString());
-    // Optional: close map after selection
+    setLocation(place.name);
     toggleMapExpansion(false);
   };
 
   return (
-    <View style={styles.container}>
-      {!isMapExpanded && (
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
+    <CustomSafeAreaView>
+      <CustomKeyboardAvoidingView>
+        <View style={styles.container}>
+          {!isMapExpanded && (
+            <View style={styles.header}>
+              <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => router.back()}
+              >
+                <Ionicons name='arrow-back' size={24} color='#000' />
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}>일정 수정</Text>
+              <TouchableOpacity
+                style={styles.saveButton}
+                onPress={handleEditSchedule}
+              >
+                <Text style={styles.saveButtonText}>저장</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          <View
+            style={[
+              styles.mapContainer,
+              isMapExpanded && styles.mapContainerExpanded,
+            ]}
           >
-            <Ionicons name='arrow-back' size={24} color='#000' />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>일정 수정</Text>
-          <TouchableOpacity
-            style={styles.saveButton}
-            onPress={handleEditSchedule}
-          >
-            <Text style={styles.saveButtonText}>저장</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      <View
-        style={[styles.mapContainer, isMapExpanded && styles.mapContainerExpanded]}
-      >
-        <InteractiveMapView
-          cameraPosition={cameraPosition}
-          clusterMarkers={clusterMarkers}
-          options={{
-            searchBar: isMapExpanded,
-            currentLocationButton: true,
-          }}
-          onPlaceSelect={handlePlaceSelect}
-        />
-
-        {/* This overlay captures the press to expand, only when not expanded */}
-        {!isMapExpanded && (
-          <TouchableOpacity
-            style={[StyleSheet.absoluteFill, { backgroundColor: 'transparent' }]}
-            onPress={() => toggleMapExpansion(true)}
-          />
-        )}
-
-        {isMapExpanded && (
-          <SafeAreaView
-            style={styles.expandedMapOverlayContainer}
-            pointerEvents="box-none"
-          >
-            <TouchableOpacity
-              onPress={() => toggleMapExpansion(false)}
-              style={styles.closeButton}
-            >
-              <Ionicons name="close" size={28} color="#fff" />
-            </TouchableOpacity>
-          </SafeAreaView>
-        )}
-      </View>
-
-      {!isMapExpanded && (
-        <ScrollView contentContainerStyle={styles.scrollViewContent}>
-          <View style={styles.formSection}>
-            <Text style={styles.label}>장소명 또는 일정명</Text>
-            <TextInput
-              value={title}
-              onChangeText={setTitle}
-              placeholder='장소명 또는 일정명을 입력하세요'
-              placeholderTextColor={'#9A9A9A'}
-              style={styles.input}
+            <InteractiveMapView
+              cameraPosition={cameraPosition}
+              clusterMarkers={clusterMarkers}
+              options={{
+                searchBar: isMapExpanded,
+                currentLocationButton: true,
+              }}
+              onPlaceSelect={handlePlaceSelect}
             />
-          </View>
 
-          {/* Other form sections... */}
-          <View style={styles.formSection}>
-            <Text style={styles.label}>Day</Text>
-            <TextInput
-              value={localDay}
-              onChangeText={setLocalDay}
-              placeholder='Day'
-              placeholderTextColor={'#9A9A9A'}
-              style={styles.input}
-              keyboardType='number-pad'
-            />
-          </View>
-
-          <View style={styles.formSection}>
-            <Text style={styles.label}>일정 내용</Text>
-            <TextInput
-              value={content}
-              onChangeText={setContent}
-              placeholder='설명을 입력하세요'
-              placeholderTextColor={'#9A9A9A'}
-              style={[styles.input, styles.multiline]}
-              multiline
-              textAlignVertical='top'
-            />
-          </View>
-
-          <View style={styles.formSection}>
-            <Text style={styles.label}>시작 시간</Text>
-            <TouchableOpacity
-              onPress={() => setShowPicker(true)}
-              style={styles.input}
-            >
-              <View style={styles.timeInputContainer}>
-                <Text style={styles.timeText}>{startTime.substring(0, 5)}</Text>
-                <Ionicons name='time-outline' size={20} color='#8130FF' />
-              </View>
-            </TouchableOpacity>
-            {showPicker && (
-              <DateTimePicker
-                value={date}
-                mode={'time'}
-                is24Hour={true}
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={onTimeChange}
+            {/* This overlay captures the press to expand, only when not expanded */}
+            {!isMapExpanded && (
+              <TouchableOpacity
+                style={[
+                  StyleSheet.absoluteFill,
+                  { backgroundColor: 'transparent' },
+                ]}
+                onPress={() => toggleMapExpansion(true)}
               />
             )}
+
+            {isMapExpanded && (
+              <View
+                style={styles.expandedMapOverlayContainer}
+                pointerEvents='box-none'
+              >
+                <TouchableOpacity
+                  onPress={() => toggleMapExpansion(false)}
+                  style={styles.closeButton}
+                >
+                  <Ionicons name='close' size={28} color='#fff' />
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
-        </ScrollView>
-      )}
-    </View>
+
+          {!isMapExpanded && (
+            <ScrollView contentContainerStyle={styles.scrollViewContent}>
+              <View style={styles.infoRow}>
+                <View style={styles.dayInfoWrapper}>
+                  <View style={styles.dayInfoContainer}>
+                    <Ionicons
+                      name='calendar-outline'
+                      size={18}
+                      color='#4C2EE7'
+                      style={styles.dayInfoIcon}
+                    />
+                    <Text style={styles.dayInfoText}>{dayValue}일차</Text>
+                  </View>
+                </View>
+                <View style={styles.locationInfoContainer}>
+                  <Ionicons
+                    name='location-outline'
+                    size={18}
+                    color='#4C2EE7'
+                    style={styles.locationInfoIcon}
+                  />
+                  <Text style={styles.locationInfoLabel}>장소</Text>
+                  <Text
+                    style={styles.locationInfoText}
+                    numberOfLines={1}
+                    ellipsizeMode='tail'
+                  >
+                    {location || '장소를 선택하세요'}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.formSection}>
+                <Text style={styles.label}>일정 내용</Text>
+                <TextInput
+                  value={content}
+                  onChangeText={setContent}
+                  placeholder='설명을 입력하세요'
+                  placeholderTextColor={'#9A9A9A'}
+                  style={[styles.input, styles.multiline]}
+                  multiline
+                  textAlignVertical='top'
+                />
+              </View>
+
+              <View style={styles.formSection}>
+                <Text style={styles.label}>시작 시간</Text>
+                <TouchableOpacity
+                  onPress={() => setShowPicker(true)}
+                  style={styles.input}
+                >
+                  <View style={styles.timeInputContainer}>
+                    <Text style={styles.timeText}>
+                      {startTime.substring(0, 5)}
+                    </Text>
+                    <Ionicons name='time-outline' size={20} color='#8130FF' />
+                  </View>
+                </TouchableOpacity>
+                {showPicker && (
+                  <DateTimePicker
+                    value={date}
+                    mode={'time'}
+                    is24Hour={true}
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    onChange={onTimeChange}
+                  />
+                )}
+              </View>
+            </ScrollView>
+          )}
+        </View>
+      </CustomKeyboardAvoidingView>
+    </CustomSafeAreaView>
   );
 };
 
@@ -290,7 +318,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 50,
+    paddingTop: 12,
     paddingBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#E9E9E9',
@@ -317,7 +345,7 @@ const styles = StyleSheet.create({
   },
   mapContainer: {
     width: '100%',
-    height: 200,
+    height: '35%',
     backgroundColor: '#D9D9D9',
     marginBottom: 20,
   },
@@ -329,12 +357,12 @@ const styles = StyleSheet.create({
     width: screenWidth,
     height: screenHeight,
     marginBottom: 0,
-    zIndex: 10, // Make sure map is on top
+    zIndex: 10, // Ensure map is on top
   },
   expandedMapOverlayContainer: {
     flex: 1,
     justifyContent: 'space-between',
-    paddingTop: 40, // Safe area for status bar
+    paddingTop: 40,
   },
   closeButton: {
     position: 'absolute',
@@ -346,7 +374,7 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 20, // Ensure close button is on top of everything
+    zIndex: 20,
   },
   formSection: {
     marginBottom: 20,
@@ -378,6 +406,64 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+    gap: 16,
+  },
+  dayInfoWrapper: {
+    flexShrink: 0,
+  },
+  dayInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 14,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#DCD1FF',
+  },
+  dayInfoIcon: {
+    marginRight: 8,
+  },
+  dayInfoText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4C2EE7',
+    letterSpacing: 0.2,
+  },
+  locationInfoContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 14,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#DCD1FF',
+  },
+  locationInfoIcon: {
+    marginRight: 8,
+  },
+  locationInfoLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6B5AF5',
+    marginRight: 8,
+    letterSpacing: 0.2,
+  },
+  locationInfoText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#1E1E1E',
+    letterSpacing: 0.2,
   },
 });
 

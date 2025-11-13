@@ -1,3 +1,5 @@
+import CustomKeyboardAvoidingView from '@/components/CustomKeyboardAvoidingView';
+import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { TemplateDetailsProvider } from '@/contexts/TemplateDetailsProvider';
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
@@ -23,7 +25,8 @@ const StartRecruitmentContent: React.FC = () => {
   const { id } = useLocalSearchParams<{ id?: string }>();
 
   // 템플릿 상세 정보 가져오기
-  const { title, regionIds, imageUrls, refetch } = useTemplateDetails();
+  const { title, regionIds, imageUrls, itineraries, refetch } =
+    useTemplateDetails();
 
   // regionIds를 지역명으로 변환
   const regionNames = regionIds
@@ -120,6 +123,31 @@ const StartRecruitmentContent: React.FC = () => {
     return `${date.getMonth() + 1}월 ${date.getDate()}일`;
   };
 
+  // 템플릿 일정 정보를 기반으로 총 일수 계산
+  const calculateTotalDays = () => {
+    if (!itineraries || Object.keys(itineraries).length === 0) {
+      return 1; // 일정이 없으면 기본값 1일
+    }
+    const dayNumbers = Object.keys(itineraries).map(Number);
+    return Math.max(...dayNumbers);
+  };
+
+  // 시작일을 기준으로 종료일 계산
+  const calculateEndDate = (startDate: Date) => {
+    const totalDays = calculateTotalDays();
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + totalDays - 1);
+    return endDate;
+  };
+
+  const formatDateRange = (startDate: Date, endDate: Date) => {
+    const totalDays = calculateTotalDays();
+    if (startDate.getTime() === endDate.getTime()) {
+      return `${formatDate(startDate)} (${totalDays}일)`;
+    }
+    return `${formatDate(startDate)} - ${formatDate(endDate)} (${totalDays}일)`;
+  };
+
   const formatDateForAPI = (date: Date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -151,7 +179,7 @@ const StartRecruitmentContent: React.FC = () => {
     <View className='flex-1 bg-white'>
       <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
         {/* 상단 네비게이션 */}
-        <View className='pt-12 pb-3 px-5 flex-row items-center justify-between border-b border-[#E9E9E9]'>
+        <View className='pt-6 pb-3 px-5 flex-row items-center justify-between border-b border-[#E9E9E9]'>
           <TouchableOpacity
             className='w-10 h-10 rounded-full bg-white/90 items-center justify-center'
             onPress={() => router.back()}
@@ -240,7 +268,10 @@ const StartRecruitmentContent: React.FC = () => {
                   여행 날짜
                 </Text>
                 <Text className='text-base text-black font-semibold'>
-                  {formatDate(selectedDate)}
+                  {formatDateRange(
+                    selectedDate,
+                    calculateEndDate(selectedDate)
+                  )}
                 </Text>
               </View>
               <Ionicons name='chevron-forward' size={20} color='#999' />
@@ -297,9 +328,13 @@ const StartRecruitmentScreen: React.FC = () => {
   }
 
   return (
-    <TemplateDetailsProvider id={id}>
-      <StartRecruitmentContent />
-    </TemplateDetailsProvider>
+    <CustomSafeAreaView>
+      <CustomKeyboardAvoidingView>
+        <TemplateDetailsProvider id={id}>
+          <StartRecruitmentContent />
+        </TemplateDetailsProvider>
+      </CustomKeyboardAvoidingView>
+    </CustomSafeAreaView>
   );
 };
 

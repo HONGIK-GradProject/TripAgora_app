@@ -9,9 +9,15 @@ import {
   createParticipation,
   deleteSession,
 } from '@/services/sessions';
+import { addWishlist, deleteWishlist } from '@/services/wishlist';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import {
+  useFocusEffect,
+  useLocalSearchParams,
+  useRouter,
+  useSegments,
+} from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
@@ -43,6 +49,8 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
 }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const bottomActionPadding = Math.max(insets.bottom, 16);
+  const segments = useSegments();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   // 세션 상세 정보 가져오기
@@ -60,7 +68,11 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
     status = '',
     participants = [],
     isParticipating: contextIsParticipating = false,
+    isInWishlist: contextIsInWishlist = false,
+    setIsInWishlist,
     itineraries = {},
+    guideProfileId,
+    isMySession = false,
     isLoading = true,
     refetch = () => {},
   } = sessionDetails || {};
@@ -80,10 +92,19 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // 위시리스트 상태 관리 (여행자용)
+  const [isInWishlist, setIsInWishlistLocal] = useState(contextIsInWishlist);
+  const [isWishlistSubmitting, setIsWishlistSubmitting] = useState(false);
+
   // 컨텍스트의 isParticipating 상태가 변경되면 로컬 상태도 업데이트
   useEffect(() => {
     setIsParticipating(contextIsParticipating);
   }, [contextIsParticipating]);
+
+  // 컨텍스트의 isInWishlist 상태가 변경되면 로컬 상태도 업데이트
+  useEffect(() => {
+    setIsInWishlistLocal(contextIsInWishlist);
+  }, [contextIsInWishlist]);
 
   // 이미지 관련 상태
   const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
@@ -115,21 +136,30 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
   // 일정 관련 상태
   const availableDays = useMemo(
     () =>
-      Object.keys(itineraries)
-        .map(Number)
+      Object.entries(itineraries)
+        .filter(([, items]) => Array.isArray(items) && items.length > 0)
+        .map(([day]) => Number(day))
         .sort((a, b) => a - b),
     [itineraries]
   );
 
-  const [selectedDay, setSelectedDay] = useState(
-    availableDays.length > 0 ? availableDays[0] : 1
+  const [selectedDay, setSelectedDay] = useState<number | null>(
+    availableDays.length > 0 ? availableDays[0] : null
   );
 
   useEffect(() => {
-    if (availableDays.length > 0 && !availableDays.includes(selectedDay)) {
-      setSelectedDay(availableDays[0]);
+    if (availableDays.length === 0) {
+      setSelectedDay(null);
+      return;
     }
-  }, [availableDays, selectedDay]);
+
+    setSelectedDay((prev) => {
+      if (prev !== null && availableDays.includes(prev)) {
+        return prev;
+      }
+      return availableDays[0];
+    });
+  }, [availableDays]);
 
   // 여행자용 참여 신청 처리
   const handleParticipation = useCallback(async () => {
@@ -170,6 +200,44 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
       },
     ]);
   }, [id, refetch]);
+
+  // 여행자용 위시리스트 토글 처리
+  const handleToggleWishlist = useCallback(async () => {
+    if (!id || isWishlistSubmitting) return;
+
+    try {
+      setIsWishlistSubmitting(true);
+
+      if (isInWishlist) {
+        // 위시리스트에서 제거
+        const success = await deleteWishlist(parseInt(id));
+        if (success) {
+          setIsInWishlistLocal(false);
+          setIsInWishlist?.(false);
+        } else {
+          throw new Error('위시리스트 제거 실패');
+        }
+      } else {
+        // 위시리스트에 추가
+        const success = await addWishlist(parseInt(id));
+        if (success) {
+          setIsInWishlistLocal(true);
+          setIsInWishlist?.(true);
+        } else {
+          throw new Error('위시리스트 추가 실패');
+        }
+      }
+    } catch (error) {
+      console.error('위시리스트 업데이트 에러:', error);
+      Toast.show({
+        type: 'error',
+        text1: '위시리스트 업데이트 실패',
+        text2: '잠시 후 다시 시도해주세요.',
+      });
+    } finally {
+      setIsWishlistSubmitting(false);
+    }
+  }, [id, isInWishlist, isWishlistSubmitting, setIsInWishlist]);
 
   // 여행자용 참여 취소 처리
   const handleCancelParticipation = useCallback(async () => {
@@ -456,7 +524,26 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
           {(() => {
             const guide = participants.find((p) => p.role === 'GUIDE');
             return (
-              <View style={styles.guideContainer}>
+              <TouchableOpacity
+                style={styles.guideContainer}
+                onPress={() => {
+                  if (guide && id && guideProfileId) {
+                    // 현재 세션 스택 내에서 가이드 프로필 화면으로 이동
+                    // userType과 현재 경로에 따라 올바른 스택 내 경로로 이동
+                    // guideProfileId를 사용하여 프로필 조회
+                    const profilePath =
+                      userType === 'guide'
+                        ? `/guide/session/${id}/${guideProfileId}`
+                        : segments.join('/').includes('/trip/')
+                        ? `/traveler/trip/${id}/${guideProfileId}`
+                        : `/traveler/explore/${id}/${guideProfileId}`;
+                    // Expo Router 타입 정의 제한으로 인한 타입 캐스팅
+                    router.push(profilePath as any);
+                  }
+                }}
+                activeOpacity={0.7}
+                disabled={!guide || !guideProfileId}
+              >
                 {guide ? (
                   <Image
                     source={{ uri: guide.profileImageUrl }}
@@ -474,7 +561,15 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
                     {guide ? guide.nickname : '알 수 없음'}
                   </Text>
                 </View>
-              </View>
+                {guide && (
+                  <Ionicons
+                    name='chevron-forward'
+                    size={20}
+                    color='#9CA3AF'
+                    style={{ marginLeft: 'auto' }}
+                  />
+                )}
+              </TouchableOpacity>
             );
           })()}
 
@@ -630,12 +725,22 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
         <View style={styles.divider} />
 
         {/* 일정 섹션 */}
-        {availableDays.length > 0 && (
-          <>
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>일정</Text>
-            </View>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>일정</Text>
+        </View>
 
+        {availableDays.length === 0 ? (
+          <View style={styles.emptyItineraryContainer}>
+            <Ionicons name='calendar-clear-outline' size={40} color='#9CA3AF' />
+            <Text style={styles.emptyItineraryTitle}>등록된 일정이 없어요</Text>
+            <Text style={styles.emptyItinerarySubtitle}>
+              {userType === 'guide'
+                ? '편집 화면에서 일정을 추가해 보세요.'
+                : '가이드가 일정을 추가하면 이곳에서 확인할 수 있어요.'}
+            </Text>
+          </View>
+        ) : (
+          <>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -663,7 +768,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
             </ScrollView>
 
             <View style={[styles.section, { paddingTop: 0 }]}>
-              {(itineraries[selectedDay] || [])
+              {(selectedDay !== null ? itineraries[selectedDay] || [] : [])
                 .sort((a, b) => a.startTime.localeCompare(b.startTime))
                 .map((item) => (
                   <View key={item.id} style={styles.itineraryItem}>
@@ -673,7 +778,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
                       </Text>
                     </View>
                     <View style={styles.itineraryContent}>
-                      <Text style={styles.itineraryTitle}>{item.title}</Text>
+                      <Text style={styles.itineraryTitle}>{item.location}</Text>
                       {item.content ? (
                         <Text style={styles.itineraryDesc}>{item.content}</Text>
                       ) : null}
@@ -689,7 +794,10 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
 
       {/* 하단 액션 버튼 */}
       <View
-        style={[styles.bottomActionContainer, { paddingBottom: insets.bottom }]}
+        style={[
+          styles.bottomActionContainer,
+          { paddingBottom: bottomActionPadding, bottom: -insets.bottom },
+        ]}
       >
         {userType === 'guide' ? (
           <>
@@ -708,6 +816,15 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
               </TouchableOpacity>
             )}
           </>
+        ) : isMySession ? (
+          <TouchableOpacity
+            style={[styles.ctaButton, styles.disabledButton]}
+            disabled={true}
+          >
+            <Text style={styles.disabledButtonText}>
+              내가 개설한 세션입니다
+            </Text>
+          </TouchableOpacity>
         ) : isParticipating ? (
           <TouchableOpacity
             style={[
@@ -723,19 +840,49 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
             </Text>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity
-            style={[
-              styles.ctaButton,
-              styles.primaryButton,
-              isSubmitting && { backgroundColor: '#9CA3AF' },
-            ]}
-            onPress={handleParticipation}
-            disabled={isSubmitting}
-          >
-            <Text style={styles.primaryButtonText}>
-              {isSubmitting ? '신청 중...' : '여행에 참여 신청하기'}
-            </Text>
-          </TouchableOpacity>
+          <>
+            {/* 여행자용 하트 버튼 */}
+            <TouchableOpacity
+              style={styles.wishlistButton}
+              onPress={handleToggleWishlist}
+              disabled={isWishlistSubmitting}
+            >
+              <Ionicons
+                name={isInWishlist ? 'heart' : 'heart-outline'}
+                size={24}
+                color={isInWishlist ? '#8130FF' : '#000'}
+              />
+            </TouchableOpacity>
+            {isParticipating ? (
+              <TouchableOpacity
+                style={[
+                  styles.ctaButton,
+                  styles.cancelButton,
+                  isSubmitting && { backgroundColor: '#9CA3AF' },
+                ]}
+                onPress={handleCancelParticipation}
+                disabled={isSubmitting}
+              >
+                <Text style={styles.cancelButtonText}>
+                  {isSubmitting ? '취소 중...' : '참여 신청 취소'}
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={[
+                  styles.ctaButton,
+                  styles.primaryButton,
+                  isSubmitting && { backgroundColor: '#9CA3AF' },
+                ]}
+                onPress={handleParticipation}
+                disabled={isSubmitting}
+              >
+                <Text style={styles.primaryButtonText}>
+                  {isSubmitting ? '신청 중...' : '여행에 참여 신청하기'}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </>
         )}
       </View>
 
@@ -767,7 +914,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
                 <Image
                   source={{ uri: imageUrl }}
                   style={styles.imageViewerImage}
-                  resizeMode='contain'
+                  contentFit='contain'
                 />
               </View>
             ))}
@@ -877,6 +1024,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 20,
   },
+  itineraryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   title: {
     fontSize: 22,
     fontWeight: '700',
@@ -985,6 +1137,19 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
+  viewMoreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#F3ECFF',
+    borderRadius: 16,
+  },
+  viewMoreButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#8130FF',
+  },
   description: {
     fontSize: 16,
     lineHeight: 22,
@@ -1062,6 +1227,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#EF4444',
   },
+  disabledButton: {
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+  },
+  wishlistButton: {
+    width: 78,
+    height: 52,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   primaryButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
@@ -1082,6 +1262,12 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     color: '#EF4444',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  disabledButtonText: {
+    color: '#9CA3AF',
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
@@ -1200,6 +1386,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#444',
     lineHeight: 20,
+  },
+  emptyItineraryContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 48,
+    paddingHorizontal: 24,
+    gap: 8,
+  },
+  emptyItineraryTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4B5563',
+  },
+  emptyItinerarySubtitle: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    textAlign: 'center',
   },
   photoGrid: {
     flexDirection: 'row',

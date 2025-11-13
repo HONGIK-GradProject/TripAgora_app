@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { isAxiosError } from 'axios';
 import { Image } from 'expo-image';
-import { router } from 'expo-router';
+import { RelativePathString, router } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
@@ -167,6 +167,10 @@ const MyPageScreen: React.FC = () => {
     return user?.role === 'GUIDE' ? '여행자로 전환하기' : '가이드로 전환하기';
   };
 
+  const handleEditTags = () => {
+    router.push(`/(app)/${user?.role.toLowerCase()}/my-page/edit-tags` as RelativePathString);
+  }
+
   return (
     <View className='flex-1 bg-gray-50' style={{ paddingTop: insets.top }}>
       {/* 프로필 섹션 */}
@@ -276,7 +280,7 @@ const MyPageScreen: React.FC = () => {
       >
         <View className='mx-5'>
           <View className='bg-white rounded-2xl shadow-sm overflow-hidden'>
-            <TouchableOpacity className='flex-row items-center py-4 px-6 border-b border-gray-100'>
+            <TouchableOpacity className='flex-row items-center py-4 px-6 border-b border-gray-100' onPress={handleEditTags}>
               <View className='w-10 h-10 rounded-full bg-blue-50 items-center justify-center mr-4'>
                 <Ionicons name='heart' size={20} color='#3B82F6' />
               </View>

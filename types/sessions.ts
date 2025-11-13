@@ -1,4 +1,5 @@
 import APIResponse from './apiResponse';
+import { TemplateItinerary } from './templates';
 
 /**
  * 세션 생성 요청 데이터
@@ -98,6 +99,33 @@ interface SessionGetListResponse extends APIResponse<SessionGetListData> {
 }
 
 /**
+ * 세션 검색 요청 데이터
+ */
+interface SessionSearchRequest {
+  params: {
+    keyword?: string;
+    searchStartDate?: string; // yyyy-MM-dd 형식
+    searchEndDate?: string; // yyyy-MM-dd 형식
+    regionIds?: number[];
+    tagIds?: number[];
+    page?: number; // 기본값 0
+    size?: number; // 기본값 10
+  };
+}
+
+/**
+ * 세션 검색 응답 데이터
+ */
+interface SessionSearchData {
+  sessions: SessionInfo[];
+  hasNext: boolean;
+}
+
+interface SessionSearchResponse extends APIResponse<SessionSearchData> {
+  // APIResponse의 모든 속성을 상속받습니다.
+}
+
+/**
  * 세션 상세 조회 요청 데이터 (빈 데이터)
  */
 interface SessionGetRequest {}
@@ -128,6 +156,9 @@ interface SessionGetData {
   status: SessionStatus;
   participants: Participant[];
   isParticipating: boolean;
+  guideProfileId: number;
+  isMySession: boolean;
+  isInWishlist: boolean;
 }
 
 interface SessionGetResponse extends APIResponse<SessionGetData> {
@@ -137,15 +168,7 @@ interface SessionGetResponse extends APIResponse<SessionGetData> {
 /**
  * 세션 일정 정보 타입
  */
-interface SessionItinerary {
-  id: number;
-  day: number;
-  title: string;
-  content: string;
-  startTime: string; // HH:mm:ss 형식
-  latitude: number;
-  longitude: number;
-}
+type SessionItinerary = TemplateItinerary & { startDate: string }
 
 /**
  * 세션 일정 조회 요청 데이터 (빈 데이터)
@@ -245,8 +268,12 @@ export {
   SessionParticipationData,
   SessionParticipationRequest,
   SessionParticipationResponse,
+  SessionSearchData,
+  SessionSearchRequest,
+  SessionSearchResponse,
   SessionStatus,
   SessionUpdateData,
   SessionUpdateRequest,
-  SessionUpdateResponse,
+  SessionUpdateResponse
 };
+
