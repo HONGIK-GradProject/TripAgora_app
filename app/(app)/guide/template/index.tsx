@@ -57,7 +57,7 @@ const MyTemplatesScreen: React.FC = () => {
       router.push(`/guide/template/${newTemplateId}`);
       console.log(newTemplateId);
     } catch (error) {
-      console.log('템플릿 생성 실패: ', error);
+      console.log('여행 계획 생성 실패: ', error);
     }
   };
 
@@ -94,14 +94,14 @@ const MyTemplatesScreen: React.FC = () => {
         ) : (
           <>
             <View className='px-5'>
-              <Text className='text-3xl font-bold mb-5'>내 상품 템플릿</Text>
+              <Text className='text-3xl font-bold mb-5'>나의 여행 계획</Text>
             </View>
             <SearchWithAutoComplete
               query={searchQuery}
               onQueryChange={setSearchQuery}
               fetchSuggestions={handleFetchSuggestions}
               onSearch={handleSearch}
-              placeholder='제목으로 템플릿을 검색해보세요!'
+              placeholder='제목으로 여행 계획 찾기'
             />
             <View className='bg-gray-50 rounded-2xl p-4'>
               <GuideTemplateList

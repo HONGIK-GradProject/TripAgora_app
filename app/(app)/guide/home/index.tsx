@@ -65,7 +65,7 @@ const GuideHomeScreen: React.FC = () => {
           <View className='mt-8 px-6'>
             <View className='flex-row items-center justify-between mb-4'>
               <Text className='text-3xl font-bold text-gray-900'>
-                내 여행 상품
+                내 여행 모집
               </Text>
               <TouchableOpacity>
                 <Text className='text-purple-600 font-semibold'>더보기</Text>

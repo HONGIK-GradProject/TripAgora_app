@@ -40,9 +40,9 @@ export const createBlankTemplate = async () => {
       return response.data?.templateId;
     }
 
-    throw new Error('템플릿 생성 에러');
+    throw new Error('여행 계획 생성 에러');
   } catch (error) {
-    handleTemplateServiceError(error, '템플릿 생성 에러');
+    handleTemplateServiceError(error, '여행 계획 생성 에러');
   }
 };
 
@@ -60,9 +60,9 @@ export const setTemplateTitle = async (id: number, title: string) => {
       return response.data?.title;
     }
 
-    throw new Error('템플릿 제목 수정 에러');
+    throw new Error('여행 계획 제목 수정 에러');
   } catch (error) {
-    handleTemplateServiceError(error, '템플릿 제목 수정 에러');
+    handleTemplateServiceError(error, '여행 계획 제목 수정 에러');
   }
 };
 
@@ -80,9 +80,9 @@ export const setTemplateContent = async (id: number, content: string) => {
       return response.data?.content;
     }
 
-    throw new Error('템플릿 본문 수정 에러');
+    throw new Error('여행 계획 본문 수정 에러');
   } catch (error) {
-    handleTemplateServiceError(error, '템플릿 본문 수정 에러');
+    handleTemplateServiceError(error, '여행 계획 본문 수정 에러');
   }
 };
 
@@ -104,9 +104,9 @@ export const setTemplateImageUrls = async (id: number, imageUrls: string[]) => {
       return response.data?.imageUrls;
     }
 
-    throw new Error('템플릿 이미지 수정 에러');
+    throw new Error('여행 계획 이미지 수정 에러');
   } catch (error) {
-    handleTemplateServiceError(error, '템플릿 이미지 수정 에러');
+    handleTemplateServiceError(error, '여행 계획 이미지 수정 에러');
   }
 };
 
@@ -124,9 +124,9 @@ export const setTemplateTags = async (id: number, tagIds: number[]) => {
       return response.data?.tagIds;
     }
 
-    throw new Error('템플릿 태그 수정 에러');
+    throw new Error('여행 계획 태그 수정 에러');
   } catch (error) {
-    handleTemplateServiceError(error, '템플릿 태그 수정 에러');
+    handleTemplateServiceError(error, '여행 계획 태그 수정 에러');
   }
 };
 
@@ -147,7 +147,7 @@ export const setTemplateItineraries = async (
       return { success: true };
     }
 
-    throw new Error('템플릿 일정 수정 에러');
+    throw new Error('여행 계획 일정 수정 에러');
   } catch (error) {
     if (isAxiosError(error)) {
       console.error(error.response?.data);
@@ -178,9 +178,9 @@ export const setTemplateRegions = async (id: number, regionIds: number[]) => {
       return response.data?.regionIds;
     }
 
-    throw new Error('템플릿 지역 수정 에러');
+    throw new Error('여행 계획 지역 수정 에러');
   } catch (error) {
-    handleTemplateServiceError(error, '템플릿 지역 수정 에러');
+    handleTemplateServiceError(error, '여행 계획 지역 수정 에러');
   }
 };
 
@@ -197,7 +197,7 @@ export const getTemplateList = async (page: number) => {
       return response.data;
     }
 
-    throw new Error('템플릿 리스트 로드 에러');
+    throw new Error('여행 계획 리스트 로드 에러');
   } catch (error) {
     console.error(error);
   }
@@ -216,7 +216,7 @@ export const getItineraries = async (id: number) => {
       return response.data;
     }
 
-    throw new Error('템플릿 일정 로드 에러');
+    throw new Error('여행 계획 일정 로드 에러');
   } catch (error) {
     console.error(error);
   }
@@ -235,7 +235,7 @@ export const getTemplateDetails = async (id: string) => {
       return response.data;
     }
 
-    throw new Error('템플릿 상세 정보 로드 에러');
+    throw new Error('여행 계획 상세 정보 로드 에러');
   } catch (error) {
     console.error(error);
   }
@@ -258,7 +258,7 @@ export const getTemplateDetailsAll = async (id: number) => {
       };
     }
 
-    throw new Error('템플릿의 모든 정보 로드 에러');
+    throw new Error('여행 계획의 모든 정보 로드 에러');
   } catch (error) {
     console.error(error);
   }
@@ -274,6 +274,6 @@ export const deleteTemplate = async (id: number) => {
     const response = await templatesApi.deleteTemplate(id);
     return response;
   } catch (error) {
-    handleTemplateServiceError(error, '템플릿 삭제 에러');
+    handleTemplateServiceError(error, '여행 계획 삭제 에러');
   }
 };

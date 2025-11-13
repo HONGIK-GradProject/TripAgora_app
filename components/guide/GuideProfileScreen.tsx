@@ -669,7 +669,7 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
         <View className='mx-5 mt-5 mb-5'>
           <View className='flex-row items-center justify-between mb-4'>
             <Text className='text-2xl font-bold text-gray-900'>
-              모집 중인 세션
+              모집 중인 여행
             </Text>
           </View>
 
@@ -723,7 +723,7 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
             <View className='bg-white rounded-2xl p-6 items-center justify-center shadow-sm'>
               <Ionicons name='calendar-outline' size={48} color='#9CA3AF' />
               <Text className='text-gray-500 mt-2 text-base'>
-                모집 중인 세션이 없습니다
+                모집 중인 여행이 없습니다
               </Text>
             </View>
           )}

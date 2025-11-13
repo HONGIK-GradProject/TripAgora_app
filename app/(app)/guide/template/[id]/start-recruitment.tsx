@@ -74,7 +74,7 @@ const StartRecruitmentContent: React.FC = () => {
 
   const handleStartRecruitment = async () => {
     if (!id) {
-      showErrorToast('템플릿 ID가 없습니다.');
+      showErrorToast('여행 계획 ID가 없습니다.');
       return;
     }
 

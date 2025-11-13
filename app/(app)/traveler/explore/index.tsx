@@ -295,7 +295,7 @@ const TravelerExploreScreen: React.FC = () => {
           onQueryChange={handleQueryChange}
           fetchSuggestions={handleFetchSuggestions}
           onSearch={handleSearch}
-          placeholder='여행 상품을 검색해보세요!'
+          placeholder='여행을 검색해보세요!'
         />
 
         {/* 필터 버튼들 */}
@@ -317,10 +317,12 @@ const TravelerExploreScreen: React.FC = () => {
                 color={searchStartDate ? '#8130FF' : '#6B7280'}
               />
               <View className='ml-2 flex-1'>
-                <Text className='text-xs text-gray-500 mb-0.5'>시작일</Text>
+                <Text className='text-xs text-gray-500 mb-0.5'>이 날부터</Text>
                 <Text
                   className={`text-sm ${
-                    searchStartDate ? 'text-primary font-medium' : 'text-gray-600'
+                    searchStartDate
+                      ? 'text-primary font-medium'
+                      : 'text-gray-600'
                   }`}
                 >
                   {searchStartDate ? formatDate(searchStartDate) : '선택'}
@@ -354,7 +356,7 @@ const TravelerExploreScreen: React.FC = () => {
                 color={searchEndDate ? '#8130FF' : '#6B7280'}
               />
               <View className='ml-2 flex-1'>
-                <Text className='text-xs text-gray-500 mb-0.5'>종료일</Text>
+                <Text className='text-xs text-gray-500 mb-0.5'>이 날까지</Text>
                 <Text
                   className={`text-sm ${
                     searchEndDate ? 'text-primary font-medium' : 'text-gray-600'
@@ -395,7 +397,9 @@ const TravelerExploreScreen: React.FC = () => {
               />
               <Text
                 className={`text-sm ml-2 ${
-                  selectedRegionIds.length > 0 ? 'text-primary' : 'text-gray-600'
+                  selectedRegionIds.length > 0
+                    ? 'text-primary'
+                    : 'text-gray-600'
                 }`}
               >
                 {selectedRegionIds.length > 0
@@ -493,7 +497,9 @@ const TravelerExploreScreen: React.FC = () => {
                         <Text className='text-primary text-sm mr-1'>
                           {regionName}
                         </Text>
-                        <TouchableOpacity onPress={() => toggleRegion(regionId)}>
+                        <TouchableOpacity
+                          onPress={() => toggleRegion(regionId)}
+                        >
                           <Ionicons
                             name='close-circle'
                             size={16}
@@ -653,7 +659,7 @@ const TravelerExploreScreen: React.FC = () => {
                   <View className='py-4 items-center'>
                     <ActivityIndicator size='small' color='#8130FF' />
                     <Text className='text-gray-500 text-sm mt-2'>
-                      더 많은 세션을 불러오는 중...
+                      더 많은 여행을 불러오는 중...
                     </Text>
                   </View>
                 ) : undefined

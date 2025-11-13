@@ -23,7 +23,7 @@ export const createSession = async (
       return response.data?.sessionId;
     }
 
-    throw new Error('세션 생성 에러');
+    throw new Error('여행 생성 에러');
   } catch (error) {
     console.error(error);
   }
@@ -52,7 +52,7 @@ export const updateSession = async (
       return true;
     }
 
-    throw new Error('세션 수정 에러');
+    throw new Error('여행 수정 에러');
   } catch (error) {
     console.error(error);
   }
@@ -71,7 +71,7 @@ export const deleteSession = async (sessionId: number) => {
       return true;
     }
 
-    throw new Error('세션 삭제 에러');
+    throw new Error('여행 삭제 에러');
   } catch (error) {
     console.error(error);
   }
@@ -94,7 +94,7 @@ export const getSessionList = async (
       return response.data;
     }
 
-    throw new Error('세션 목록 조회 에러');
+    throw new Error('여행 목록 조회 에러');
   } catch (error) {
     console.error(error);
   }
@@ -120,7 +120,7 @@ export const getParticipatingSessionList = async (
       return response.data;
     }
 
-    throw new Error('참여한 세션 목록 조회 에러');
+    throw new Error('참여한 여행 목록 조회 에러');
   } catch (error) {
     console.error(error);
   }
@@ -161,7 +161,7 @@ export const searchSessions = async (
       return response.data;
     }
 
-    throw new Error('세션 검색 에러');
+    throw new Error('여행 검색 에러');
   } catch (error) {
     console.error(error);
   }
@@ -180,7 +180,7 @@ export const getSession = async (sessionId: number) => {
       return response.data;
     }
 
-    throw new Error('세션 상세 정보 조회 에러');
+    throw new Error('여행 상세 정보 조회 에러');
   } catch (error) {
     console.error(error);
   }
@@ -199,7 +199,7 @@ export const getSessionItineraries = async (sessionId: number) => {
       return response.data;
     }
 
-    throw new Error('세션 일정 조회 에러');
+    throw new Error('여행 일정 조회 에러');
   } catch (error) {
     console.error(error);
   }
@@ -219,10 +219,10 @@ export const closeSession = async (sessionId: number) => {
     }
 
     throw new Error(
-      `세션 모집 마감 실패: ${response?.message || '알 수 없는 오류'}`
+      `여행 모집 마감 실패: ${response?.message || '알 수 없는 오류'}`
     );
   } catch (error) {
-    console.error('세션 모집 마감 에러:', error);
+    console.error('여행 모집 마감 에러:', error);
   }
 };
 
@@ -240,10 +240,10 @@ export const createParticipation = async (sessionId: number) => {
     }
 
     throw new Error(
-      `세션 참여 실패: ${response?.message || '알 수 없는 오류'}`
+      `여행 참여 실패: ${response?.message || '알 수 없는 오류'}`
     );
   } catch (error) {
-    console.error('세션 참여 에러:', error);
+    console.error('여행 참여 에러:', error);
     throw error; // 오류를 다시 던져서 상위에서 처리할 수 있도록 함
   }
 };
@@ -262,10 +262,10 @@ export const cancelParticipation = async (sessionId: number) => {
     }
 
     throw new Error(
-      `세션 참여 취소 실패: ${response?.message || '알 수 없는 오류'}`
+      `여행 참여 취소 실패: ${response?.message || '알 수 없는 오류'}`
     );
   } catch (error) {
-    console.error('세션 참여 취소 에러:', error);
+    console.error('여행 참여 취소 에러:', error);
     throw error; // 오류를 다시 던져서 상위에서 처리할 수 있도록 함
   }
 };

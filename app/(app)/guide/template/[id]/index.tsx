@@ -234,8 +234,8 @@ const ProductDetailScreen: React.FC = () => {
    */
   const handleDeleteTemplate = () => {
     Alert.alert(
-      '템플릿 삭제',
-      '정말 템플릿을 삭제하시겠습니까? \n삭제 후엔 복구할 수 없습니다.',
+      '여행 계획 삭제',
+      '정말 여행 계획을 삭제하시겠습니까? \n삭제 후엔 복구할 수 없습니다.',
       [
         {
           text: '취소',
@@ -446,7 +446,7 @@ const ProductDetailScreen: React.FC = () => {
                   style={styles.editActionButton}
                   onPress={() => router.push(`/guide/template/${id}/edit-tags`)}
                 >
-                  <Text style={styles.editActionText}>태그 편집</Text>
+                  <Text style={styles.editActionText}>관심사 편집</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -718,7 +718,7 @@ const ProductDetailScreen: React.FC = () => {
           onPress={() => router.push(`/guide/template/${id}/start-recruitment`)}
         >
           <Text style={styles.primaryButtonText}>
-            이 템플릿으로 모집 시작하기
+            이 여행 계획으로 모집 시작하기
           </Text>
         </TouchableOpacity>
       </View>

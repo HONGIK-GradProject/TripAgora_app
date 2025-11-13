@@ -142,7 +142,7 @@ const AnnounceScreen: React.FC<AnnounceScreenProps> = ({
     if (!id) {
       Toast.show({
         type: 'error',
-        text1: '세션 정보를 찾을 수 없습니다',
+        text1: '여행 정보를 찾을 수 없습니다',
       });
       return;
     }
@@ -415,7 +415,9 @@ const AnnounceScreen: React.FC<AnnounceScreenProps> = ({
             >
               {isLoading ? (
                 <View style={styles.loadingContainer}>
-                  <Text style={styles.loadingText}>공지 목록을 불러오는 중...</Text>
+                  <Text style={styles.loadingText}>
+                    공지 목록을 불러오는 중...
+                  </Text>
                 </View>
               ) : error ? (
                 <View style={styles.errorContainer}>
@@ -429,7 +431,9 @@ const AnnounceScreen: React.FC<AnnounceScreenProps> = ({
                 </View>
               ) : notices.length === 0 ? (
                 <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>아직 발송된 공지가 없습니다.</Text>
+                  <Text style={styles.emptyText}>
+                    아직 발송된 공지가 없습니다.
+                  </Text>
                 </View>
               ) : (
                 notices.map((notice) => (
@@ -441,20 +445,27 @@ const AnnounceScreen: React.FC<AnnounceScreenProps> = ({
                         activeOpacity={0.7}
                       >
                         <View style={styles.avatarContainer}>
-                          <Ionicons name='megaphone' size={20} color='#8130FF' />
+                          <Ionicons
+                            name='megaphone'
+                            size={20}
+                            color='#8130FF'
+                          />
                         </View>
                         <View style={styles.announcementContent}>
                           <Text style={styles.announcementText}>
                             {notice.title}
                           </Text>
                           <Text style={styles.announcementTime}>
-                            {new Date(notice.createdAt).toLocaleString('ko-KR', {
-                              year: 'numeric',
-                              month: '2-digit',
-                              day: '2-digit',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
+                            {new Date(notice.createdAt).toLocaleString(
+                              'ko-KR',
+                              {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              }
+                            )}
                           </Text>
                         </View>
                         <View style={styles.expandIcon}>

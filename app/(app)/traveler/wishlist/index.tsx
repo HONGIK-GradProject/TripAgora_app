@@ -126,10 +126,10 @@ const WishListScreen: React.FC = () => {
                 >
                   <Ionicons name='heart-outline' size={64} color='#D1D5DB' />
                   <Text className='text-gray-500 text-lg mt-4'>
-                    찜한 상품이 없습니다.
+                    찜한 여행이 없습니다.
                   </Text>
                   <Text className='text-gray-400 text-sm mt-2'>
-                    여행 상품을 찜해보세요!
+                    참여하고 싶은 여행을 찜해보세요!
                   </Text>
                 </ScrollView>
               ) : (

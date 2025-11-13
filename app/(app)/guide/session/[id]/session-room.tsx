@@ -206,7 +206,7 @@ const SessionRoomScreen: React.FC = () => {
   if (!id) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>세션 ID가 없습니다.</Text>
+        <Text style={styles.errorText}>여행 ID가 없습니다.</Text>
       </View>
     );
   }

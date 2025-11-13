@@ -66,7 +66,7 @@ const GuideTabLayout: React.FC = () => {
       <Tabs.Screen
         name='template'
         options={{
-          title: '내 템플릿',
+          title: '여행 계획',
           tabBarIcon: ({ focused, color }) =>
             focused ? (
               <AntDesign name='product' size={26} color={color} />
