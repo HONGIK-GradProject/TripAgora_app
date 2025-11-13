@@ -25,7 +25,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 
 const TravelerExploreScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -466,7 +469,8 @@ const TravelerExploreScreen: React.FC = () => {
           onRequestClose={() => setShowRegionModal(false)}
         >
           <View className='flex-1 bg-black/50 justify-end'>
-            <View
+            <SafeAreaView
+              edges={['bottom']}
               className='bg-white rounded-t-3xl'
               style={{ maxHeight: '80%', height: '80%' }}
             >
@@ -573,7 +577,7 @@ const TravelerExploreScreen: React.FC = () => {
                   </View>
                 </ScrollView>
               </View>
-            </View>
+            </SafeAreaView>
           </View>
         </Modal>
 
@@ -585,7 +589,10 @@ const TravelerExploreScreen: React.FC = () => {
           onRequestClose={() => setShowTagModal(false)}
         >
           <View className='flex-1 bg-black/50 justify-end'>
-            <View className='bg-gray-50 rounded-t-3xl max-h-[80%]'>
+            <SafeAreaView
+              edges={['bottom']}
+              className='bg-gray-50 rounded-t-3xl max-h-[80%]'
+            >
               <View className='flex-row justify-between items-center p-5 border-b border-gray-200'>
                 <View>
                   <Text className='text-xl font-bold'>관심사 선택</Text>
@@ -616,7 +623,7 @@ const TravelerExploreScreen: React.FC = () => {
                   ))}
                 </View>
               </ScrollView>
-            </View>
+            </SafeAreaView>
           </View>
         </Modal>
 
