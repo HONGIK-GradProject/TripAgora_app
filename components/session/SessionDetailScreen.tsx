@@ -600,7 +600,9 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
                       // guideProfileId를 사용하여 프로필 조회
                       // 가이드 프로필 사진 URL을 쿼리 파라미터로 전달
                       const profileImageUrlParam = guide.profileImageUrl
-                        ? `?profileImageUrl=${encodeURIComponent(guide.profileImageUrl)}`
+                        ? `?profileImageUrl=${encodeURIComponent(
+                            guide.profileImageUrl
+                          )}`
                         : '';
                       const profilePath =
                         userType === 'guide'
@@ -658,7 +660,6 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
                 status === 'RECRUITMENT_CLOSED' && styles.statusClosed,
                 status === 'IN_PROGRESS' && styles.statusInProgress,
                 status === 'COMPLETED' && styles.statusCompleted,
-                userType === 'traveler' && styles.statusRecruiting,
               ]}
             >
               <Text
@@ -668,15 +669,13 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
                   status === 'RECRUITMENT_CLOSED' && { color: '#C2410C' },
                   status === 'IN_PROGRESS' && { color: '#FFFFFF' },
                   status === 'COMPLETED' && { color: '#15803D' },
-                  userType === 'traveler' && { color: '#7C3AED' },
                 ]}
               >
-                {userType === 'traveler'
-                  ? '모집 중'
-                  : (status === 'RECRUITING' && '모집중') ||
-                    (status === 'RECRUITMENT_CLOSED' && '모집마감') ||
-                    (status === 'IN_PROGRESS' && '진행중') ||
-                    (status === 'COMPLETED' && '완료')}
+                {(status === 'RECRUITING' && '모집중') ||
+                  (status === 'RECRUITMENT_CLOSED' && '모집마감') ||
+                  (status === 'IN_PROGRESS' && '진행중') ||
+                  (status === 'COMPLETED' && '완료') ||
+                  '알 수 없음'}
               </Text>
             </View>
           </View>
@@ -877,7 +876,42 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
           { paddingBottom: bottomActionPadding, bottom: -insets.bottom },
         ]}
       >
-        {userType === 'guide' ? (
+        {status === 'COMPLETED' ? (
+          // 완료된 세션
+          userType === 'guide' ? (
+            // 가이드: 완료된 여행입니다 (비활성화)
+            <TouchableOpacity
+              style={[styles.ctaButton, styles.disabledButton]}
+              disabled={true}
+            >
+              <Text style={styles.disabledButtonText}>완료된 여행입니다</Text>
+            </TouchableOpacity>
+          ) : (
+            // 여행자: 세션 룸과 리뷰 작성 버튼
+            <>
+              <TouchableOpacity
+                style={[styles.ctaButton, styles.secondaryButton]}
+                onPress={() => {
+                  const sessionRoomPath = segments.join('/').includes('/trip/')
+                    ? `/traveler/trip/${id}/session-room`
+                    : `/traveler/explore/${id}/session-room`;
+                  router.push(sessionRoomPath as any);
+                }}
+              >
+                <Text style={styles.secondaryButtonText}>여행 룸</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.ctaButton, styles.primaryButton]}
+                onPress={() => {
+                  router.push('/ReviewWriteScreen' as any);
+                }}
+              >
+                <Text style={styles.primaryButtonText}>리뷰 작성</Text>
+              </TouchableOpacity>
+            </>
+          )
+        ) : userType === 'guide' ? (
+          // 가이드: 일반 상태
           <>
             <TouchableOpacity
               style={[styles.ctaButton, styles.secondaryButton]}
@@ -895,6 +929,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
             )}
           </>
         ) : isMySession ? (
+          // 여행자: 자신이 개설한 세션
           <TouchableOpacity
             style={[styles.ctaButton, styles.disabledButton]}
             disabled={true}
@@ -904,6 +939,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
             </Text>
           </TouchableOpacity>
         ) : isParticipating ? (
+          // 여행자: 참여 중인 세션
           <>
             {/* 여행자용 하트 버튼 */}
             <TouchableOpacity
@@ -932,6 +968,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
             </TouchableOpacity>
           </>
         ) : (
+          // 여행자: 참여 신청 가능한 세션
           <>
             {/* 여행자용 하트 버튼 */}
             <TouchableOpacity
@@ -945,35 +982,19 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
                 color={isInWishlist ? '#8130FF' : '#000'}
               />
             </TouchableOpacity>
-            {isParticipating ? (
-              <TouchableOpacity
-                style={[
-                  styles.ctaButton,
-                  styles.cancelButton,
-                  isSubmitting && { backgroundColor: '#9CA3AF' },
-                ]}
-                onPress={handleCancelParticipation}
-                disabled={isSubmitting}
-              >
-                <Text style={styles.cancelButtonText}>
-                  {isSubmitting ? '취소 중...' : '참여 신청 취소'}
-                </Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={[
-                  styles.ctaButton,
-                  styles.primaryButton,
-                  isSubmitting && { backgroundColor: '#9CA3AF' },
-                ]}
-                onPress={handleParticipation}
-                disabled={isSubmitting}
-              >
-                <Text style={styles.primaryButtonText}>
-                  {isSubmitting ? '신청 중...' : '여행에 참여 신청하기'}
-                </Text>
-              </TouchableOpacity>
-            )}
+            <TouchableOpacity
+              style={[
+                styles.ctaButton,
+                styles.primaryButton,
+                isSubmitting && { backgroundColor: '#9CA3AF' },
+              ]}
+              onPress={handleParticipation}
+              disabled={isSubmitting}
+            >
+              <Text style={styles.primaryButtonText}>
+                {isSubmitting ? '신청 중...' : '여행에 참여 신청하기'}
+              </Text>
+            </TouchableOpacity>
           </>
         )}
       </View>
