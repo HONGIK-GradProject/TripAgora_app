@@ -158,8 +158,6 @@ const MyPageScreen: React.FC = () => {
       type,
       text1,
       text2,
-      position: 'bottom',
-      bottomOffset: 100,
     });
   };
 
@@ -168,8 +166,10 @@ const MyPageScreen: React.FC = () => {
   };
 
   const handleEditTags = () => {
-    router.push(`/(app)/${user?.role.toLowerCase()}/my-page/edit-tags` as RelativePathString);
-  }
+    router.push(
+      `/(app)/${user?.role.toLowerCase()}/my-page/edit-tags` as RelativePathString
+    );
+  };
 
   return (
     <View className='flex-1 bg-gray-50' style={{ paddingTop: insets.top }}>
@@ -280,7 +280,10 @@ const MyPageScreen: React.FC = () => {
       >
         <View className='mx-5'>
           <View className='bg-white rounded-2xl shadow-sm overflow-hidden'>
-            <TouchableOpacity className='flex-row items-center py-4 px-6 border-b border-gray-100' onPress={handleEditTags}>
+            <TouchableOpacity
+              className='flex-row items-center py-4 px-6 border-b border-gray-100'
+              onPress={handleEditTags}
+            >
               <View className='w-10 h-10 rounded-full bg-blue-50 items-center justify-center mr-4'>
                 <Ionicons name='heart' size={20} color='#3B82F6' />
               </View>

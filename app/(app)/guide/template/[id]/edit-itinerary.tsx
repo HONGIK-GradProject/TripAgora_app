@@ -132,8 +132,6 @@ const EditTemplateItineraryScreen: React.FC = () => {
       Toast.show({
         type: 'error',
         text1: '모든 필드를 채워주세요.',
-        position: 'bottom',
-        bottomOffset: 100,
       });
       return;
     }

@@ -160,8 +160,6 @@ const StartRecruitmentContent: React.FC = () => {
       type: 'error',
       text1: '모집 시작 실패',
       text2: message,
-      position: 'bottom',
-      bottomOffset: 100,
     });
   };
 
@@ -170,8 +168,6 @@ const StartRecruitmentContent: React.FC = () => {
       type: 'success',
       text1: '모집이 시작되었습니다!',
       text2: '여행자들이 참여할 수 있습니다.',
-      position: 'bottom',
-      bottomOffset: 100,
     });
   };
 

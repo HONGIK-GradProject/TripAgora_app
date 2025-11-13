@@ -181,8 +181,6 @@ const ProductDetailScreen: React.FC = () => {
       type: 'error',
       text1: '요청 실패',
       text2: message,
-      position: 'bottom',
-      bottomOffset: 100,
     });
   };
 

@@ -42,8 +42,6 @@ const InterestSelector: React.FC<InterestSelectorProps> = ({
       Toast.show({
         type: 'error',
         text1: `태그를 ${minSelection}개 이상 선택해 주세요.`,
-        position: 'bottom',
-        bottomOffset: 100,
       });
       return;
     }
@@ -51,8 +49,6 @@ const InterestSelector: React.FC<InterestSelectorProps> = ({
       Toast.show({
         type: 'error',
         text1: `태그는 ${maxSelection}개까지 선택할 수 있습니다.`,
-        position: 'bottom',
-        bottomOffset: 100,
       });
       return;
     }
