@@ -1,4 +1,7 @@
+import { format } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
 import { Image } from 'expo-image';
+import * as Localization from 'expo-localization';
 import React from 'react';
 import { Text, View } from 'react-native';
 import { ChatMessage } from '../../types/chat';
@@ -8,16 +11,16 @@ interface MessageItemProps {
   isMyMessage: boolean;
 }
 
+const deviceTimeZone = Localization.getCalendars()[0].timeZone || 'UTC';
+
 const MessageItem: React.FC<MessageItemProps> = ({ item, isMyMessage }) => {
+  const zonedDate = toZonedTime(item.sentAt + 'Z', deviceTimeZone);
+  const formattedTime = format(toZonedTime(zonedDate, deviceTimeZone), 'hh:mm a');
+
   if (isMyMessage) {
     return (
       <View className='flex-row items-end my-2 justify-end'>
-        <Text className='text-xs text-gray-400 mr-2 mb-1'>
-          {new Date(item.sentAt).toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-          })}
-        </Text>
+        <Text className='text-xs text-gray-400 mr-2 mb-1'>{formattedTime}</Text>
         <View className='max-w-[70%] rounded-2xl px-4 py-3 bg-purple-500 rounded-br-none'>
           <Text className='text-white'>{item.content}</Text>
         </View>
@@ -38,12 +41,7 @@ const MessageItem: React.FC<MessageItemProps> = ({ item, isMyMessage }) => {
           <View className='max-w-[80%] rounded-2xl px-4 py-3 bg-white rounded-bl-none shadow-sm'>
             <Text className='text-gray-900'>{item.content}</Text>
           </View>
-          <Text className='text-xs text-gray-400 ml-2 mb-1'>
-            {new Date(item.sentAt).toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
-          </Text>
+          <Text className='text-xs text-gray-400 ml-2 mb-1'>{formattedTime}</Text>
         </View>
       </View>
     </View>
