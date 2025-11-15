@@ -14,7 +14,7 @@ interface MessageItemProps {
 const deviceTimeZone = Localization.getCalendars()[0].timeZone || 'UTC';
 
 const MessageItem: React.FC<MessageItemProps> = ({ item, isMyMessage }) => {
-  const zonedDate = toZonedTime(item.sentAt + 'Z', deviceTimeZone);
+  const zonedDate = toZonedTime(item.sentAt, deviceTimeZone);
   const formattedTime = format(toZonedTime(zonedDate, deviceTimeZone), 'hh:mm a');
 
   if (isMyMessage) {

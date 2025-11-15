@@ -8,7 +8,11 @@ import { Message } from '@stomp/stompjs';
 import React, { useEffect, useState } from 'react';
 import ChatView from '../chat/ChatView';
 
-const ChatRoom: React.FC<{ roomId: number }> = ({ roomId }) => {
+interface ChatRoomProps {
+  roomId: number;
+}
+
+const ChatRoom: React.FC<ChatRoomProps> = ({ roomId }) => {
   const { user } = useAuth();
   const { client, isConnected } = useStomp();
 
@@ -32,6 +36,7 @@ const ChatRoom: React.FC<{ roomId: number }> = ({ roomId }) => {
 
       const subscription = client.subscribe(destination, (message: Message) => {
         const receivedMessage: ChatMessage = JSON.parse(message.body);
+        receivedMessage.sentAt += 'Z';
         setNewMessages(prevMessages => [receivedMessage, ...prevMessages]);
       });
 

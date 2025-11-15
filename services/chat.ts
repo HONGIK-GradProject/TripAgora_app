@@ -8,9 +8,16 @@ export const fetchPreviousChat = async (
   try {
     const response = await chatApi.getPreviousChat(roomId, page);
 
-    if (response && response.code === 200) {
+    if (response.data && response.code === 200) {
+      const utcMessages = response.data.messages.map(message => {
+        return {
+          ...message,
+          sentAt: message.sentAt + 'Z'
+        }
+      });
+
       return {
-        data: response.data.messages,
+        data: utcMessages,
         hasNext: response.data.hasNext,
       };
     }
