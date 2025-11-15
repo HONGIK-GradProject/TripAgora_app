@@ -1,11 +1,18 @@
 import { chatApi } from "@/api/chat";
+import { ChatMessage } from "@/types/chat";
 
-export const getPreviousChat = async (roomId: number) => {
+export const fetchPreviousChat = async (
+  page: number,
+  roomId: number
+): Promise<{ data: ChatMessage[]; hasNext: boolean } | null> => {
   try {
-    const response = await chatApi.getPreviousChat(roomId);
+    const response = await chatApi.getPreviousChat(roomId, page);
 
     if (response && response.code === 200) {
-      return response.data;
+      return {
+        data: response.data.messages,
+        hasNext: response.data.hasNext,
+      };
     }
 
     throw new Error(

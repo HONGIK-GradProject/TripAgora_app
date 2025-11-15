@@ -1,24 +1,26 @@
 import React from 'react';
 import {
-  FlatList
+  FlatList,
+  View
 } from 'react-native';
 import { ChatMessage } from '../../types/chat';
-import CustomKeyboardAvoidingView from '../CustomKeyboardAvoidingView';
 import MessageInputBar from './MessageInputBar';
 import MessageItem from './MessageItem';
 
 interface ChatViewProps {
-  messages?: ChatMessage[]; // Make messages optional
+  messages?: ChatMessage[];
   onSend: (text: string) => void;
-  user?: { // Make user optional
+  user?: {
     _id: string | number;
   };
+  onLoadEarlier?: () => void;
 }
 
 const ChatView: React.FC<ChatViewProps> = ({
   messages: propMessages,
   onSend,
   user: propUser,
+  onLoadEarlier,
 }) => {
   const [inputText, setInputText] = React.useState('');
   
@@ -33,7 +35,7 @@ const ChatView: React.FC<ChatViewProps> = ({
   };
 
   return (
-    <CustomKeyboardAvoidingView>
+    <View style={{flex: 1}}>
       <FlatList
         data={displayMessages}
         renderItem={({ item }) => (
@@ -43,13 +45,15 @@ const ChatView: React.FC<ChatViewProps> = ({
         className='flex-1 px-4 pt-4'
         inverted
         contentContainerStyle={{ paddingBottom: 10 }}
+        onEndReached={onLoadEarlier}
+        onEndReachedThreshold={0.5}
       />
       <MessageInputBar
         value={inputText}
         onChangeText={setInputText}
         onSend={handleSend}
       />
-    </CustomKeyboardAvoidingView>
+    </View>
   );
 };
 

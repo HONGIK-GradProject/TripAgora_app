@@ -2,13 +2,14 @@ import { ChatGetPreviousResponse } from "@/types/chat";
 import apiClient from "./client";
 
 const getPreviousChat = async (
-  roomId: number
+  roomId: number,
+  page: number
 ): Promise<ChatGetPreviousResponse> => {
   const response = await apiClient.get<ChatGetPreviousResponse>(
     `chat/room/${roomId}/messages`,
     {
       params: {
-        page: 0
+        page
       }
     }
   );
