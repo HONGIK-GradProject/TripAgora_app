@@ -4,7 +4,7 @@ import { Image } from 'expo-image';
 import { RelativePathString, router } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Alert,
+  Modal,
   ScrollView,
   Text,
   TextInput,
@@ -27,6 +27,9 @@ const MyPageScreen: React.FC = () => {
   const [isEditingNickname, setIsEditingNickname] = useState(false);
   const [editingNickname, setEditingNickname] = useState('');
   const [isUpdatingNickname, setIsUpdatingNickname] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmNickname, setDeleteConfirmNickname] = useState('');
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   // 유효한 프로필 이미지 URL 계산
   const profileImageUrl = useMemo(() => {
@@ -51,39 +54,50 @@ const MyPageScreen: React.FC = () => {
   };
 
   const handleDeleteAccount = () => {
-    Alert.alert(
-      '회원 탈퇴',
-      '정말 탈퇴하시겠습니까?\n탈퇴 시 모든 데이터가 삭제되며 복구가 불가능합니다.',
-      [
-        {
-          text: '취소',
-          style: 'cancel',
-        },
-        {
-          text: '탈퇴하기',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const result = await deleteUserAccount();
-              if (result) {
-                showToast(
-                  'success',
-                  '회원 탈퇴가 완료되었습니다.',
-                  '이용해주셔서 감사합니다.'
-                );
-                router.replace('/login');
-              } else {
-                showToast('error', '회원 탈퇴 실패', '다시 시도해주세요.');
-              }
-            } catch (error) {
-              console.error('회원 탈퇴 중 오류 발생:', error);
-              showToast('error', '회원 탈퇴 실패', '다시 시도해주세요.');
-            }
-          },
-        },
-      ]
-    );
+    setShowDeleteModal(true);
+    setDeleteConfirmNickname('');
   };
+
+  const handleCloseDeleteModal = () => {
+    setShowDeleteModal(false);
+    setDeleteConfirmNickname('');
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!user?.nickname) {
+      showToast('error', '오류', '닉네임 정보를 불러올 수 없습니다.');
+      return;
+    }
+
+    if (deleteConfirmNickname.trim() !== user.nickname.trim()) {
+      showToast('error', '닉네임 불일치', '닉네임이 정확하지 않습니다.');
+      return;
+    }
+
+    setIsDeletingAccount(true);
+    try {
+      const result = await deleteUserAccount();
+      if (result) {
+        showToast(
+          'success',
+          '회원 탈퇴가 완료되었습니다.',
+          '이용해주셔서 감사합니다.'
+        );
+        setShowDeleteModal(false);
+        router.replace('/login');
+      } else {
+        showToast('error', '회원 탈퇴 실패', '다시 시도해주세요.');
+      }
+    } catch (error) {
+      console.error('회원 탈퇴 중 오류 발생:', error);
+      showToast('error', '회원 탈퇴 실패', '다시 시도해주세요.');
+    } finally {
+      setIsDeletingAccount(false);
+    }
+  };
+
+  const isDeleteButtonEnabled =
+    user?.nickname && deleteConfirmNickname.trim() === user.nickname.trim();
 
   const handleSetProfileImage = async (uri: string | null) => {
     if (!uri) return;
@@ -331,6 +345,96 @@ const MyPageScreen: React.FC = () => {
           </View>
         </View>
       </ScrollView>
+
+      {/* 회원 탈퇴 확인 모달 */}
+      <Modal
+        visible={showDeleteModal}
+        transparent={true}
+        animationType='fade'
+        onRequestClose={handleCloseDeleteModal}
+      >
+        <View className='flex-1 bg-black/50 justify-center items-center px-5'>
+          <View className='bg-white rounded-3xl p-6 w-full max-w-md'>
+            {/* 경고 아이콘 */}
+            <View className='items-center mb-4'>
+              <View className='w-16 h-16 rounded-full bg-red-100 items-center justify-center mb-3'>
+                <Ionicons name='warning' size={32} color='#EF4444' />
+              </View>
+              <Text className='text-2xl font-bold text-gray-900 mb-2'>
+                회원 탈퇴
+              </Text>
+            </View>
+
+            {/* 안내 메시지 */}
+            <View className='mb-6'>
+              <Text className='text-base text-gray-700 mb-3 leading-6'>
+                정말 탈퇴하시겠습니까?
+              </Text>
+              <View className='bg-red-50 border border-red-200 rounded-xl p-4'>
+                <Text className='text-sm text-red-800 font-semibold mb-2'>
+                  탈퇴 시 주의사항:
+                </Text>
+                <Text className='text-sm text-red-700 leading-5'>
+                  • 작성한 여행 계획 및 모집 중인 여행이 모두 삭제됩니다{'\n'}•
+                  여행 참여 정보 및 예약, 찜 정보가 모두 삭제됩니다{'\n'}•
+                  삭제된 데이터는 복구할 수 없습니다
+                </Text>
+              </View>
+            </View>
+
+            {/* 닉네임 확인 입력 */}
+            <View className='mb-6'>
+              <Text className='text-sm font-semibold text-gray-700 mb-2'>
+                탈퇴를 확인하려면 본인의 닉네임을 정확히 입력하세요:
+              </Text>
+              <TextInput
+                value={deleteConfirmNickname}
+                onChangeText={setDeleteConfirmNickname}
+                placeholder={`${user?.nickname || '닉네임'}`}
+                placeholderTextColor='#6B7280'
+                className='border border-gray-300 rounded-xl px-4 py-3 text-base bg-gray-50'
+                autoCapitalize='none'
+                autoCorrect={false}
+                editable={!isDeletingAccount}
+              />
+            </View>
+
+            {/* 버튼 */}
+            <View className='flex-row gap-3'>
+              <TouchableOpacity
+                onPress={handleCloseDeleteModal}
+                disabled={isDeletingAccount}
+                className='flex-1 bg-gray-100 rounded-xl py-4 items-center'
+                activeOpacity={0.7}
+              >
+                <Text className='text-gray-700 font-semibold text-base'>
+                  취소
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleConfirmDelete}
+                disabled={!isDeleteButtonEnabled || isDeletingAccount}
+                className={`flex-1 rounded-xl py-4 items-center ${
+                  isDeleteButtonEnabled && !isDeletingAccount
+                    ? 'bg-red-600'
+                    : 'bg-gray-300'
+                }`}
+                activeOpacity={0.7}
+              >
+                {isDeletingAccount ? (
+                  <Text className='text-white font-semibold text-base'>
+                    처리 중...
+                  </Text>
+                ) : (
+                  <Text className='text-white font-semibold text-base'>
+                    탈퇴하기
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
