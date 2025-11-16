@@ -598,18 +598,12 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
                       // 현재 세션 스택 내에서 가이드 프로필 화면으로 이동
                       // userType과 현재 경로에 따라 올바른 스택 내 경로로 이동
                       // guideProfileId를 사용하여 프로필 조회
-                      // 가이드 프로필 사진 URL을 쿼리 파라미터로 전달
-                      const profileImageUrlParam = guide.profileImageUrl
-                        ? `?profileImageUrl=${encodeURIComponent(
-                            guide.profileImageUrl
-                          )}`
-                        : '';
                       const profilePath =
                         userType === 'guide'
-                          ? `/guide/session/${id}/${guideProfileId}${profileImageUrlParam}`
+                          ? `/guide/session/${id}/${guideProfileId}`
                           : segments.join('/').includes('/trip/')
-                          ? `/traveler/trip/${id}/${guideProfileId}${profileImageUrlParam}`
-                          : `/traveler/explore/${id}/${guideProfileId}${profileImageUrlParam}`;
+                          ? `/traveler/trip/${id}/${guideProfileId}`
+                          : `/traveler/explore/${id}/${guideProfileId}`;
                       // Expo Router 타입 정의 제한으로 인한 타입 캐스팅
                       router.push(profilePath as any);
                     }

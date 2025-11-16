@@ -42,6 +42,7 @@ interface GuideProfileSessionList {
 interface GuideProfileGetData {
   nickname: string;
   imageUrl: string;
+  userImageUrl?: string;
   bio: string;
   tags: number[];
   portfolios: Portfolio[];

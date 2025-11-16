@@ -13,7 +13,7 @@ import {
 import { GuideProfileGetData, Portfolio } from '@/types/guideProfiles';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { router, useLocalSearchParams, useSegments } from 'expo-router';
+import { router, useSegments } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -43,10 +43,6 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const segments = useSegments();
-  const params = useLocalSearchParams<{ profileImageUrl?: string }>();
-
-  // 세션 상세에서 전달된 가이드 프로필 사진 URL
-  const guideProfileImageUrl = params.profileImageUrl;
 
   // 현재 자신의 프로필인지 확인 (guideProfileId가 없으면 자신의 프로필)
   const isOwnProfile = !guideProfileId;
@@ -128,7 +124,8 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
     if (guideProfile) {
       return {
         nickname: guideProfile.nickname,
-        profileImageUrl: guideProfile.imageUrl,
+        profileImageUrl: guideProfile.userImageUrl || guideProfile.imageUrl,
+        bannerImageUrl: guideProfile.imageUrl,
         bio: guideProfile.bio,
         tags: guideProfile.tags,
         portfolios: guideProfile.portfolios,
@@ -139,6 +136,7 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
       return {
         nickname: user.nickname || '닉네임 없음',
         profileImageUrl: user.profileImageUrl || '',
+        bannerImageUrl: '',
         bio: '',
         tags: [],
         portfolios: [],
@@ -148,6 +146,7 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
     return {
       nickname: '가이드',
       profileImageUrl: '',
+      bannerImageUrl: '',
       bio: '',
       tags: [],
       portfolios: [],
@@ -473,10 +472,10 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
         >
           {/* 배너 이미지 */}
           <View className='mx-5 mt-5 relative'>
-            {guideInfo.profileImageUrl ? (
+            {guideInfo.bannerImageUrl ? (
               <>
                 <Image
-                  source={{ uri: guideInfo.profileImageUrl }}
+                  source={{ uri: guideInfo.bannerImageUrl }}
                   style={{ width: '100%', height: 200, borderRadius: 16 }}
                   contentFit='cover'
                 />
@@ -491,19 +490,27 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
                 )}
               </>
             ) : (
-              isOwnProfile && (
-                <TouchableOpacity
-                  onPress={() => setIsEditingImage(true)}
-                  activeOpacity={0.7}
-                >
-                  <View className='w-full h-52 bg-gray-100 rounded-2xl border border-dashed border-gray-300 items-center justify-center'>
+              <View className='w-full h-52 bg-gray-100 rounded-2xl border border-dashed border-gray-300 items-center justify-center'>
+                {isOwnProfile ? (
+                  <TouchableOpacity
+                    onPress={() => setIsEditingImage(true)}
+                    activeOpacity={0.7}
+                    className='items-center'
+                  >
                     <Ionicons name='image-outline' size={36} color='#9CA3AF' />
                     <Text className='text-gray-500 mt-2'>
                       배너 이미지를 추가하세요
                     </Text>
-                  </View>
-                </TouchableOpacity>
-              )
+                  </TouchableOpacity>
+                ) : (
+                  <>
+                    <Ionicons name='image-outline' size={36} color='#9CA3AF' />
+                    <Text className='text-gray-500 mt-2'>
+                      배너 이미지가 없습니다
+                    </Text>
+                  </>
+                )}
+              </View>
             )}
           </View>
 
@@ -511,15 +518,9 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
           <View className='bg-white mx-5 mt-5 rounded-2xl p-6 shadow-sm'>
             <View className='flex-row items-center mb-4'>
               <View className='w-16 h-16 rounded-full bg-gray-100 justify-center items-center shadow-sm mr-3'>
-                {guideProfileImageUrl ? (
+                {guideInfo.profileImageUrl ? (
                   <Image
-                    source={{ uri: guideProfileImageUrl }}
-                    style={{ width: 64, height: 64, borderRadius: 32 }}
-                    contentFit='cover'
-                  />
-                ) : isOwnProfile && user?.profileImageUrl ? (
-                  <Image
-                    source={{ uri: user.profileImageUrl }}
+                    source={{ uri: guideInfo.profileImageUrl }}
                     style={{ width: 64, height: 64, borderRadius: 32 }}
                     contentFit='cover'
                   />
