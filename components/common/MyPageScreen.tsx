@@ -4,7 +4,9 @@ import { Image } from 'expo-image';
 import { RelativePathString, router } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   ScrollView,
   Text,
   TextInput,
@@ -353,86 +355,103 @@ const MyPageScreen: React.FC = () => {
         animationType='fade'
         onRequestClose={handleCloseDeleteModal}
       >
-        <View className='flex-1 bg-black/50 justify-center items-center px-5'>
-          <View className='bg-white rounded-3xl p-6 w-full max-w-md'>
-            {/* 경고 아이콘 */}
-            <View className='items-center mb-4'>
-              <View className='w-16 h-16 rounded-full bg-red-100 items-center justify-center mb-3'>
-                <Ionicons name='warning' size={32} color='#EF4444' />
-              </View>
-              <Text className='text-2xl font-bold text-gray-900 mb-2'>
-                회원 탈퇴
-              </Text>
-            </View>
-
-            {/* 안내 메시지 */}
-            <View className='mb-6'>
-              <Text className='text-base text-gray-700 mb-3 leading-6'>
-                정말 탈퇴하시겠습니까?
-              </Text>
-              <View className='bg-red-50 border border-red-200 rounded-xl p-4'>
-                <Text className='text-sm text-red-800 font-semibold mb-2'>
-                  탈퇴 시 주의사항:
-                </Text>
-                <Text className='text-sm text-red-700 leading-5'>
-                  • 작성한 여행 계획 및 모집 중인 여행이 모두 삭제됩니다{'\n'}•
-                  여행 참여 정보 및 예약, 찜 정보가 모두 삭제됩니다{'\n'}•
-                  삭제된 데이터는 복구할 수 없습니다
-                </Text>
-              </View>
-            </View>
-
-            {/* 닉네임 확인 입력 */}
-            <View className='mb-6'>
-              <Text className='text-sm font-semibold text-gray-700 mb-2'>
-                탈퇴를 확인하려면 본인의 닉네임을 정확히 입력하세요:
-              </Text>
-              <TextInput
-                value={deleteConfirmNickname}
-                onChangeText={setDeleteConfirmNickname}
-                placeholder={`${user?.nickname || '닉네임'}`}
-                placeholderTextColor='#6B7280'
-                className='border border-gray-300 rounded-xl px-4 py-3 text-base bg-gray-50'
-                autoCapitalize='none'
-                autoCorrect={false}
-                editable={!isDeletingAccount}
-              />
-            </View>
-
-            {/* 버튼 */}
-            <View className='flex-row gap-3'>
-              <TouchableOpacity
-                onPress={handleCloseDeleteModal}
-                disabled={isDeletingAccount}
-                className='flex-1 bg-gray-100 rounded-xl py-4 items-center'
-                activeOpacity={0.7}
+        <View className='flex-1 bg-black/50'>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={{ flex: 1 }}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+          >
+            <View className='flex-1 justify-center items-center px-5'>
+              <ScrollView
+                contentContainerStyle={{
+                  flexGrow: 1,
+                  justifyContent: 'center',
+                }}
+                keyboardShouldPersistTaps='handled'
+                showsVerticalScrollIndicator={false}
               >
-                <Text className='text-gray-700 font-semibold text-base'>
-                  취소
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleConfirmDelete}
-                disabled={!isDeleteButtonEnabled || isDeletingAccount}
-                className={`flex-1 rounded-xl py-4 items-center ${
-                  isDeleteButtonEnabled && !isDeletingAccount
-                    ? 'bg-red-600'
-                    : 'bg-gray-300'
-                }`}
-                activeOpacity={0.7}
-              >
-                {isDeletingAccount ? (
-                  <Text className='text-white font-semibold text-base'>
-                    처리 중...
-                  </Text>
-                ) : (
-                  <Text className='text-white font-semibold text-base'>
-                    탈퇴하기
-                  </Text>
-                )}
-              </TouchableOpacity>
+                <View className='bg-white rounded-3xl p-6 w-full max-w-md'>
+                  {/* 경고 아이콘 */}
+                  <View className='items-center mb-4'>
+                    <View className='w-16 h-16 rounded-full bg-red-100 items-center justify-center mb-3'>
+                      <Ionicons name='warning' size={32} color='#EF4444' />
+                    </View>
+                    <Text className='text-2xl font-bold text-gray-900 mb-2'>
+                      회원 탈퇴
+                    </Text>
+                  </View>
+
+                  {/* 안내 메시지 */}
+                  <View className='mb-6'>
+                    <Text className='text-base text-gray-700 mb-3 leading-6'>
+                      정말 탈퇴하시겠습니까?
+                    </Text>
+                    <View className='bg-red-50 border border-red-200 rounded-xl p-4'>
+                      <Text className='text-sm text-red-800 font-semibold mb-2'>
+                        탈퇴 시 주의사항:
+                      </Text>
+                      <Text className='text-sm text-red-700 leading-5'>
+                        • 작성한 여행 계획 및 모집 중인 여행이 모두 삭제됩니다
+                        {'\n'}• 여행 참여 정보 및 예약, 찜 정보가 모두
+                        삭제됩니다{'\n'}• 삭제된 데이터는 복구할 수 없습니다
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* 닉네임 확인 입력 */}
+                  <View className='mb-6'>
+                    <Text className='text-sm font-semibold text-gray-700 mb-2'>
+                      탈퇴를 확인하려면 본인의 닉네임을 정확히 입력하세요:
+                    </Text>
+                    <TextInput
+                      value={deleteConfirmNickname}
+                      onChangeText={setDeleteConfirmNickname}
+                      placeholder={`${user?.nickname || '닉네임'}`}
+                      placeholderTextColor='#6B7280'
+                      className='border border-gray-300 rounded-xl px-4 py-3 text-base bg-gray-50'
+                      autoCapitalize='none'
+                      autoCorrect={false}
+                      editable={!isDeletingAccount}
+                    />
+                  </View>
+
+                  {/* 버튼 */}
+                  <View className='flex-row gap-3'>
+                    <TouchableOpacity
+                      onPress={handleCloseDeleteModal}
+                      disabled={isDeletingAccount}
+                      className='flex-1 bg-gray-100 rounded-xl py-4 items-center'
+                      activeOpacity={0.7}
+                    >
+                      <Text className='text-gray-700 font-semibold text-base'>
+                        취소
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={handleConfirmDelete}
+                      disabled={!isDeleteButtonEnabled || isDeletingAccount}
+                      className={`flex-1 rounded-xl py-4 items-center ${
+                        isDeleteButtonEnabled && !isDeletingAccount
+                          ? 'bg-red-600'
+                          : 'bg-gray-300'
+                      }`}
+                      activeOpacity={0.7}
+                    >
+                      {isDeletingAccount ? (
+                        <Text className='text-white font-semibold text-base'>
+                          처리 중...
+                        </Text>
+                      ) : (
+                        <Text className='text-white font-semibold text-base'>
+                          탈퇴하기
+                        </Text>
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </ScrollView>
             </View>
-          </View>
+          </KeyboardAvoidingView>
         </View>
       </Modal>
     </View>
