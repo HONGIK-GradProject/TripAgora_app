@@ -110,11 +110,14 @@ const GuideTripListScreen: React.FC = () => {
 
             <TouchableOpacity
               className='bg-purple-500 rounded-2xl p-5'
-              onPress={() =>
+              onPress={() => {
+                const roomIdParam = currentSession.roomId
+                  ? `?roomId=${currentSession.roomId}`
+                  : '';
                 router.push(
-                  `/guide/session/${currentSession.sessionId.toString()}/session-room` as any
-                )
-              }
+                  `/guide/session/${currentSession.sessionId.toString()}/session-room${roomIdParam}` as any
+                );
+              }}
             >
               <View className='flex-row items-center'>
                 <Image

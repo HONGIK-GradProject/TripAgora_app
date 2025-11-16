@@ -133,8 +133,11 @@ const TravelerTripListScreen: React.FC = () => {
               session.status === 'IN_PROGRESS' ||
               session.status === 'RECRUITMENT_CLOSED'
             ) {
+              const roomIdParam = session.roomId
+                ? `?roomId=${session.roomId}`
+                : '';
               router.push(
-                `/traveler/trip/${session.sessionId}/session-room` as any
+                `/traveler/trip/${session.sessionId}/session-room${roomIdParam}` as any
               );
             } else {
               router.push(`/traveler/trip/${session.sessionId}` as any);
@@ -236,8 +239,11 @@ const TravelerTripListScreen: React.FC = () => {
               className='bg-blue-500 rounded-2xl p-5'
               onPress={() => {
                 // 진행 중인 여행은 세션 룸으로 이동
+                const roomIdParam = currentSession.roomId
+                  ? `?roomId=${currentSession.roomId}`
+                  : '';
                 router.push(
-                  `/traveler/trip/${currentSession.sessionId}/session-room` as any
+                  `/traveler/trip/${currentSession.sessionId}/session-room${roomIdParam}` as any
                 );
               }}
             >

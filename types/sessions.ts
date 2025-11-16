@@ -74,6 +74,7 @@ interface SessionInfo {
   startDate: string; // yyyy-mm-dd 형식
   endDate: string; // yyyy-mm-dd 형식
   status: SessionStatus;
+  roomId?: number; // 세션 룸 번호 (모집 완료 또는 진행 중인 세션에만 존재)
 }
 
 /**
@@ -169,7 +170,7 @@ interface SessionGetResponse extends APIResponse<SessionGetData> {
 /**
  * 세션 일정 정보 타입
  */
-type SessionItinerary = TemplateItinerary & { startDate: string }
+type SessionItinerary = TemplateItinerary & { startDate: string };
 
 /**
  * 세션 일정 조회 요청 데이터 (빈 데이터)
@@ -275,6 +276,5 @@ export {
   SessionStatus,
   SessionUpdateData,
   SessionUpdateRequest,
-  SessionUpdateResponse
+  SessionUpdateResponse,
 };
-

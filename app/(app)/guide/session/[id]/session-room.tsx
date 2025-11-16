@@ -19,7 +19,10 @@ import {
  */
 const SessionRoomContent: React.FC = () => {
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, roomId: roomIdParam } = useLocalSearchParams<{
+    id: string;
+    roomId?: string;
+  }>();
   const [selectedDay, setSelectedDay] = useState(1);
 
   // 세션 상세 정보 가져오기
@@ -28,10 +31,13 @@ const SessionRoomContent: React.FC = () => {
     title = '',
     startDate = '',
     endDate = '',
-    roomId,
+    roomId: roomIdFromDetails,
     itineraries = {},
     isLoading = true,
   } = sessionDetails || {};
+
+  // 쿼리 파라미터의 roomId를 우선 사용, 없으면 상세 조회에서 받아온 roomId 사용
+  const roomId = roomIdParam ? parseInt(roomIdParam) : roomIdFromDetails;
 
   // 일정 관련 상태
   const availableDays = useMemo(
