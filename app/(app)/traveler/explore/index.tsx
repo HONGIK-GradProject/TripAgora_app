@@ -633,7 +633,8 @@ const TravelerExploreScreen: React.FC = () => {
         >
           {error ? (
             <View className='flex-1 items-center justify-center py-20'>
-              <Text className='text-red-500 text-lg'>
+              <Ionicons name='alert-circle-outline' size={48} color='#EF4444' />
+              <Text className='text-red-500 text-lg mt-4'>
                 세션 목록을 불러오는데 실패했습니다.
               </Text>
               <TouchableOpacity
@@ -642,12 +643,6 @@ const TravelerExploreScreen: React.FC = () => {
               >
                 <Text className='text-white font-semibold'>다시 시도</Text>
               </TouchableOpacity>
-            </View>
-          ) : products.length === 0 && !isLoading ? (
-            <View className='flex-1 items-center justify-center py-20'>
-              <Text className='text-gray-500 text-lg'>
-                모집 중인 여행이 없습니다.
-              </Text>
             </View>
           ) : (
             <TravelerProductList
@@ -660,6 +655,31 @@ const TravelerExploreScreen: React.FC = () => {
                   colors={['#8130FF']}
                   tintColor='#8130FF'
                 />
+              }
+              ListEmptyComponent={
+                !isLoading ? (
+                  <View className='flex-1 items-center justify-center py-20'>
+                    <Ionicons name='search-outline' size={48} color='#9CA3AF' />
+                    <Text className='text-gray-500 text-lg mt-4'>
+                      {submittedQuery.trim() ||
+                      searchStartDate ||
+                      searchEndDate ||
+                      selectedRegionIds.length > 0 ||
+                      selectedTagIds.length > 0
+                        ? '검색 결과가 없습니다.'
+                        : '모집 중인 여행이 없습니다.'}
+                    </Text>
+                    {!submittedQuery.trim() &&
+                      !searchStartDate &&
+                      !searchEndDate &&
+                      selectedRegionIds.length === 0 &&
+                      selectedTagIds.length === 0 && (
+                        <Text className='text-gray-400 text-sm mt-2'>
+                          다른 조건으로 검색해보세요!
+                        </Text>
+                      )}
+                  </View>
+                ) : null
               }
               ListFooterComponent={
                 isLoading && sessions.length > 0 ? (

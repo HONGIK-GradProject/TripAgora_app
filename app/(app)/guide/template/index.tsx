@@ -40,6 +40,13 @@ const MyTemplatesScreen: React.FC = () => {
     setSubmittedQuery(query);
   };
 
+  // 검색어가 비워졌을 때 자동으로 전체 조회
+  React.useEffect(() => {
+    if (searchQuery.trim() === '' && submittedQuery.trim() !== '') {
+      setSubmittedQuery('');
+    }
+  }, [searchQuery, submittedQuery]);
+
   useFocusEffect(
     useCallback(() => {
       refetch();
@@ -110,6 +117,21 @@ const MyTemplatesScreen: React.FC = () => {
                 onEndReached={handleLoadMore}
                 onEndReachedThreshold={0.5}
                 ListFooterComponent={renderFooter}
+                ListEmptyComponent={
+                  <View className='flex-1 items-center justify-center py-20'>
+                    <Ionicons name='document-outline' size={48} color='#9CA3AF' />
+                    <Text className='text-gray-500 text-lg mt-4'>
+                      {submittedQuery.trim()
+                        ? '검색 결과가 없습니다.'
+                        : '등록된 여행 계획이 없습니다.'}
+                    </Text>
+                    {!submittedQuery.trim() && (
+                      <Text className='text-gray-400 text-sm mt-2'>
+                        우측 하단 버튼을 눌러 여행 계획을 만들어보세요!
+                      </Text>
+                    )}
+                  </View>
+                }
                 onRefresh={handleRefetch}
                 refreshing={isLoading}
                 contentContainerStyle={{ paddingBottom: 180 + bottom }}
