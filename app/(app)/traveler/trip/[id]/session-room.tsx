@@ -30,6 +30,7 @@ const TravelerSessionRoomContent: React.FC = () => {
     endDate = '',
     maxParticipants = 0,
     currentParticipants = 0,
+    roomId,
     itineraries = {},
     isLoading = true,
   } = sessionDetails || {};
@@ -149,8 +150,11 @@ const TravelerSessionRoomContent: React.FC = () => {
           <TouchableOpacity
             style={[styles.actionButton, styles.noticeButton]}
             onPress={() => {
-              router.push(`/traveler/trip/${id}/notice` as any);
+              if (roomId) {
+                router.push(`/traveler/trip/${id}/notice?roomId=${roomId}` as any);
+              }
             }}
+            disabled={!roomId}
           >
             <Ionicons name='megaphone' size={20} color='#FF8330' />
             <Text style={[styles.actionButtonText, styles.noticeButtonText]}>

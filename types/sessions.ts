@@ -159,6 +159,7 @@ interface SessionGetData {
   guideProfileId: number;
   isMySession: boolean;
   isInWishlist: boolean;
+  roomId: number; // 세션 룸 번호
 }
 
 interface SessionGetResponse extends APIResponse<SessionGetData> {

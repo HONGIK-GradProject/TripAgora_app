@@ -28,6 +28,7 @@ const SessionRoomContent: React.FC = () => {
     title = '',
     startDate = '',
     endDate = '',
+    roomId,
     itineraries = {},
     isLoading = true,
   } = sessionDetails || {};
@@ -57,7 +58,9 @@ const SessionRoomContent: React.FC = () => {
 
   // 공지하기 기능
   const handleAnnounce = () => {
-    router.push(`/guide/session/${id}/announce`);
+    if (roomId) {
+      router.push(`/guide/session/${id}/announce?roomId=${roomId}` as any);
+    }
   };
 
   // 일정 편집 기능
@@ -119,6 +122,7 @@ const SessionRoomContent: React.FC = () => {
           <TouchableOpacity
             style={[styles.actionButton, styles.announceButton]}
             onPress={handleAnnounce}
+            disabled={!roomId}
           >
             <Ionicons name='notifications' size={20} color='#FF8330' />
             <Text style={[styles.actionButtonText, styles.announceButtonText]}>

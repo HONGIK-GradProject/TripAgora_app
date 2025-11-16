@@ -33,6 +33,7 @@ const useSessionDetailsLogic = (id: string) => {
   );
   const [isMySession, setIsMySession] = useState<boolean>(false);
   const [isInWishlist, setIsInWishlist] = useState<boolean>(false);
+  const [roomId, setRoomId] = useState<number | undefined>(undefined);
   const [itineraries, setItineraries] = useState<{
     [key: number]: SessionItinerary[];
   }>({});
@@ -65,6 +66,7 @@ const useSessionDetailsLogic = (id: string) => {
         setGuideProfileId(sessionResponse.guideProfileId);
         setIsMySession(sessionResponse.isMySession);
         setIsInWishlist(sessionResponse.isInWishlist);
+        setRoomId(sessionResponse.roomId);
       }
 
       if (itinerariesResponse) {
@@ -107,6 +109,7 @@ const useSessionDetailsLogic = (id: string) => {
     guideProfileId,
     isMySession,
     isInWishlist,
+    roomId,
     itineraries,
     setTitle,
     setContent,
@@ -123,6 +126,7 @@ const useSessionDetailsLogic = (id: string) => {
     setGuideProfileId,
     setIsMySession,
     setIsInWishlist,
+    setRoomId,
     setItineraries,
     refetch: fetchSessionDetails,
   };
