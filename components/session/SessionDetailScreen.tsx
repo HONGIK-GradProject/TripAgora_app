@@ -374,7 +374,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
   const handleDeleteSession = useCallback(async () => {
     if (!id) return;
 
-    Alert.alert('여행행 삭제', '정말로 이 여행행을 삭제하시겠습니까?', [
+    Alert.alert('여행 삭제', '정말로 이 여행을 삭제하시겠습니까?', [
       {
         text: '취소',
         style: 'cancel',

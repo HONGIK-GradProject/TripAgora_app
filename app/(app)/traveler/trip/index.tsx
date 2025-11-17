@@ -7,12 +7,12 @@ import { Image } from 'expo-image';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
-    ActivityIndicator,
-    FlatList,
-    RefreshControl,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 const TravelerTripListScreen: React.FC = () => {
@@ -184,13 +184,13 @@ const TravelerTripListScreen: React.FC = () => {
                     numberOfLines={2}
                     ellipsizeMode='tail'
                   >
-                    {((Array.isArray(session.regionIds) &&
+                    {(Array.isArray(session.regionIds) &&
                     session.regionIds.length > 0
                       ? session.regionIds.map((id) => REGION_ID_TO_NAME_MAP[id])
                       : (session as any).regionNames || []
                     )
                       .filter(Boolean)
-                      .join(', ')) || '지역 정보 없음'}
+                      .join(', ') || '지역 정보 없음'}
                   </Text>
                 </View>
               </View>
@@ -225,7 +225,9 @@ const TravelerTripListScreen: React.FC = () => {
       <View className='flex-1 bg-gray-50'>
         {/* 헤더 */}
         <View className='bg-white pt-6 pb-4 px-6'>
-          <Text className='text-3xl font-bold text-gray-900'>나의 여행 목록</Text>
+          <Text className='text-3xl font-bold text-gray-900'>
+            나의 여행 목록
+          </Text>
         </View>
 
         {/* 현재 진행 중인 여행 섹션 */}
@@ -243,7 +245,7 @@ const TravelerTripListScreen: React.FC = () => {
                   ? `?roomId=${currentSession.roomId}`
                   : '';
                 router.push(
-                  `/traveler/trip/${currentSession.sessionId}/session-room${roomIdParam}` as any
+                  `/traveler/trip/${currentSession.sessionId}/session-room/${roomIdParam}` as any
                 );
               }}
             >
@@ -293,7 +295,7 @@ const TravelerTripListScreen: React.FC = () => {
                       numberOfLines={2}
                       ellipsizeMode='tail'
                     >
-                      {((Array.isArray(currentSession.regionIds) &&
+                      {(Array.isArray(currentSession.regionIds) &&
                       currentSession.regionIds.length > 0
                         ? currentSession.regionIds.map(
                             (id) => REGION_ID_TO_NAME_MAP[id]
@@ -301,7 +303,7 @@ const TravelerTripListScreen: React.FC = () => {
                         : (currentSession as any).regionNames || []
                       )
                         .filter(Boolean)
-                        .join(', ')) || '지역 정보 없음'}
+                        .join(', ') || '지역 정보 없음'}
                     </Text>
                   </View>
                 </View>

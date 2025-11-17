@@ -38,11 +38,18 @@ const AnnounceScreen: React.FC<AnnounceScreenProps> = ({
 }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { id, roomId } = useLocalSearchParams<{ id: string; roomId?: string }>();
+  const { id, roomId } = useLocalSearchParams<{
+    id: string;
+    roomId?: string;
+  }>();
   const isTraveler = userType === 'traveler';
-  
+
   // roomId가 쿼리 파라미터로 전달된 경우 사용, 없으면 id(sessionId)를 사용 (하위 호환성)
-  const effectiveRoomId = roomId ? parseInt(roomId) : (id ? parseInt(id) : undefined);
+  const effectiveRoomId = roomId
+    ? parseInt(roomId)
+    : id
+    ? parseInt(id)
+    : undefined;
 
   const [announcementTitle, setAnnouncementTitle] = useState('');
   const [announcement, setAnnouncement] = useState('');
@@ -463,7 +470,7 @@ const AnnounceScreen: React.FC<AnnounceScreenProps> = ({
                             {notice.title}
                           </Text>
                           <Text style={styles.announcementTime}>
-                            {new Date(notice.createdAt).toLocaleString(
+                            {new Date(notice.createdAt + 'Z').toLocaleString(
                               'ko-KR',
                               {
                                 year: 'numeric',
