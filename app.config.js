@@ -33,6 +33,7 @@ export default {
     },
     plugins: [
       'expo-router',
+      'expo-localization',
       [
         'expo-splash-screen',
         {

@@ -1,15 +1,17 @@
 import { StyleSheet, ViewProps } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Edge, SafeAreaView } from "react-native-safe-area-context";
 
 interface SafeViewProps {
   children: React.ReactNode;
   style?: ViewProps['style'];
+  edges?: Edge[];
 }
 
-const CustomSafeAreaView = ({ children, style } : SafeViewProps) => {
+const CustomSafeAreaView = ({ children, style, edges } : SafeViewProps) => {
   return (
     <SafeAreaView
       style={[styles.safeArea, style]}
+      edges={edges}
     >
       { children }
     </SafeAreaView>
