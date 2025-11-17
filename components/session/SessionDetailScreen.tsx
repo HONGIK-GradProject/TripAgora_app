@@ -63,6 +63,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
     status = '',
     participants = [],
     isParticipating: contextIsParticipating = false,
+    hasWrittenReview = false,
     itineraries = {},
     isLoading = true,
     refetch = () => {},
@@ -985,7 +986,9 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
             style={[styles.ctaButton, styles.completedButton]}
             onPress={handleWriteReview}
           >
-            <Text style={styles.completedButtonText}>리뷰 작성하기</Text>
+            <Text style={styles.completedButtonText}>
+              {hasWrittenReview ? '리뷰 다시 작성하기' : '리뷰 작성하기'}
+            </Text>
           </TouchableOpacity>
         ) : isParticipating ? (
           <TouchableOpacity

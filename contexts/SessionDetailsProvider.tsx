@@ -29,6 +29,7 @@ const useSessionDetailsLogic = (id: string) => {
   const [status, setStatus] = useState<string>('');
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [isParticipating, setIsParticipating] = useState<boolean>(false);
+  const [hasWrittenReview, setHasWrittenReview] = useState<boolean>(false);
   const [itineraries, setItineraries] = useState<{
     [key: number]: SessionItinerary[];
   }>({});
@@ -59,6 +60,7 @@ const useSessionDetailsLogic = (id: string) => {
         setStatus(sessionResponse.status);
         setParticipants(sessionResponse.participants);
         setIsParticipating(sessionResponse.isParticipating);
+        setHasWrittenReview(sessionResponse.hasWrittenReview ?? false);
       }
 
       if (itinerariesResponse) {
@@ -99,6 +101,7 @@ const useSessionDetailsLogic = (id: string) => {
     status,
     participants,
     isParticipating,
+    hasWrittenReview,
     itineraries,
     setTemplateId,
     setTitle,
@@ -113,6 +116,7 @@ const useSessionDetailsLogic = (id: string) => {
     setStatus,
     setParticipants,
     setIsParticipating,
+    setHasWrittenReview,
     setItineraries,
     refetch: fetchSessionDetails,
   };
