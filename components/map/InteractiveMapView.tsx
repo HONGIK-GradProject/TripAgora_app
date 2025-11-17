@@ -167,9 +167,9 @@ export const InteractiveMapView = memo(
                     : DEFAULT_COORDS
                 }
                 width={8}
-                color='#8130FF'
+                color='#5B67F5'
                 outlineWidth={2}
-                outlineColor='#dbc7ff'
+                outlineColor='#C5CCFF'
               />
             )}
           </MapView>

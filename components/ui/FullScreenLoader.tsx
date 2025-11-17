@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 interface FullScreenLoaderProps {
   size?: 'large' | 'small';
@@ -11,7 +11,7 @@ interface FullScreenLoaderProps {
  */
 const FullScreenLoader: React.FC<FullScreenLoaderProps> = ({
   size = 'large',
-  color = '#8130FF',
+  color = '#5B67F5',
 }) => {
   return (
     <View style={styles.container}>

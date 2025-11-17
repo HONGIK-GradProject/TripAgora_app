@@ -100,8 +100,8 @@ const MyTemplatesScreen: React.FC = () => {
           </Text>
         ) : (
           <>
-            <View className='px-5'>
-              <Text className='text-3xl font-bold mb-5'>나의 여행 계획</Text>
+            <View className='px-6'>
+              <Text className='text-3xl font-bold mb-2'>나의 여행 계획</Text>
             </View>
             <SearchWithAutoComplete
               query={searchQuery}
@@ -110,7 +110,7 @@ const MyTemplatesScreen: React.FC = () => {
               onSearch={handleSearch}
               placeholder='제목으로 여행 계획 찾기'
             />
-            <View className='bg-gray-50 rounded-2xl p-4'>
+            <View className='bg-gray-50 rounded-2xl px-6 py-4'>
               <GuideTemplateList
                 templates={filteredTemplates}
                 userRole='GUIDE'
@@ -119,7 +119,11 @@ const MyTemplatesScreen: React.FC = () => {
                 ListFooterComponent={renderFooter}
                 ListEmptyComponent={
                   <View className='flex-1 items-center justify-center py-20'>
-                    <Ionicons name='document-outline' size={48} color='#9CA3AF' />
+                    <Ionicons
+                      name='document-outline'
+                      size={48}
+                      color='#9CA3AF'
+                    />
                     <Text className='text-gray-500 text-lg mt-4'>
                       {submittedQuery.trim()
                         ? '검색 결과가 없습니다.'
@@ -150,7 +154,7 @@ const MyTemplatesScreen: React.FC = () => {
           onPress={handleCreateTemplate}
         >
           <View style={{ marginLeft: -6, marginTop: -6 }}>
-            <Ionicons name='add-circle' size={68} color={'#613eea'} />
+            <Ionicons name='add-circle' size={68} color={'#5B67F5'} />
           </View>
         </TouchableOpacity>
       </View>

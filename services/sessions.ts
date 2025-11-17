@@ -127,6 +127,25 @@ export const getParticipatingSessionList = async (
 };
 
 /**
+ * 내가 참여하여 완료한 세션 목록을 조회합니다.
+ * @param page - 조회할 페이지 번호
+ * @returns 성공 시 완료된 세션 목록 데이터 (hasWrittenReview 포함), 실패 시 undefined
+ */
+export const getCompletedSessions = async (page: number) => {
+  try {
+    const response = await sessionsApi.getCompletedSessions(page);
+
+    if (response && response.code === 200) {
+      return response.data;
+    }
+
+    throw new Error('완료된 세션 목록 조회 에러');
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+/**
  * 세션을 검색합니다.
  * @param keyword - 검색 키워드 (선택사항)
  * @param searchStartDate - 검색 시작 날짜 (yyyy-MM-dd 형식, 선택사항)

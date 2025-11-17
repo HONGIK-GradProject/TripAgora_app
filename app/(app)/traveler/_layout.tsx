@@ -93,8 +93,8 @@ const TravelerTabLayout: React.FC = () => {
                 android_ripple={{ borderless: false, color: 'transparent' }}
                 className='-top-7 justify-center items-center'
               >
-                <View className='w-20 h-20 rounded-full bg-[#a9c0ffa3] justify-center items-center shadow-lg'>
-                  <View className='w-16 h-16 rounded-full bg-[#6C4CE9] justify-center items-center shadow-lg'>
+                <View className='w-20 h-20 rounded-full bg-[#5B67F533] justify-center items-center shadow-lg'>
+                  <View className='w-16 h-16 rounded-full bg-[#5B67F5] justify-center items-center shadow-lg'>
                     {props.children}
                   </View>
                 </View>

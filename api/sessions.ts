@@ -5,6 +5,8 @@ import {
   SessionCreateResponse,
   SessionDeleteRequest,
   SessionDeleteResponse,
+  SessionGetCompletedRequest,
+  SessionGetCompletedResponse,
   SessionGetItinerariesRequest,
   SessionGetItinerariesResponse,
   SessionGetListRequest,
@@ -127,6 +129,26 @@ const getParticipatingSessionList = async (
   };
   const response = await apiClient.get<SessionGetListResponse>(
     '/sessions/participating',
+    requestData
+  );
+  return response.data;
+};
+
+/**
+ * 내가 참여하여 완료한 세션 목록을 조회합니다.
+ * @param page - 조회할 페이지 번호
+ * @returns 완료된 세션 목록 정보를 담은 Promise (hasWrittenReview 포함)
+ */
+const getCompletedSessions = async (
+  page: number
+): Promise<SessionGetCompletedResponse> => {
+  const requestData: SessionGetCompletedRequest = {
+    params: {
+      page,
+    },
+  };
+  const response = await apiClient.get<SessionGetCompletedResponse>(
+    '/sessions/completed',
     requestData
   );
   return response.data;
@@ -261,6 +283,7 @@ export const sessionsApi = {
   deleteSession,
   getSessionList,
   getParticipatingSessionList,
+  getCompletedSessions,
   searchSessions,
   getSession,
   getSessionItineraries,

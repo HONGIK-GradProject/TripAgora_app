@@ -268,6 +268,12 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
   const handleCancelEditPortfolios = () => {
     setIsEditingPortfolios(false);
     setEditingPortfolios([]);
+    setIsAddingPortfolio(false);
+    setNewPortfolioType('');
+    setNewPortfolioUrl('');
+    setEditingPortfolioIndex(null);
+    setEditingPortfolioType('');
+    setEditingPortfolioUrl('');
   };
 
   // 포트폴리오 추가 상태
@@ -276,6 +282,15 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
     Portfolio['type'] | ''
   >('');
   const [newPortfolioUrl, setNewPortfolioUrl] = useState('');
+
+  // 포트폴리오 수정 상태
+  const [editingPortfolioIndex, setEditingPortfolioIndex] = useState<
+    number | null
+  >(null);
+  const [editingPortfolioType, setEditingPortfolioType] = useState<
+    Portfolio['type'] | ''
+  >('');
+  const [editingPortfolioUrl, setEditingPortfolioUrl] = useState('');
 
   // 포트폴리오 타입 목록
   const PORTFOLIO_TYPES: Portfolio['type'][] = [
@@ -289,6 +304,7 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
   // 포트폴리오 추가
   const handleAddPortfolio = () => {
     setIsAddingPortfolio(true);
+    setEditingPortfolioIndex(null);
     setNewPortfolioType('');
     setNewPortfolioUrl('');
   };
@@ -306,9 +322,52 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
     }
   };
 
+  // 포트폴리오 수정 시작
+  const handleStartEditPortfolio = (index: number) => {
+    const portfolio = editingPortfolios[index];
+    setEditingPortfolioIndex(index);
+    setEditingPortfolioType(portfolio.type);
+    setEditingPortfolioUrl(portfolio.url);
+    setIsAddingPortfolio(false);
+  };
+
+  // 포트폴리오 수정 완료
+  const handleConfirmEditPortfolio = () => {
+    if (
+      editingPortfolioIndex !== null &&
+      editingPortfolioType &&
+      editingPortfolioUrl
+    ) {
+      const updatedPortfolios = [...editingPortfolios];
+      updatedPortfolios[editingPortfolioIndex] = {
+        type: editingPortfolioType,
+        url: editingPortfolioUrl,
+      };
+      setEditingPortfolios(updatedPortfolios);
+      setEditingPortfolioIndex(null);
+      setEditingPortfolioType('');
+      setEditingPortfolioUrl('');
+    }
+  };
+
+  // 포트폴리오 수정 취소
+  const handleCancelEditPortfolio = () => {
+    setEditingPortfolioIndex(null);
+    setEditingPortfolioType('');
+    setEditingPortfolioUrl('');
+  };
+
   // 포트폴리오 삭제
   const handleRemovePortfolio = (index: number) => {
     setEditingPortfolios(editingPortfolios.filter((_, i) => i !== index));
+    if (editingPortfolioIndex === index) {
+      handleCancelEditPortfolio();
+    } else if (
+      editingPortfolioIndex !== null &&
+      editingPortfolioIndex > index
+    ) {
+      setEditingPortfolioIndex(editingPortfolioIndex - 1);
+    }
   };
 
   // 포트폴리오 저장
@@ -381,12 +440,19 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
 
   const handlePortfolioPress = async (portfolio: Portfolio) => {
     try {
-      const canOpen = await Linking.canOpenURL(portfolio.url);
-      if (canOpen) {
-        await Linking.openURL(portfolio.url);
+      // URL이 http:// 또는 https://로 시작하는지 확인
+      let url = portfolio.url.trim();
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = `https://${url}`;
       }
+      await Linking.openURL(url);
     } catch (error) {
       console.error('포트폴리오 링크 열기 실패:', error);
+      Toast.show({
+        type: 'error',
+        text1: '링크를 열 수 없습니다',
+        text2: '열 수 없는 URL이 설정되어 있습니다.',
+      });
     }
   };
 
@@ -397,13 +463,22 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
       case 'INSTAGRAM':
         return 'logo-instagram';
       case 'TWITTER':
-        return 'logo-twitter';
+        return 'logo-x'; // X 로고 아이콘
       case 'YOUTUBE':
         return 'logo-youtube';
       case 'WEBSITE':
         return 'globe-outline';
       default:
         return 'link-outline';
+    }
+  };
+
+  const getPortfolioDisplayName = (type: Portfolio['type']) => {
+    switch (type) {
+      case 'TWITTER':
+        return 'X';
+      default:
+        return type;
     }
   };
 
@@ -414,7 +489,7 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
         className='flex-1 bg-gray-50 justify-center items-center'
         style={{ paddingTop: insets.top }}
       >
-        <ActivityIndicator size='large' color='#8130FF' />
+        <ActivityIndicator size='large' color='#5B67F5' />
         <Text className='text-gray-500 mt-4'>프로필을 불러오는 중...</Text>
       </View>
     );
@@ -471,8 +546,8 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
               <RefreshControl
                 refreshing={isLoadingProfile}
                 onRefresh={handleRefresh}
-                colors={['#8130FF']}
-                tintColor='#8130FF'
+                colors={['#5B67F5']}
+                tintColor='#5B67F5'
               />
             ) : undefined
           }
@@ -611,9 +686,16 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
                   {guideInfo.tags.map((tagId) => (
                     <View
                       key={tagId}
-                      className='bg-purple-50 border border-purple-200 rounded-full px-3 py-1 mr-2 mb-2'
+                      className='rounded-full px-3 py-1 mr-2 mb-2 border'
+                      style={{
+                        backgroundColor: '#E6E9FF',
+                        borderColor: '#C5CCFF',
+                      }}
                     >
-                      <Text className='text-purple-700 text-sm font-medium'>
+                      <Text
+                        className='text-sm font-medium'
+                        style={{ color: '#5B67F5' }}
+                      >
                         {TAG_ID_TO_NAME_MAP[tagId] || `태그 ${tagId}`}
                       </Text>
                     </View>
@@ -653,7 +735,7 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
                         color='#6B7280'
                       />
                       <Text className='text-gray-700 text-sm font-medium ml-2'>
-                        {portfolio.type}
+                        {getPortfolioDisplayName(portfolio.type)}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -714,9 +796,15 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
                           : '지역 정보 없음'}
                       </Text>
                     </View>
-                    <View className='bg-purple-100 px-3 py-1 rounded-full ml-2'>
-                      <Text className='text-sm text-purple-700 font-medium'>
-                        모집중
+                    <View
+                      className='px-3 py-1 rounded-full ml-2'
+                      style={{ backgroundColor: '#E6E9FF' }}
+                    >
+                      <Text
+                        className='text-sm font-medium'
+                        style={{ color: '#5B67F5' }}
+                      >
+                        모집 중
                       </Text>
                     </View>
                   </TouchableOpacity>
@@ -818,46 +906,154 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
 
                 <ScrollView className='max-h-96'>
                   {editingPortfolios.map((portfolio, index) => (
-                    <View
-                      key={index}
-                      className='flex-row items-center justify-between bg-gray-50 rounded-lg p-3 mb-2'
-                    >
-                      <View className='flex-row items-center flex-1'>
-                        <Ionicons
-                          name={getPortfolioIcon(portfolio.type)}
-                          size={20}
-                          color='#6B7280'
-                        />
-                        <View className='ml-3 flex-1'>
-                          <Text className='text-gray-900 font-medium'>
-                            {portfolio.type}
+                    <View key={index}>
+                      {editingPortfolioIndex === index ? (
+                        // 수정 모드
+                        <View
+                          className='rounded-lg p-4 mb-2'
+                          style={{ backgroundColor: '#E6E9FF' }}
+                        >
+                          <Text className='text-gray-900 font-semibold mb-2'>
+                            포트폴리오 수정
                           </Text>
-                          <Text
-                            className='text-gray-500 text-sm'
-                            numberOfLines={1}
-                          >
-                            {portfolio.url}
-                          </Text>
+                          <View className='mb-3'>
+                            <Text className='text-gray-700 text-sm mb-1'>
+                              타입
+                            </Text>
+                            <View className='flex-row flex-wrap'>
+                              {PORTFOLIO_TYPES.map((type) => (
+                                <TouchableOpacity
+                                  key={type}
+                                  onPress={() => setEditingPortfolioType(type)}
+                                  className='mr-2 mb-2 px-3 py-1 rounded-full'
+                                  style={{
+                                    backgroundColor:
+                                      editingPortfolioType === type
+                                        ? '#5B67F5'
+                                        : '#FFFFFF',
+                                    borderWidth:
+                                      editingPortfolioType === type ? 0 : 1,
+                                    borderColor: '#C5CCFF',
+                                  }}
+                                  activeOpacity={0.7}
+                                >
+                                  <Text
+                                    className='text-sm'
+                                    style={{
+                                      color:
+                                        editingPortfolioType === type
+                                          ? '#FFFFFF'
+                                          : '#4B5563',
+                                    }}
+                                  >
+                                    {getPortfolioDisplayName(type)}
+                                  </Text>
+                                </TouchableOpacity>
+                              ))}
+                            </View>
+                          </View>
+                          <View className='mb-3'>
+                            <Text className='text-gray-700 text-sm mb-1'>
+                              URL
+                            </Text>
+                            <TextInput
+                              className='bg-white border border-gray-300 rounded-lg p-3'
+                              value={editingPortfolioUrl}
+                              onChangeText={setEditingPortfolioUrl}
+                              placeholder='https://...'
+                              placeholderTextColor='#9CA3AF'
+                              autoCapitalize='none'
+                              keyboardType='url'
+                            />
+                          </View>
+                          <View className='flex-row'>
+                            <TouchableOpacity
+                              onPress={handleCancelEditPortfolio}
+                              className='flex-1 bg-gray-200 rounded-lg px-4 py-2 items-center mr-2'
+                              activeOpacity={0.7}
+                            >
+                              <Text className='text-gray-700 font-semibold'>
+                                취소
+                              </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              onPress={handleConfirmEditPortfolio}
+                              className='flex-1 rounded-lg px-4 py-2 items-center ml-2'
+                              activeOpacity={0.7}
+                              disabled={
+                                !editingPortfolioType || !editingPortfolioUrl
+                              }
+                              style={{
+                                backgroundColor: '#5B67F5',
+                                opacity:
+                                  !editingPortfolioType || !editingPortfolioUrl
+                                    ? 0.6
+                                    : 1,
+                              }}
+                            >
+                              <Text className='text-white font-semibold'>
+                                저장
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
                         </View>
-                      </View>
-                      <TouchableOpacity
-                        onPress={() => handleRemovePortfolio(index)}
-                        activeOpacity={0.7}
-                        className='ml-2'
-                      >
-                        <Ionicons
-                          name='trash-outline'
-                          size={20}
-                          color='#EF4444'
-                        />
-                      </TouchableOpacity>
+                      ) : (
+                        // 일반 모드
+                        <View className='flex-row items-center justify-between bg-gray-50 rounded-lg p-3 mb-2'>
+                          <View className='flex-row items-center flex-1'>
+                            <Ionicons
+                              name={getPortfolioIcon(portfolio.type)}
+                              size={20}
+                              color='#6B7280'
+                            />
+                            <View className='ml-3 flex-1'>
+                              <Text className='text-gray-900 font-medium'>
+                                {getPortfolioDisplayName(portfolio.type)}
+                              </Text>
+                              <Text
+                                className='text-gray-500 text-sm'
+                                numberOfLines={1}
+                              >
+                                {portfolio.url}
+                              </Text>
+                            </View>
+                          </View>
+                          <View className='flex-row items-center'>
+                            <TouchableOpacity
+                              onPress={() => handleStartEditPortfolio(index)}
+                              activeOpacity={0.7}
+                              className='ml-2'
+                            >
+                              <Ionicons
+                                name='create-outline'
+                                size={20}
+                                color='#5B67F5'
+                              />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              onPress={() => handleRemovePortfolio(index)}
+                              activeOpacity={0.7}
+                              className='ml-2'
+                            >
+                              <Ionicons
+                                name='trash-outline'
+                                size={20}
+                                color='#EF4444'
+                              />
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      )}
                     </View>
                   ))}
                 </ScrollView>
 
                 {/* 포트폴리오 추가 폼 */}
                 {isAddingPortfolio && (
-                  <View className='bg-purple-50 rounded-lg p-4 mb-3 mt-4'>
+                  <View
+                    className='rounded-lg p-4 mb-3 mt-4'
+                    style={{ backgroundColor: '#E6E9FF' }}
+                  >
                     <Text className='text-gray-900 font-semibold mb-2'>
                       포트폴리오 추가
                     </Text>
@@ -868,19 +1064,25 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
                           <TouchableOpacity
                             key={type}
                             onPress={() => setNewPortfolioType(type)}
-                            className={`mr-2 mb-2 px-3 py-1 rounded-full ${
-                              newPortfolioType === type
-                                ? 'bg-purple-600'
-                                : 'bg-white border border-gray-300'
-                            }`}
+                            className='mr-2 mb-2 px-3 py-1 rounded-full'
+                            style={{
+                              backgroundColor:
+                                newPortfolioType === type
+                                  ? '#5B67F5'
+                                  : '#FFFFFF',
+                              borderWidth: newPortfolioType === type ? 0 : 1,
+                              borderColor: '#C5CCFF',
+                            }}
                             activeOpacity={0.7}
                           >
                             <Text
-                              className={`text-sm ${
-                                newPortfolioType === type
-                                  ? 'text-white'
-                                  : 'text-gray-700'
-                              }`}
+                              className='text-sm'
+                              style={{
+                                color:
+                                  newPortfolioType === type
+                                    ? '#FFFFFF'
+                                    : '#4B5563',
+                              }}
                             >
                               {type}
                             </Text>
@@ -916,9 +1118,14 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
                       </TouchableOpacity>
                       <TouchableOpacity
                         onPress={handleConfirmAddPortfolio}
-                        className='flex-1 bg-purple-600 rounded-lg px-4 py-2 items-center ml-2'
+                        className='flex-1 rounded-lg px-4 py-2 items-center ml-2'
                         activeOpacity={0.7}
                         disabled={!newPortfolioType || !newPortfolioUrl}
+                        style={{
+                          backgroundColor: '#5B67F5',
+                          opacity:
+                            !newPortfolioType || !newPortfolioUrl ? 0.6 : 1,
+                        }}
                       >
                         <Text className='text-white font-semibold'>추가</Text>
                       </TouchableOpacity>
@@ -929,15 +1136,23 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
                 {!isAddingPortfolio && (
                   <TouchableOpacity
                     onPress={handleAddPortfolio}
-                    className='bg-purple-50 border border-purple-200 rounded-xl px-4 py-3 flex-row items-center justify-center mb-3 mt-4'
+                    className='rounded-xl px-4 py-3 flex-row items-center justify-center mb-3 mt-4'
                     activeOpacity={0.7}
+                    style={{
+                      backgroundColor: '#E6E9FF',
+                      borderWidth: 1,
+                      borderColor: '#C5CCFF',
+                    }}
                   >
                     <Ionicons
                       name='add-circle-outline'
                       size={20}
-                      color='#8130FF'
+                      color='#5B67F5'
                     />
-                    <Text className='text-purple-700 font-semibold ml-2'>
+                    <Text
+                      className='font-semibold ml-2'
+                      style={{ color: '#5B67F5' }}
+                    >
                       포트폴리오 추가
                     </Text>
                   </TouchableOpacity>
@@ -953,9 +1168,13 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={handleSavePortfolios}
-                    className='flex-1 bg-purple-600 rounded-xl px-6 py-3 items-center ml-2'
+                    className='flex-1 rounded-xl px-6 py-3 items-center ml-2'
                     activeOpacity={0.7}
                     disabled={isSavingPortfolios}
+                    style={{
+                      backgroundColor: '#5B67F5',
+                      opacity: isSavingPortfolios ? 0.7 : 1,
+                    }}
                   >
                     {isSavingPortfolios ? (
                       <ActivityIndicator size='small' color='#fff' />

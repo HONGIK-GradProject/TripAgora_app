@@ -238,7 +238,7 @@ const EditTemplateItineraryScreen: React.FC = () => {
                     <Ionicons
                       name='calendar-outline'
                       size={18}
-                      color='#4C2EE7'
+                      color='#5B67F5'
                       style={styles.dayInfoIcon}
                     />
                     <Text style={styles.dayInfoText}>{dayValue}일차</Text>
@@ -248,7 +248,7 @@ const EditTemplateItineraryScreen: React.FC = () => {
                   <Ionicons
                     name='location-outline'
                     size={18}
-                    color='#4C2EE7'
+                    color='#5B67F5'
                     style={styles.locationInfoIcon}
                   />
                   <Text style={styles.locationInfoLabel}>장소</Text>
@@ -285,7 +285,7 @@ const EditTemplateItineraryScreen: React.FC = () => {
                     <Text style={styles.timeText}>
                       {startTime.substring(0, 5)}
                     </Text>
-                    <Ionicons name='time-outline' size={20} color='#8130FF' />
+                    <Ionicons name='time-outline' size={20} color='#5B67F5' />
                   </View>
                 </TouchableOpacity>
                 {showPicker && (
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#8130FF',
+    color: '#5B67F5',
   },
   scrollViewContent: {
     paddingHorizontal: 20,
@@ -424,7 +424,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#DCD1FF',
+    borderColor: '#C5CCFF',
   },
   dayInfoIcon: {
     marginRight: 8,
@@ -432,7 +432,7 @@ const styles = StyleSheet.create({
   dayInfoText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#4C2EE7',
+    color: '#5B67F5',
     letterSpacing: 0.2,
   },
   locationInfoContainer: {
@@ -444,7 +444,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#DCD1FF',
+    borderColor: '#C5CCFF',
   },
   locationInfoIcon: {
     marginRight: 8,
@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
   locationInfoLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6B5AF5',
+    color: '#5B67F5',
     marginRight: 8,
     letterSpacing: 0.2,
   },

@@ -16,6 +16,7 @@ import React, {
  */
 const useSessionDetailsLogic = (id: string) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [templateId, setTemplateId] = useState<number>(0);
   const [title, setTitle] = useState<string>('');
   const [content, setContent] = useState<string>('');
   const [regionIds, setRegionIds] = useState<number[]>([]);
@@ -28,6 +29,7 @@ const useSessionDetailsLogic = (id: string) => {
   const [status, setStatus] = useState<string>('');
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [isParticipating, setIsParticipating] = useState<boolean>(false);
+  const [hasWrittenReview, setHasWrittenReview] = useState<boolean>(false);
   const [guideProfileId, setGuideProfileId] = useState<number | undefined>(
     undefined
   );
@@ -51,6 +53,7 @@ const useSessionDetailsLogic = (id: string) => {
       ]);
 
       if (sessionResponse) {
+        setTemplateId(sessionResponse.templateId);
         setTitle(sessionResponse.title);
         setContent(sessionResponse.content);
         setRegionIds(sessionResponse.regionIds);
@@ -63,6 +66,7 @@ const useSessionDetailsLogic = (id: string) => {
         setStatus(sessionResponse.status);
         setParticipants(sessionResponse.participants);
         setIsParticipating(sessionResponse.isParticipating);
+        setHasWrittenReview(sessionResponse.hasWrittenReview ?? false);
         setGuideProfileId(sessionResponse.guideProfileId);
         setIsMySession(sessionResponse.isMySession);
         setIsInWishlist(sessionResponse.isInWishlist);
@@ -94,6 +98,7 @@ const useSessionDetailsLogic = (id: string) => {
 
   return {
     isLoading,
+    templateId,
     title,
     content,
     regionIds,
@@ -106,11 +111,13 @@ const useSessionDetailsLogic = (id: string) => {
     status,
     participants,
     isParticipating,
+    hasWrittenReview,
     guideProfileId,
     isMySession,
     isInWishlist,
     roomId,
     itineraries,
+    setTemplateId,
     setTitle,
     setContent,
     setRegionIds,
@@ -123,6 +130,7 @@ const useSessionDetailsLogic = (id: string) => {
     setStatus,
     setParticipants,
     setIsParticipating,
+    setHasWrittenReview,
     setGuideProfileId,
     setIsMySession,
     setIsInWishlist,

@@ -18,11 +18,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
 const StartRecruitmentContent: React.FC = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id?: string }>();
+  const insets = useSafeAreaInsets();
+  const bottomActionPadding = Math.min(Math.max(insets.bottom, 12), 18);
 
   // 템플릿 상세 정보 가져오기
   const { title, regionIds, imageUrls, itineraries, refetch } =
@@ -173,7 +176,11 @@ const StartRecruitmentContent: React.FC = () => {
 
   return (
     <View className='flex-1 bg-white'>
-      <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className='flex-1'
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: bottomActionPadding + 90 }}
+      >
         {/* 상단 네비게이션 */}
         <View className='pt-6 pb-3 px-5 flex-row items-center justify-between border-b border-[#E9E9E9]'>
           <TouchableOpacity
@@ -188,7 +195,7 @@ const StartRecruitmentContent: React.FC = () => {
 
         {/* 메인 제목 */}
         <View className='px-5 mb-5 pt-5'>
-          <Text className='text-xl font-bold text-[#8130FF]'>
+          <Text className='text-xl font-bold text-[#5B67F5]'>
             이 여행으로 모집을 시작해요
           </Text>
         </View>
@@ -222,15 +229,15 @@ const StartRecruitmentContent: React.FC = () => {
 
         {/* 모집 인원 설정 */}
         <View className='px-5 mb-8'>
-          <Text className='text-lg font-bold text-[#8130FF] mb-4'>
+          <Text className='text-lg font-bold text-[#5B67F5] mb-4'>
             모집 인원 (가이드 제외)
           </Text>
           <View className='flex-row items-center justify-center gap-5'>
             <TouchableOpacity
-              className='w-12 h-12 rounded-full bg-[#F3ECFF] items-center justify-center'
+              className='w-12 h-12 rounded-full bg-[#E6E9FF] items-center justify-center'
               onPress={handleDecreaseMembers}
             >
-              <Ionicons name='remove' size={24} color='#613EEA' />
+              <Ionicons name='remove' size={24} color='#5B67F5' />
             </TouchableOpacity>
             <TextInput
               className='text-lg font-semibold text-black min-w-[60px] text-center border border-gray-300 rounded-lg py-2'
@@ -240,27 +247,27 @@ const StartRecruitmentContent: React.FC = () => {
               selectTextOnFocus
             />
             <TouchableOpacity
-              className='w-12 h-12 rounded-full bg-[#F3ECFF] items-center justify-center'
+              className='w-12 h-12 rounded-full bg-[#E6E9FF] items-center justify-center'
               onPress={handleIncreaseMembers}
             >
-              <Ionicons name='add' size={24} color='#613EEA' />
+              <Ionicons name='add' size={24} color='#5B67F5' />
             </TouchableOpacity>
           </View>
         </View>
 
         {/* 날짜 설정 */}
         <View className='px-5 mb-[100px]'>
-          <Text className='text-lg font-bold text-[#8130FF] mb-4'>
+          <Text className='text-lg font-bold text-[#5B67F5] mb-4'>
             시작 날짜 설정하기
           </Text>
           <TouchableOpacity
-            className='bg-[#F3ECFF] rounded-2xl border border-[#D9C7FF] mt-5'
+            className='bg-[#E6E9FF] rounded-2xl border border-[#C5CCFF] mt-5'
             onPress={showDatePickerModal}
           >
             <View className='flex-row items-center p-4'>
-              <Ionicons name='calendar-outline' size={24} color='#613EEA' />
+              <Ionicons name='calendar-outline' size={24} color='#5B67F5' />
               <View className='flex-1 ml-3'>
-                <Text className='text-sm text-[#8130FF] font-medium mb-1'>
+                <Text className='text-sm text-[#5B67F5] font-medium mb-1'>
                   여행 날짜
                 </Text>
                 <Text className='text-base text-black font-semibold'>
@@ -288,10 +295,18 @@ const StartRecruitmentContent: React.FC = () => {
       )}
 
       {/* 하단 버튼 */}
-      <View className='absolute bottom-0 left-0 right-0 px-5 pt-2 bg-white border-t border-[#E9E9E9]'>
+      <View
+        className='absolute bottom-0 left-0 right-0 px-5 border-t border-[#E9E9E9]'
+        style={{
+          paddingTop: 8,
+          paddingBottom: bottomActionPadding,
+          bottom: -insets.bottom,
+          backgroundColor: 'white',
+        }}
+      >
         <TouchableOpacity
           className={`h-[52px] rounded-lg items-center justify-center ${
-            isCreating ? 'bg-gray-400' : 'bg-[#8130FF]'
+            isCreating ? 'bg-gray-400' : 'bg-[#5B67F5]'
           }`}
           onPress={handleStartRecruitment}
           disabled={isCreating}

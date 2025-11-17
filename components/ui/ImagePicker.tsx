@@ -1,4 +1,3 @@
-
 import * as ImagePicker from 'expo-image-picker';
 import React, { ReactNode, useEffect } from 'react';
 import { Platform, TouchableOpacity } from 'react-native';
@@ -7,17 +6,20 @@ interface ImagePickerProps {
   onImageSelected: (uri: string | null) => void;
   children: ReactNode;
   aspect?: [number, number];
+  disabled?: boolean;
 }
 
 export default function CustomImagePicker({
   onImageSelected,
   children,
   aspect = [4, 3],
+  disabled = false,
 }: ImagePickerProps) {
   useEffect(() => {
     (async () => {
       if (Platform.OS !== 'web') {
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        const { status } =
+          await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
           alert('Sorry, we need camera roll permissions to make this work!');
         }
@@ -41,7 +43,7 @@ export default function CustomImagePicker({
   };
 
   return (
-    <TouchableOpacity onPress={pickImage}>
+    <TouchableOpacity onPress={pickImage} disabled={disabled}>
       {children}
     </TouchableOpacity>
   );

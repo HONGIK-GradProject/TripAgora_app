@@ -103,11 +103,14 @@ const EditTemplateRegionsScreen: React.FC = () => {
           {selectedRegions.map((region) => (
             <View
               key={region.id}
-              className='flex-row items-center px-3 py-1 rounded-full bg-[#F3ECFF]'
+              className='flex-row items-center px-3 py-1 rounded-full'
+              style={{ backgroundColor: '#E6E9FF' }}
             >
-              <Text className='text-[#8130FF] mr-1'>{region.name}</Text>
+              <Text className='mr-1' style={{ color: '#5B67F5' }}>
+                {region.name}
+              </Text>
               <TouchableOpacity onPress={() => toggleRegionId(region.id)}>
-                <Ionicons name='close' size={16} color='#8130FF' />
+                <Ionicons name='close' size={16} color='#5B67F5' />
               </TouchableOpacity>
             </View>
           ))}
@@ -124,7 +127,7 @@ const EditTemplateRegionsScreen: React.FC = () => {
                   <TouchableOpacity
                     key={p}
                     className={`px-5 py-4 ${
-                      active ? 'bg-[#F3ECFF]' : 'bg-white'
+                      active ? 'bg-[#E6E9FF]' : 'bg-white'
                     }`}
                     onPress={() => {
                       setSelectedParent(p);
@@ -132,8 +135,9 @@ const EditTemplateRegionsScreen: React.FC = () => {
                   >
                     <Text
                       className={`text-base ${
-                        active ? 'text-[#8130FF] font-semibold' : 'text-black'
+                        active ? 'font-semibold' : 'text-black'
                       }`}
+                      style={{ color: active ? '#5B67F5' : undefined }}
                     >
                       {p && p.length > 2 ? p.slice(0, -2) : p}
                     </Text>
@@ -152,14 +156,15 @@ const EditTemplateRegionsScreen: React.FC = () => {
                   <TouchableOpacity
                     key={c.id}
                     className={`px-5 py-4 ${
-                      active ? 'bg-purple-100' : 'bg-white'
+                      active ? 'bg-[#E6E9FF]' : 'bg-white'
                     }`}
                     onPress={() => toggleRegionId(c.id)}
                   >
                     <Text
                       className={`text-base ${
-                        active ? 'text-primary font-semibold' : 'text-black'
+                        active ? 'font-semibold' : 'text-black'
                       }`}
+                      style={{ color: active ? '#5B67F5' : undefined }}
                     >
                       {c.name}
                     </Text>

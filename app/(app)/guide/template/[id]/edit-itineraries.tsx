@@ -422,7 +422,7 @@ const EditTemplateItinerariesScreen: React.FC = () => {
             style={[styles.dayButton, styles.addDayButton]}
             onPress={handleAddDay}
           >
-            <Ionicons name='add' size={16} color='#8130FF' />
+            <Ionicons name='add' size={16} color='#5B67F5' />
             <Text style={styles.addDayButtonText}>일차 추가</Text>
           </TouchableOpacity>
         </ScrollView>
@@ -449,7 +449,7 @@ const EditTemplateItinerariesScreen: React.FC = () => {
             disabled={isSaving}
           >
             {isSaving ? (
-              <ActivityIndicator color='#8130FF' />
+              <ActivityIndicator color='#5B67F5' />
             ) : (
               <Text style={styles.saveButtonText}>저장</Text>
             )}
@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#8130FF',
+    backgroundColor: '#5B67F5',
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 20,
@@ -538,7 +538,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#8130FF',
+    color: '#5B67F5',
   },
   scrollViewContent: {
     paddingBottom: 100, // 하단 버튼 공간 확보
@@ -580,22 +580,22 @@ const styles = StyleSheet.create({
   addDayButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderColor: '#8130FF',
+    borderColor: '#5B67F5',
     borderStyle: 'dashed',
   },
   addDayButtonText: {
     fontSize: 16,
-    color: '#8130FF',
+    color: '#5B67F5',
     fontWeight: '600',
     marginLeft: 6,
   },
   dayButtonActive: {
-    backgroundColor: '#8130FF',
-    borderColor: '#8130FF',
+    backgroundColor: '#5B67F5',
+    borderColor: '#5B67F5',
   },
   dayButtonText: {
     fontSize: 16,
-    color: '#8130FF',
+    color: '#5B67F5',
   },
   dayButtonTextActive: {
     fontSize: 16,

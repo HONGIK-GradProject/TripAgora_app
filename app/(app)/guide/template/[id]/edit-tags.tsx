@@ -59,7 +59,7 @@ const EditTemplateTagsScreen: React.FC = () => {
         {/* 안내 텍스트 */}
         <View className='items-center mb-5 pt-10'>
           <View className='w-4/5'>
-            <Text className='text-xl font-bold text-[#8130FF] text-left'>
+            <Text className='text-xl font-bold text-[#5B67F5] text-left'>
               태그를 선택해 주세요
             </Text>
             <Text className='text-base text-gray-600 mt-2 text-left'>

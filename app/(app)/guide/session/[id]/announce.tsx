@@ -462,7 +462,7 @@ const AnnounceScreen: React.FC<AnnounceScreenProps> = ({
                           <Ionicons
                             name='megaphone'
                             size={20}
-                            color='#8130FF'
+                            color='#5B67F5'
                           />
                         </View>
                         <View style={styles.announcementContent}>
@@ -505,7 +505,7 @@ const AnnounceScreen: React.FC<AnnounceScreenProps> = ({
                             <Ionicons
                               name='create-outline'
                               size={18}
-                              color='#8130FF'
+                              color='#5B67F5'
                             />
                           </TouchableOpacity>
                           <TouchableOpacity
@@ -649,7 +649,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
   },
   sendButton: {
-    backgroundColor: '#8130FF',
+    backgroundColor: '#5B67F5',
     borderRadius: 8,
     paddingVertical: 16,
     alignItems: 'center',
@@ -785,7 +785,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   retryButton: {
-    backgroundColor: '#8130FF',
+    backgroundColor: '#5B67F5',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,

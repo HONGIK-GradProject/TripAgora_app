@@ -100,6 +100,35 @@ interface SessionGetListResponse extends APIResponse<SessionGetListData> {
 }
 
 /**
+ * 완료된 세션 정보 타입 (목록 조회용, hasWrittenReview 포함)
+ */
+interface SessionCompletedInfo extends SessionInfo {
+  hasWrittenReview: boolean; // 리뷰 작성 여부
+}
+
+/**
+ * 완료된 세션 목록 조회 요청 데이터
+ */
+interface SessionGetCompletedRequest {
+  params: {
+    page: number;
+  };
+}
+
+/**
+ * 완료된 세션 목록 조회 응답 데이터
+ */
+interface SessionGetCompletedData {
+  sessions: SessionCompletedInfo[];
+  hasNext: boolean;
+}
+
+interface SessionGetCompletedResponse
+  extends APIResponse<SessionGetCompletedData> {
+  // APIResponse의 모든 속성을 상속받습니다.
+}
+
+/**
  * 세션 검색 요청 데이터
  */
 interface SessionSearchRequest {
@@ -145,6 +174,7 @@ interface Participant {
  * 세션 상세 조회 응답 데이터
  */
 interface SessionGetData {
+  templateId: number;
   title: string;
   content: string;
   regionIds: number[];
@@ -157,6 +187,7 @@ interface SessionGetData {
   status: SessionStatus;
   participants: Participant[];
   isParticipating: boolean;
+  hasWrittenReview: boolean; // 리뷰 작성 여부
   guideProfileId: number;
   isMySession: boolean;
   isInWishlist: boolean;
@@ -247,12 +278,16 @@ export {
   SessionCloseData,
   SessionCloseRequest,
   SessionCloseResponse,
+  SessionCompletedInfo,
   SessionCreateData,
   SessionCreateRequest,
   SessionCreateResponse,
   SessionDeleteData,
   SessionDeleteRequest,
   SessionDeleteResponse,
+  SessionGetCompletedData,
+  SessionGetCompletedRequest,
+  SessionGetCompletedResponse,
   SessionGetData,
   SessionGetItinerariesData,
   SessionGetItinerariesRequest,

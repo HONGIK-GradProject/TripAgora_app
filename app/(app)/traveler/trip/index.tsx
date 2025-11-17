@@ -1,7 +1,8 @@
 import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
+import { useCompletedSessionList } from '@/hooks/sessions/useCompletedSessionList';
 import { useParticipatingSessionList } from '@/hooks/sessions/useParticipatingSessionList';
-import { SessionInfo } from '@/types/sessions';
+import { SessionCompletedInfo, SessionInfo } from '@/types/sessions';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -21,63 +22,99 @@ const TravelerTripListScreen: React.FC = () => {
   );
   const router = useRouter();
 
-  const { sessions, isLoading, error, loadMore, refetch } =
-    useParticipatingSessionList();
+  const {
+    sessions: participatingSessions,
+    isLoading: isLoadingParticipating,
+    error: errorParticipating,
+    loadMore: loadMoreParticipating,
+    refetch: refetchParticipating,
+  } = useParticipatingSessionList();
+
+  const {
+    sessions: completedSessions,
+    isLoading: isLoadingCompleted,
+    error: errorCompleted,
+    loadMore: loadMoreCompleted,
+    refetch: refetchCompleted,
+  } = useCompletedSessionList();
+
+  // 현재 탭에 따라 적절한 데이터 사용
+  const sessions =
+    activeTab === 'completed' ? completedSessions : participatingSessions;
+  const isLoading =
+    activeTab === 'completed' ? isLoadingCompleted : isLoadingParticipating;
+  const error = activeTab === 'completed' ? errorCompleted : errorParticipating;
 
   // 탭 변경 시 데이터 새로고침
   const handleTabChange = useCallback(
     (tab: 'upcoming' | 'completed') => {
       setActiveTab(tab);
-      const statuses =
-        tab === 'upcoming'
-          ? ['RECRUITING', 'RECRUITMENT_CLOSED']
-          : ['COMPLETED'];
-      refetch(statuses);
+      if (tab === 'upcoming') {
+        refetchParticipating(['RECRUITING', 'RECRUITMENT_CLOSED']);
+      } else {
+        refetchCompleted();
+      }
     },
-    [refetch]
+    [refetchParticipating, refetchCompleted]
   );
 
   // 현재 탭에 따른 데이터 필터링 및 정렬
   const filteredSessions = useMemo(() => {
-    let filtered = [];
+    let filtered: (SessionInfo | SessionCompletedInfo)[] = [];
 
     if (activeTab === 'upcoming') {
       // 예정 탭에서는 진행 중인 여행(IN_PROGRESS) 제외
-      filtered = sessions.filter((session) =>
-        ['RECRUITING', 'RECRUITMENT_CLOSED'].includes(session.status)
+      filtered = sessions.filter(
+        (session: SessionInfo | SessionCompletedInfo) =>
+          ['RECRUITING', 'RECRUITMENT_CLOSED'].includes(session.status)
       );
 
-      // 모집마감 > 모집중 순서로 정렬
-      filtered.sort((a, b) => {
-        if (a.status === 'RECRUITMENT_CLOSED' && b.status === 'RECRUITING') {
-          return -1; // a가 b보다 앞에 와야 함
+      // 모집마감 > 모집 중 순서로 정렬
+      filtered.sort(
+        (
+          a: SessionInfo | SessionCompletedInfo,
+          b: SessionInfo | SessionCompletedInfo
+        ) => {
+          if (a.status === 'RECRUITMENT_CLOSED' && b.status === 'RECRUITING') {
+            return -1; // a가 b보다 앞에 와야 함
+          }
+          if (a.status === 'RECRUITING' && b.status === 'RECRUITMENT_CLOSED') {
+            return 1; // b가 a보다 앞에 와야 함
+          }
+          return 0; // 같은 상태면 순서 유지
         }
-        if (a.status === 'RECRUITING' && b.status === 'RECRUITMENT_CLOSED') {
-          return 1; // b가 a보다 앞에 와야 함
-        }
-        return 0; // 같은 상태면 순서 유지
-      });
+      );
     } else {
-      filtered = sessions.filter((session) => session.status === 'COMPLETED');
+      // 완료 탭에서는 이미 완료된 세션만 반환되므로 필터링 불필요
+      filtered = sessions;
     }
 
     return filtered;
   }, [sessions, activeTab]);
 
-  // 현재 진행 중인 세션 (IN_PROGRESS 상태)
+  // 현재 진행 중인 세션 (IN_PROGRESS 상태) - 예정 탭에서만 사용
   const currentSession = useMemo(() => {
-    return sessions.find((session) => session.status === 'IN_PROGRESS');
-  }, [sessions]);
+    if (activeTab === 'upcoming') {
+      return participatingSessions.find(
+        (session) => session.status === 'IN_PROGRESS'
+      );
+    }
+    return undefined;
+  }, [participatingSessions, activeTab]);
 
   // 화면 포커스 시 데이터 새로고침
   useFocusEffect(
     useCallback(() => {
-      const statuses =
-        activeTab === 'upcoming'
-          ? ['RECRUITING', 'RECRUITMENT_CLOSED', 'IN_PROGRESS']
-          : ['COMPLETED', 'IN_PROGRESS'];
-      refetch(statuses);
-    }, [activeTab, refetch])
+      if (activeTab === 'upcoming') {
+        refetchParticipating([
+          'RECRUITING',
+          'RECRUITMENT_CLOSED',
+          'IN_PROGRESS',
+        ]);
+      } else {
+        refetchCompleted();
+      }
+    }, [activeTab, refetchParticipating, refetchCompleted])
   );
 
   /**
@@ -86,9 +123,9 @@ const TravelerTripListScreen: React.FC = () => {
   const getStatusBadge = useCallback((status: string) => {
     const statusMap = {
       RECRUITING: {
-        bg: 'bg-purple-100',
-        text: 'text-purple-700',
-        label: '모집중',
+        bg: 'bg-[#E6E9FF]',
+        text: 'text-[#5B67F5]',
+        label: '모집 중',
       },
       RECRUITMENT_CLOSED: {
         bg: 'bg-orange-100',
@@ -119,9 +156,18 @@ const TravelerTripListScreen: React.FC = () => {
   /**
    * 세션 아이템을 렌더링하는 함수
    */
-  const renderSessionItem = ({ item: session }: { item: SessionInfo }) => {
+  const renderSessionItem = ({
+    item: session,
+  }: {
+    item: SessionInfo | SessionCompletedInfo;
+  }) => {
     const badge = getStatusBadge(session.status);
     const isCompleted = session.status === 'COMPLETED';
+    // 완료된 세션인 경우 hasWrittenReview 확인 (SessionCompletedInfo 타입)
+    const hasWrittenReview =
+      isCompleted && 'hasWrittenReview' in session
+        ? session.hasWrittenReview
+        : false;
 
     return (
       <View className='bg-white rounded-2xl mb-2 shadow-sm border border-gray-100 overflow-hidden'>
@@ -201,12 +247,17 @@ const TravelerTripListScreen: React.FC = () => {
           </View>
         </TouchableOpacity>
 
-        {/* 완료된 세션에만 리뷰 버튼 표시 */}
-        {isCompleted && (
+        {/* 완료된 세션 중 리뷰를 작성한 적이 없는 경우에만 리뷰 버튼 표시 */}
+        {isCompleted && !hasWrittenReview && (
           <View className='px-5 pb-5 border-t border-gray-100'>
             <TouchableOpacity
               className='bg-purple-500 rounded-xl py-3 flex-row items-center justify-center'
-              onPress={() => router.push('/ReviewWriteScreen' as any)}
+              onPress={() =>
+                router.push({
+                  pathname: '/ReviewWriteScreen',
+                  params: { sessionId: session.sessionId.toString() },
+                } as any)
+              }
               activeOpacity={0.8}
             >
               <Ionicons name='star' size={20} color='#fff' />
@@ -348,53 +399,73 @@ const TravelerTripListScreen: React.FC = () => {
 
         {/* 여행 목록 */}
         <View className='flex-1 px-6 py-4'>
-          {isLoading && filteredSessions.length === 0 ? (
-            <View className='flex-1 items-center justify-center py-20'>
-              <ActivityIndicator size='large' color='#3B82F6' />
-              <Text className='text-gray-500 text-lg mt-4'>로딩 중...</Text>
-            </View>
-          ) : error ? (
-            <View className='flex-1 items-center justify-center py-20'>
-              <Text className='text-red-500 text-lg'>오류가 발생했습니다.</Text>
-            </View>
-          ) : filteredSessions.length === 0 ? (
-            <View className='flex-1 items-center justify-center py-20'>
-              <Text className='text-gray-500 text-lg'>
-                {activeTab === 'upcoming'
-                  ? '예정된 여행이 없습니다.'
-                  : '완료된 여행이 없습니다.'}
-              </Text>
-            </View>
-          ) : (
-            <FlatList
-              data={filteredSessions}
-              renderItem={renderSessionItem}
-              keyExtractor={(item) => item.sessionId.toString()}
-              showsVerticalScrollIndicator={false}
-              onEndReached={() => {
-                const statuses =
-                  activeTab === 'upcoming'
-                    ? ['RECRUITING', 'RECRUITMENT_CLOSED']
-                    : ['COMPLETED'];
-                loadMore(statuses);
-              }}
-              onEndReachedThreshold={0.5}
-              ListFooterComponent={renderFooter}
-              refreshControl={
-                <RefreshControl
-                  refreshing={isLoading && filteredSessions.length > 0}
-                  onRefresh={() => {
-                    const statuses =
-                      activeTab === 'upcoming'
-                        ? ['RECRUITING', 'RECRUITMENT_CLOSED', 'IN_PROGRESS']
-                        : ['COMPLETED', 'IN_PROGRESS'];
-                    refetch(statuses);
-                  }}
-                />
-              }
-              contentContainerStyle={{ paddingBottom: 24 }}
-            />
-          )}
+          {(() => {
+            if (isLoading && filteredSessions.length === 0) {
+              return (
+                <View className='flex-1 items-center justify-center py-20'>
+                  <ActivityIndicator size='large' color='#3B82F6' />
+                  <Text className='text-gray-500 text-lg mt-4'>로딩 중...</Text>
+                </View>
+              );
+            }
+
+            if (error && filteredSessions.length === 0) {
+              return (
+                <View className='flex-1 items-center justify-center py-20'>
+                  <Text className='text-red-500 text-lg'>
+                    오류가 발생했습니다.
+                  </Text>
+                </View>
+              );
+            }
+
+            if (filteredSessions.length === 0) {
+              return (
+                <View className='flex-1 items-center justify-center py-20'>
+                  <Text className='text-gray-500 text-lg'>
+                    {activeTab === 'upcoming'
+                      ? '예정된 여행이 없습니다.'
+                      : '완료된 여행이 없습니다.'}
+                  </Text>
+                </View>
+              );
+            }
+
+            return (
+              <FlatList
+                data={filteredSessions}
+                renderItem={renderSessionItem}
+                keyExtractor={(item) => item.sessionId.toString()}
+                showsVerticalScrollIndicator={false}
+                onEndReached={() => {
+                  if (activeTab === 'upcoming') {
+                    loadMoreParticipating(['RECRUITING', 'RECRUITMENT_CLOSED']);
+                  } else {
+                    loadMoreCompleted();
+                  }
+                }}
+                onEndReachedThreshold={0.5}
+                ListFooterComponent={renderFooter}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={isLoading && filteredSessions.length > 0}
+                    onRefresh={() => {
+                      if (activeTab === 'upcoming') {
+                        refetchParticipating([
+                          'RECRUITING',
+                          'RECRUITMENT_CLOSED',
+                          'IN_PROGRESS',
+                        ]);
+                      } else {
+                        refetchCompleted();
+                      }
+                    }}
+                  />
+                }
+                contentContainerStyle={{ paddingBottom: 24 }}
+              />
+            );
+          })()}
         </View>
       </View>
     </CustomSafeAreaView>

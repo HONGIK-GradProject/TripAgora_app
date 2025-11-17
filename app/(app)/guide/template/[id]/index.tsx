@@ -61,6 +61,7 @@ const ProductDetailScreen: React.FC = () => {
   const [isSavingTitle, setIsSavingTitle] = useState(false);
   const [isSavingContent, setIsSavingContent] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
 
   // 이미지 뷰어 상태
   const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
@@ -261,15 +262,22 @@ const ProductDetailScreen: React.FC = () => {
 
   const handleSetImages = useCallback(
     async (uris: string[]) => {
+      setIsUploadingImages(true);
       try {
         const newImageUrls = await setTemplateImageUrls(_id, uris);
         if (newImageUrls) {
           setImageUrls(newImageUrls);
           console.log(newImageUrls);
+          Toast.show({
+            type: 'success',
+            text1: '이미지가 업로드되었습니다.',
+          });
         }
       } catch (error) {
         console.error(error);
         showErrorToast(error);
+      } finally {
+        setIsUploadingImages(false);
       }
     },
     [_id, setImageUrls]
@@ -397,6 +405,7 @@ const ProductDetailScreen: React.FC = () => {
                   onChangeText={setLocalTitle}
                   style={styles.titleInput}
                   placeholder='제목을 입력하세요'
+                  placeholderTextColor='#9CA3AF'
                   editable={!isSavingTitle}
                 />
                 <TouchableOpacity
@@ -482,6 +491,7 @@ const ProductDetailScreen: React.FC = () => {
                 multiline
                 textAlignVertical='top'
                 placeholder='여행 소개를 입력하세요'
+                placeholderTextColor='#9CA3AF'
                 editable={!isSavingContent}
               />
             </View>
@@ -496,9 +506,30 @@ const ProductDetailScreen: React.FC = () => {
                 >
                   사진
                 </Text>
-                <MultipleImagePicker onImagesSelected={handleSetImages}>
-                  <View style={styles.editButton}>
-                    <Text style={styles.editButtonText}>편집</Text>
+                <MultipleImagePicker
+                  onImagesSelected={handleSetImages}
+                  disabled={isUploadingImages}
+                >
+                  <View
+                    style={[
+                      styles.editButton,
+                      isUploadingImages && { opacity: 0.6 },
+                    ]}
+                  >
+                    {isUploadingImages ? (
+                      <View
+                        style={{ flexDirection: 'row', alignItems: 'center' }}
+                      >
+                        <ActivityIndicator
+                          size='small'
+                          color='#5B67F5'
+                          style={{ marginRight: 8 }}
+                        />
+                        <Text style={styles.editButtonText}>업로드 중...</Text>
+                      </View>
+                    ) : (
+                      <Text style={styles.editButtonText}>편집</Text>
+                    )}
                   </View>
                 </MultipleImagePicker>
               </View>
@@ -1003,12 +1034,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 6,
-    backgroundColor: '#F3ECFF',
+    backgroundColor: '#E6E9FF',
     borderWidth: 1,
-    borderColor: '#D9C7FF',
+    borderColor: '#C5CCFF',
   },
   editButtonText: {
-    color: '#8130FF',
+    color: '#5B67F5',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -1025,12 +1056,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F3ECFF',
+    backgroundColor: '#E6E9FF',
     borderWidth: 1,
-    borderColor: '#D9C7FF',
+    borderColor: '#C5CCFF',
   },
   editActionText: {
-    color: '#8130FF',
+    color: '#5B67F5',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -1072,12 +1103,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   dayButtonActive: {
-    backgroundColor: '#8130FF',
-    borderColor: '#8130FF',
+    backgroundColor: '#5B67F5',
+    borderColor: '#5B67F5',
   },
   dayButtonText: {
     fontSize: 16,
-    color: '#8130FF',
+    color: '#5B67F5',
   },
   dayButtonTextActive: {
     fontSize: 16,
@@ -1099,7 +1130,7 @@ const styles = StyleSheet.create({
   },
   itineraryTimeText: {
     fontSize: 14,
-    color: '#8130FF',
+    color: '#5B67F5',
     fontWeight: 'bold',
   },
   itineraryContent: {
@@ -1155,7 +1186,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   primaryButton: {
-    backgroundColor: '#8130FF',
+    backgroundColor: '#5B67F5',
   },
   primaryButtonText: {
     color: '#fff',
@@ -1163,12 +1194,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   secondaryButton: {
-    backgroundColor: '#F3ECFF',
+    backgroundColor: '#E6E9FF',
     borderWidth: 1,
-    borderColor: '#D9C7FF',
+    borderColor: '#C5CCFF',
   },
   secondaryButtonText: {
-    color: '#8130FF',
+    color: '#5B67F5',
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 6,
