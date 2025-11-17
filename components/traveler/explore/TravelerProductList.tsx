@@ -2,12 +2,7 @@ import ProductList from '@/components/common/ProductList';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import React from 'react';
-import {
-  FlatListProps,
-  RefreshControlProps,
-  Text,
-  View,
-} from 'react-native';
+import { FlatListProps, RefreshControlProps, Text, View } from 'react-native';
 
 export interface Product {
   id: string;
@@ -27,10 +22,7 @@ export interface Product {
  * SessionList 컴포넌트에 전달되는 props입니다.
  */
 interface ProductListProps
-  extends Omit<
-    FlatListProps<Product>,
-    'data' | 'renderItem' | 'keyExtractor'
-  > {
+  extends Omit<FlatListProps<Product>, 'data' | 'renderItem' | 'keyExtractor'> {
   /**
    * 리스트에 표시될 세션 데이터 배열입니다.
    */
@@ -46,69 +38,66 @@ interface TravelerProductListProps {
   contentContainerStyle?: any;
 }
 
-const renderTravelerProductItemContent = (item: Product) => (
-  <>
-    <Image
-      source={{ uri: item.imageUrl }}
-      style={{ width: 80, height: 80, borderRadius: 12, marginRight: 16 }}
-      contentFit='cover'
-    />
-    <View className='flex-1'>
-      <Text className='text-lg font-semibold text-gray-900 mb-1'>
-        {item.title}
-      </Text>
-      <Text className='text-gray-600 mb-2'>{item.date}</Text>
-      <View className='flex-row items-start'>
-        <MaterialIcons
-          name='person-outline'
-          size={16}
-          color='#6B7280'
-          style={{ marginTop: 2 }}
-        />
-        <Text className='text-gray-600 ml-1 mr-4'>
-          {item.participants}
+const renderTravelerProductItemContent = (item: Product) => {
+  const title = item.title?.trim() || '제목 없음';
+  const location = item.location?.trim() || '지역 정보 없음';
+
+  return (
+    <>
+      <Image
+        source={{ uri: item.imageUrl }}
+        style={{ width: 80, height: 80, borderRadius: 12, marginRight: 16 }}
+        contentFit='cover'
+      />
+      <View className='flex-1'>
+        <Text className='text-lg font-semibold text-gray-900 mb-1'>
+          {title}
         </Text>
-        <Ionicons
-          name='location-outline'
-          size={16}
-          color='#6B7280'
-          style={{ marginTop: 2 }}
-        />
-        <Text
-          className='text-gray-600 ml-1 mr-4'
-          numberOfLines={1}
-          ellipsizeMode='tail'
-        >
-          {item.location}
-        </Text>
-      </View>
-      <View className='flex-row items-center mt-1'>
-        <Text className='text-gray-500 text-sm mr-2'>{item.guide}</Text>
+        <Text className='text-gray-600 mb-2'>{item.date}</Text>
+        <View className='flex-row items-start'>
+          <MaterialIcons
+            name='person-outline'
+            size={16}
+            color='#6B7280'
+            style={{ marginTop: 2 }}
+          />
+          <Text className='text-gray-600 ml-1 mr-4'>{item.participants}</Text>
+          <Ionicons
+            name='location-outline'
+            size={16}
+            color='#6B7280'
+            style={{ marginTop: 2 }}
+          />
+          <Text
+            className='text-gray-600 ml-1 mr-4'
+            numberOfLines={1}
+            ellipsizeMode='tail'
+          >
+            {location}
+          </Text>
+        </View>
         {item.rating !== '-' && (
-          <View className='flex-row items-center'>
+          <View className='flex-row items-center mt-1'>
             <Ionicons name='star' size={14} color='#FBBF24' />
-            <Text className='text-gray-600 text-sm ml-1'>
-              {item.rating}
-            </Text>
+            <Text className='text-gray-600 text-sm ml-1'>{item.rating}</Text>
           </View>
         )}
       </View>
-    </View>
-  </>
-);
+    </>
+  );
+};
 
 const TravelerProductList: React.FC<TravelerProductListProps> = ({
   products,
   detailPath = '/traveler/explore/[id]',
   ...rest
 }) => {
-  const getTravelerProductHref = (item: Product) =>
-    ({
-      pathname: detailPath as any,
-      params: {
-        id: item.id,
-      },
-    });
+  const getTravelerProductHref = (item: Product) => ({
+    pathname: detailPath as any,
+    params: {
+      id: item.id,
+    },
+  });
 
   return (
     <ProductList<Product>
@@ -120,6 +109,5 @@ const TravelerProductList: React.FC<TravelerProductListProps> = ({
     />
   );
 };
-
 
 export default TravelerProductList;

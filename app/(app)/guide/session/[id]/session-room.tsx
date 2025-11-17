@@ -19,7 +19,10 @@ import {
  */
 const SessionRoomContent: React.FC = () => {
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, roomId: roomIdParam } = useLocalSearchParams<{
+    id: string;
+    roomId?: string;
+  }>();
   const [selectedDay, setSelectedDay] = useState(1);
 
   // 세션 상세 정보 가져오기
@@ -28,9 +31,13 @@ const SessionRoomContent: React.FC = () => {
     title = '',
     startDate = '',
     endDate = '',
+    roomId: roomIdFromDetails,
     itineraries = {},
     isLoading = true,
   } = sessionDetails || {};
+
+  // 쿼리 파라미터의 roomId를 우선 사용, 없으면 상세 조회에서 받아온 roomId 사용
+  const roomId = roomIdParam ? parseInt(roomIdParam) : roomIdFromDetails;
 
   // 일정 관련 상태
   const availableDays = useMemo(
@@ -57,7 +64,9 @@ const SessionRoomContent: React.FC = () => {
 
   // 공지하기 기능
   const handleAnnounce = () => {
-    router.push(`/guide/session/${id}/announce`);
+    if (roomId) {
+      router.push(`/guide/session/${id}/announce?roomId=${roomId}` as any);
+    }
   };
 
   // 일정 편집 기능
@@ -119,6 +128,7 @@ const SessionRoomContent: React.FC = () => {
           <TouchableOpacity
             style={[styles.actionButton, styles.announceButton]}
             onPress={handleAnnounce}
+            disabled={!roomId}
           >
             <Ionicons name='notifications' size={20} color='#FF8330' />
             <Text style={[styles.actionButtonText, styles.announceButtonText]}>
@@ -206,7 +216,7 @@ const SessionRoomScreen: React.FC = () => {
   if (!id) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>세션 ID가 없습니다.</Text>
+        <Text style={styles.errorText}>여행 ID가 없습니다.</Text>
       </View>
     );
   }

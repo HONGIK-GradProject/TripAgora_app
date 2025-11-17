@@ -25,7 +25,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 
 const TravelerExploreScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -295,7 +298,7 @@ const TravelerExploreScreen: React.FC = () => {
           onQueryChange={handleQueryChange}
           fetchSuggestions={handleFetchSuggestions}
           onSearch={handleSearch}
-          placeholder='여행 상품을 검색해보세요!'
+          placeholder='여행을 검색해보세요!'
         />
 
         {/* 필터 버튼들 */}
@@ -317,10 +320,12 @@ const TravelerExploreScreen: React.FC = () => {
                 color={searchStartDate ? '#8130FF' : '#6B7280'}
               />
               <View className='ml-2 flex-1'>
-                <Text className='text-xs text-gray-500 mb-0.5'>시작일</Text>
+                <Text className='text-xs text-gray-500 mb-0.5'>이 날부터</Text>
                 <Text
                   className={`text-sm ${
-                    searchStartDate ? 'text-primary font-medium' : 'text-gray-600'
+                    searchStartDate
+                      ? 'text-primary font-medium'
+                      : 'text-gray-600'
                   }`}
                 >
                   {searchStartDate ? formatDate(searchStartDate) : '선택'}
@@ -354,7 +359,7 @@ const TravelerExploreScreen: React.FC = () => {
                 color={searchEndDate ? '#8130FF' : '#6B7280'}
               />
               <View className='ml-2 flex-1'>
-                <Text className='text-xs text-gray-500 mb-0.5'>종료일</Text>
+                <Text className='text-xs text-gray-500 mb-0.5'>이 날까지</Text>
                 <Text
                   className={`text-sm ${
                     searchEndDate ? 'text-primary font-medium' : 'text-gray-600'
@@ -395,7 +400,9 @@ const TravelerExploreScreen: React.FC = () => {
               />
               <Text
                 className={`text-sm ml-2 ${
-                  selectedRegionIds.length > 0 ? 'text-primary' : 'text-gray-600'
+                  selectedRegionIds.length > 0
+                    ? 'text-primary'
+                    : 'text-gray-600'
                 }`}
               >
                 {selectedRegionIds.length > 0
@@ -462,7 +469,8 @@ const TravelerExploreScreen: React.FC = () => {
           onRequestClose={() => setShowRegionModal(false)}
         >
           <View className='flex-1 bg-black/50 justify-end'>
-            <View
+            <SafeAreaView
+              edges={['bottom']}
               className='bg-white rounded-t-3xl'
               style={{ maxHeight: '80%', height: '80%' }}
             >
@@ -493,7 +501,9 @@ const TravelerExploreScreen: React.FC = () => {
                         <Text className='text-primary text-sm mr-1'>
                           {regionName}
                         </Text>
-                        <TouchableOpacity onPress={() => toggleRegion(regionId)}>
+                        <TouchableOpacity
+                          onPress={() => toggleRegion(regionId)}
+                        >
                           <Ionicons
                             name='close-circle'
                             size={16}
@@ -567,7 +577,7 @@ const TravelerExploreScreen: React.FC = () => {
                   </View>
                 </ScrollView>
               </View>
-            </View>
+            </SafeAreaView>
           </View>
         </Modal>
 
@@ -579,7 +589,10 @@ const TravelerExploreScreen: React.FC = () => {
           onRequestClose={() => setShowTagModal(false)}
         >
           <View className='flex-1 bg-black/50 justify-end'>
-            <View className='bg-gray-50 rounded-t-3xl max-h-[80%]'>
+            <SafeAreaView
+              edges={['bottom']}
+              className='bg-gray-50 rounded-t-3xl max-h-[80%]'
+            >
               <View className='flex-row justify-between items-center p-5 border-b border-gray-200'>
                 <View>
                   <Text className='text-xl font-bold'>관심사 선택</Text>
@@ -610,7 +623,7 @@ const TravelerExploreScreen: React.FC = () => {
                   ))}
                 </View>
               </ScrollView>
-            </View>
+            </SafeAreaView>
           </View>
         </Modal>
 
@@ -620,7 +633,8 @@ const TravelerExploreScreen: React.FC = () => {
         >
           {error ? (
             <View className='flex-1 items-center justify-center py-20'>
-              <Text className='text-red-500 text-lg'>
+              <Ionicons name='alert-circle-outline' size={48} color='#EF4444' />
+              <Text className='text-red-500 text-lg mt-4'>
                 세션 목록을 불러오는데 실패했습니다.
               </Text>
               <TouchableOpacity
@@ -629,12 +643,6 @@ const TravelerExploreScreen: React.FC = () => {
               >
                 <Text className='text-white font-semibold'>다시 시도</Text>
               </TouchableOpacity>
-            </View>
-          ) : products.length === 0 && !isLoading ? (
-            <View className='flex-1 items-center justify-center py-20'>
-              <Text className='text-gray-500 text-lg'>
-                모집 중인 여행이 없습니다.
-              </Text>
             </View>
           ) : (
             <TravelerProductList
@@ -648,12 +656,37 @@ const TravelerExploreScreen: React.FC = () => {
                   tintColor='#8130FF'
                 />
               }
+              ListEmptyComponent={
+                !isLoading ? (
+                  <View className='flex-1 items-center justify-center py-20'>
+                    <Ionicons name='search-outline' size={48} color='#9CA3AF' />
+                    <Text className='text-gray-500 text-lg mt-4'>
+                      {submittedQuery.trim() ||
+                      searchStartDate ||
+                      searchEndDate ||
+                      selectedRegionIds.length > 0 ||
+                      selectedTagIds.length > 0
+                        ? '검색 결과가 없습니다.'
+                        : '모집 중인 여행이 없습니다.'}
+                    </Text>
+                    {!submittedQuery.trim() &&
+                      !searchStartDate &&
+                      !searchEndDate &&
+                      selectedRegionIds.length === 0 &&
+                      selectedTagIds.length === 0 && (
+                        <Text className='text-gray-400 text-sm mt-2'>
+                          다른 조건으로 검색해보세요!
+                        </Text>
+                      )}
+                  </View>
+                ) : null
+              }
               ListFooterComponent={
                 isLoading && sessions.length > 0 ? (
                   <View className='py-4 items-center'>
                     <ActivityIndicator size='small' color='#8130FF' />
                     <Text className='text-gray-500 text-sm mt-2'>
-                      더 많은 세션을 불러오는 중...
+                      더 많은 여행을 불러오는 중...
                     </Text>
                   </View>
                 ) : undefined

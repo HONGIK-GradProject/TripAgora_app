@@ -42,31 +42,41 @@ const EditTemplateTagsScreen: React.FC = () => {
   return (
     <CustomSafeAreaView>
       <View className='flex-1 bg-white'>
-        <TouchableOpacity
-          className='absolute left-5 top-10 w-10 h-10 rounded-full bg-white/90 items-center justify-center z-10'
-          onPress={() => router.back()}
-          accessibilityRole='button'
-          accessibilityLabel='뒤로가기'
-        >
-          <Ionicons name='arrow-back' size={24} color='#000' />
-        </TouchableOpacity>
+        {/* 상단 네비게이션 */}
+        <View className='pt-6 pb-3 px-5 flex-row items-center justify-between border-b border-[#E9E9E9]'>
+          <TouchableOpacity
+            className='w-10 h-10 rounded-full bg-white/90 items-center justify-center'
+            onPress={() => router.back()}
+            accessibilityRole='button'
+            accessibilityLabel='뒤로가기'
+          >
+            <Ionicons name='arrow-back' size={24} color='#000' />
+          </TouchableOpacity>
+          <Text className='text-lg font-bold text-black'>태그 설정</Text>
+          <View className='w-10' />
+        </View>
+
+        {/* 안내 텍스트 */}
+        <View className='items-center mb-5 pt-10'>
+          <View className='w-4/5'>
+            <Text className='text-xl font-bold text-[#8130FF] text-left'>
+              태그를 선택해 주세요
+            </Text>
+            <Text className='text-base text-gray-600 mt-2 text-left'>
+              최대 5개까지 설정 가능합니다.
+            </Text>
+          </View>
+        </View>
+
         <InterestSelector
-          header={
-            <>
-              <Text className='text-2xl text-black text-left w-4/5 mb-1'>
-                템플릿 태그 설정
-              </Text>
-              <Text className='text-base text-darkgray text-left w-4/5 mb-8'>
-                최대 5개까지 설정 가능합니다.
-              </Text>
-            </>
-          }
+          header={null}
           buttonText='저장'
           availableTags={INTEREST_TAGS}
           initialSelectedTags={tagIds}
           maxSelection={5}
           onSubmit={handleSave}
           isSaving={isSaving}
+          noTopPadding={true}
         />
       </View>
     </CustomSafeAreaView>

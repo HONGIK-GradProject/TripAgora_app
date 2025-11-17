@@ -20,7 +20,10 @@ import {
  */
 const TravelerSessionRoomContent: React.FC = () => {
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>(); // sessionId는 SessionDetailsProvider에서 관리
+  const { id, roomId: roomIdParam } = useLocalSearchParams<{
+    id: string;
+    roomId?: string;
+  }>(); // sessionId는 SessionDetailsProvider에서 관리
 
   // 세션 상세 정보 가져오기
   const sessionDetails = useSessionDetails();
@@ -30,9 +33,13 @@ const TravelerSessionRoomContent: React.FC = () => {
     endDate = '',
     maxParticipants = 0,
     currentParticipants = 0,
+    roomId: roomIdFromDetails,
     itineraries = {},
     isLoading = true,
   } = sessionDetails || {};
+
+  // 쿼리 파라미터의 roomId를 우선 사용, 없으면 상세 조회에서 받아온 roomId 사용
+  const roomId = roomIdParam ? parseInt(roomIdParam) : roomIdFromDetails;
 
   // 일정 관련 상태
   const availableDays = useMemo(
@@ -149,8 +156,11 @@ const TravelerSessionRoomContent: React.FC = () => {
           <TouchableOpacity
             style={[styles.actionButton, styles.noticeButton]}
             onPress={() => {
-              router.push(`/traveler/trip/${id}/notice` as any);
+              if (roomId) {
+                router.push(`/traveler/trip/${id}/notice?roomId=${roomId}` as any);
+              }
             }}
+            disabled={!roomId}
           >
             <Ionicons name='megaphone' size={20} color='#FF8330' />
             <Text style={[styles.actionButtonText, styles.noticeButtonText]}>

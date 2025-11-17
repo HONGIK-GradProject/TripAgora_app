@@ -7,12 +7,12 @@ import { Image } from 'expo-image';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
-    ActivityIndicator,
-    FlatList,
-    RefreshControl,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 const TravelerTripListScreen: React.FC = () => {
@@ -133,8 +133,11 @@ const TravelerTripListScreen: React.FC = () => {
               session.status === 'IN_PROGRESS' ||
               session.status === 'RECRUITMENT_CLOSED'
             ) {
+              const roomIdParam = session.roomId
+                ? `?roomId=${session.roomId}`
+                : '';
               router.push(
-                `/traveler/trip/${session.sessionId}/session-room` as any
+                `/traveler/trip/${session.sessionId}/session-room/${roomIdParam}` as any
               );
             } else {
               router.push(`/traveler/trip/${session.sessionId}` as any);
@@ -155,7 +158,7 @@ const TravelerTripListScreen: React.FC = () => {
               />
               <View className='flex-1'>
                 <Text className='text-lg font-semibold text-gray-900 mb-1'>
-                  {session.title}
+                  {session.title?.trim() || '제목 없음'}
                 </Text>
                 <Text className='text-gray-600 mb-2'>
                   {session.startDate} ~ {session.endDate}
@@ -187,7 +190,7 @@ const TravelerTripListScreen: React.FC = () => {
                       : (session as any).regionNames || []
                     )
                       .filter(Boolean)
-                      .join(', ')}
+                      .join(', ') || '지역 정보 없음'}
                   </Text>
                 </View>
               </View>
@@ -222,7 +225,9 @@ const TravelerTripListScreen: React.FC = () => {
       <View className='flex-1 bg-gray-50'>
         {/* 헤더 */}
         <View className='bg-white pt-6 pb-4 px-6'>
-          <Text className='text-3xl font-bold text-gray-900'>나의 여행 목록</Text>
+          <Text className='text-3xl font-bold text-gray-900'>
+            나의 여행 목록
+          </Text>
         </View>
 
         {/* 현재 진행 중인 여행 섹션 */}
@@ -236,8 +241,11 @@ const TravelerTripListScreen: React.FC = () => {
               className='bg-blue-500 rounded-2xl p-5'
               onPress={() => {
                 // 진행 중인 여행은 세션 룸으로 이동
+                const roomIdParam = currentSession.roomId
+                  ? `?roomId=${currentSession.roomId}`
+                  : '';
                 router.push(
-                  `/traveler/trip/${currentSession.sessionId}/session-room` as any
+                  `/traveler/trip/${currentSession.sessionId}/session-room/${roomIdParam}` as any
                 );
               }}
             >
@@ -261,7 +269,7 @@ const TravelerTripListScreen: React.FC = () => {
                     </View>
                   </View>
                   <Text className='text-xl font-bold text-white mb-1'>
-                    {currentSession.title}
+                    {currentSession.title?.trim() || '제목 없음'}
                   </Text>
                   <Text className='text-white/90 mb-2'>
                     {currentSession.startDate} ~ {currentSession.endDate}
@@ -295,7 +303,7 @@ const TravelerTripListScreen: React.FC = () => {
                         : (currentSession as any).regionNames || []
                       )
                         .filter(Boolean)
-                        .join(', ')}
+                        .join(', ') || '지역 정보 없음'}
                     </Text>
                   </View>
                 </View>

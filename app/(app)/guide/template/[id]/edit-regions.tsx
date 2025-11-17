@@ -1,8 +1,8 @@
 import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import {
-    Region,
-    REGION_DATA,
-    REGION_ID_TO_NAME_MAP,
+  Region,
+  REGION_DATA,
+  REGION_ID_TO_NAME_MAP,
 } from '@/constants/Regions';
 import { useTemplateDetails } from '@/hooks/templates/useTemplateDetails';
 import { setTemplateRegions } from '@/services/templates';
@@ -10,11 +10,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import {
-    ActivityIndicator,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
 
@@ -35,8 +35,6 @@ const EditTemplateRegionsScreen: React.FC = () => {
     Toast.show({
       type: 'error',
       text1: '지역 수정 중 오류가 발생했습니다.',
-      position: 'bottom',
-      bottomOffset: 100,
     });
   };
 
