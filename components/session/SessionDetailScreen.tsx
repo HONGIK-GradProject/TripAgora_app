@@ -89,6 +89,10 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
     null
   );
   const [isLoadingReviews, setIsLoadingReviews] = useState(false);
+  // 이미지 로드 실패 추적
+  const [imageLoadErrors, setImageLoadErrors] = useState<Set<number>>(
+    new Set()
+  );
 
   // 컨텍스트의 isParticipating 상태가 변경되면 로컬 상태도 업데이트
   useEffect(() => {
@@ -122,9 +126,9 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
             normalizedReviews as (Partial<ReviewData> & Record<string, any>)[]
           ).map((review) => {
             const fallbackProfile =
-              review.authorProfile ??
-              review.authorProfileUrl ??
+              review.authorProfileImage ??
               review.authorProfileImageUrl ??
+              review.authorProfileUrl ??
               review.profileImageUrl ??
               review.profileImage ??
               '';
@@ -839,53 +843,68 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
 
               {/* 리뷰 목록 */}
               <View style={styles.reviewsList}>
-                {reviewData.review.map((review, index) => (
-                  <View key={review.reviewId} style={styles.reviewItem}>
-                    <View style={styles.reviewHeader}>
-                      <View style={styles.reviewAuthor}>
-                        {review.authorProfile ? (
-                          <Image
-                            source={{ uri: review.authorProfile }}
-                            style={styles.reviewAuthorAvatar}
-                            contentFit='cover'
-                          />
-                        ) : (
-                          <View style={styles.reviewAuthorAvatarPlaceholder}>
-                            <Ionicons
-                              name='person-outline'
-                              size={16}
-                              color='#9CA3AF'
+                {reviewData.review.map((review, index) => {
+                  const hasValidProfile =
+                    review.authorProfile &&
+                    review.authorProfile.trim() !== '' &&
+                    !imageLoadErrors.has(review.reviewId);
+
+                  return (
+                    <View key={review.reviewId} style={styles.reviewItem}>
+                      <View style={styles.reviewHeader}>
+                        <View style={styles.reviewAuthor}>
+                          {hasValidProfile ? (
+                            <Image
+                              source={{ uri: review.authorProfile }}
+                              style={styles.reviewAuthorAvatar}
+                              contentFit='cover'
+                              onError={() => {
+                                setImageLoadErrors((prev) =>
+                                  new Set(prev).add(review.reviewId)
+                                );
+                              }}
                             />
-                          </View>
+                          ) : (
+                            <View style={styles.reviewAuthorAvatarPlaceholder}>
+                              <Ionicons
+                                name='person-outline'
+                                size={16}
+                                color='#9CA3AF'
+                              />
+                            </View>
+                          )}
+                          <Text style={styles.reviewAuthorName}>
+                            {review.authorNickname}
+                          </Text>
+                        </View>
+                        <View style={styles.reviewRating}>
+                          {Array.from({ length: 5 }, (_, i) => (
+                            <Ionicons
+                              key={i}
+                              name={i < review.rating ? 'star' : 'star-outline'}
+                              size={16}
+                              color={i < review.rating ? '#FBBF24' : '#D1D5DB'}
+                            />
+                          ))}
+                        </View>
+                      </View>
+                      <Text style={styles.reviewContent}>{review.content}</Text>
+                      <Text style={styles.reviewDate}>
+                        {new Date(review.createdAt + 'Z').toLocaleDateString(
+                          'ko-KR',
+                          {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                          }
                         )}
-                        <Text style={styles.reviewAuthorName}>
-                          {review.authorNickname}
-                        </Text>
-                      </View>
-                      <View style={styles.reviewRating}>
-                        {Array.from({ length: 5 }, (_, i) => (
-                          <Ionicons
-                            key={i}
-                            name={i < review.rating ? 'star' : 'star-outline'}
-                            size={16}
-                            color={i < review.rating ? '#FBBF24' : '#D1D5DB'}
-                          />
-                        ))}
-                      </View>
+                      </Text>
+                      {index < reviewData.review.length - 1 && (
+                        <View style={styles.reviewDivider} />
+                      )}
                     </View>
-                    <Text style={styles.reviewContent}>{review.content}</Text>
-                    <Text style={styles.reviewDate}>
-                      {new Date(review.createdAt).toLocaleDateString('ko-KR', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })}
-                    </Text>
-                    {index < reviewData.review.length - 1 && (
-                      <View style={styles.reviewDivider} />
-                    )}
-                  </View>
-                ))}
+                  );
+                })}
               </View>
             </>
           ) : (
