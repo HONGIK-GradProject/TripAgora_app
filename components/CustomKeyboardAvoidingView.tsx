@@ -8,7 +8,7 @@ interface CustomKeyboardAvoidingViewProps extends KeyboardAvoidingViewProps {
 const CustomKeyboardAvoidingView: React.FC<CustomKeyboardAvoidingViewProps> = ({ children, ...rest }) => {
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={styles.container}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       {...rest}
