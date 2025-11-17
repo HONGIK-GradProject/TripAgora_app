@@ -3,7 +3,7 @@ import FullScreenLoader from '@/components/ui/FullScreenLoader';
 import { SessionDetailsProvider } from '@/contexts/SessionDetailsProvider';
 import { useSessionDetails } from '@/hooks/sessions/useSessionDetails';
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { RelativePathString, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import {
   ScrollView,
@@ -59,7 +59,9 @@ const SessionRoomContent: React.FC = () => {
 
   // 일행 위치 확인 기능
   const handleCheckLocations = () => {
-    console.log('일행 확인하기');
+    if (roomId) {
+      router.push(`/guide/session/${id}/view-location?roomId=${roomId}` as RelativePathString);
+    }
   };
 
   // 공지하기 기능
