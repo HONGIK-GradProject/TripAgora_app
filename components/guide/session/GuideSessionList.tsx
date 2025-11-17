@@ -33,80 +33,86 @@ interface SessionListProps
  * @param {SessionInfo} session - 렌더링할 세션 정보.
  * @returns {React.ReactElement} - 세션 아이템의 JSX 엘리먼트.
  */
-const SessionListElement = (session: SessionInfo) => (
-  <>
-    <Image
-      source={{ uri: session.firstImageUrl }}
-      style={{ width: 80, height: 80, borderRadius: 12, marginRight: 16 }}
-      contentFit='cover'
-    />
-    <View className='flex-1'>
-      <Text className='text-lg font-semibold text-gray-900 mb-1'>
-        {session.title}
-      </Text>
-      <Text className='text-gray-600 mb-2'>
-        {session.startDate} ~ {session.endDate}
-      </Text>
-      <View className='flex-row items-start'>
-        <MaterialIcons
-          name='person-outline'
-          size={16}
-          color='#6B7280'
-          style={{ marginTop: 2 }}
-        />
-        <Text className='text-gray-600 ml-1 mr-4'>
-          {session.currentParticipants}/{session.maxParticipants}명
+const SessionListElement = (session: SessionInfo) => {
+  const title = session.title?.trim() || '제목 없음';
+  const regionText =
+    (Array.isArray(session.regionIds) && session.regionIds.length > 0
+      ? session.regionIds.map((id) => REGION_ID_TO_NAME_MAP[id])
+      : (session as any).regionNames || []
+    )
+      .filter(Boolean)
+      .join(', ') || '지역 정보 없음';
+
+  return (
+    <>
+      <Image
+        source={{ uri: session.firstImageUrl }}
+        style={{ width: 80, height: 80, borderRadius: 12, marginRight: 16 }}
+        contentFit='cover'
+      />
+      <View className='flex-1'>
+        <Text className='text-lg font-semibold text-gray-900 mb-1'>
+          {title}
         </Text>
-        <Ionicons
-          name='location-outline'
-          size={16}
-          color='#6B7280'
-          style={{ marginTop: 2 }}
-        />
-        <Text
-          className='text-gray-600 ml-1 flex-1'
-          numberOfLines={2}
-          ellipsizeMode='tail'
-        >
-          {(Array.isArray(session.regionIds) && session.regionIds.length > 0
-            ? session.regionIds.map((id) => REGION_ID_TO_NAME_MAP[id])
-            : (session as any).regionNames || []
-          )
-            .filter(Boolean)
-            .join(', ')}
+        <Text className='text-gray-600 mb-2'>
+          {session.startDate} ~ {session.endDate}
         </Text>
+        <View className='flex-row items-start'>
+          <MaterialIcons
+            name='person-outline'
+            size={16}
+            color='#6B7280'
+            style={{ marginTop: 2 }}
+          />
+          <Text className='text-gray-600 ml-1 mr-4'>
+            {session.currentParticipants}/{session.maxParticipants}명
+          </Text>
+          <Ionicons
+            name='location-outline'
+            size={16}
+            color='#6B7280'
+            style={{ marginTop: 2 }}
+          />
+          <Text
+            className='text-gray-600 ml-1 flex-1'
+            numberOfLines={2}
+            ellipsizeMode='tail'
+          >
+            {regionText}
+          </Text>
+        </View>
       </View>
-    </View>
-    <View
-      className={`px-3 py-1 rounded-full ${
-        session.status === 'RECRUITING'
-          ? 'bg-purple-100'
-          : session.status === 'RECRUITMENT_CLOSED'
-          ? 'bg-orange-100'
-          : session.status === 'COMPLETED'
-          ? 'bg-green-100'
-          : 'bg-gray-100'
-      }`}
-    >
-      <Text
-        className={`text-sm ${
+      <View
+        className={`px-3 py-1 rounded-full ${
           session.status === 'RECRUITING'
-            ? 'text-purple-700'
+            ? 'bg-purple-100'
             : session.status === 'RECRUITMENT_CLOSED'
-            ? 'text-orange-700'
+            ? 'bg-orange-100'
             : session.status === 'COMPLETED'
-            ? 'text-green-700'
-            : 'text-gray-600'
+            ? 'bg-green-100'
+            : 'bg-gray-100'
         }`}
       >
-        {session.status === 'RECRUITING' && '모집중'}
-        {session.status === 'RECRUITMENT_CLOSED' && '모집마감'}
-        {session.status === 'IN_PROGRESS' && '진행중'}
-        {session.status === 'COMPLETED' && '완료'}
-      </Text>
-    </View>
-  </>
-);
+        <Text
+          className={`text-sm ${
+            session.status === 'RECRUITING'
+              ? 'text-purple-700'
+              : session.status === 'RECRUITMENT_CLOSED'
+              ? 'text-orange-700'
+              : session.status === 'COMPLETED'
+              ? 'text-green-700'
+              : 'text-gray-600'
+          }`}
+        >
+          {session.status === 'RECRUITING' && '모집중'}
+          {session.status === 'RECRUITMENT_CLOSED' && '모집마감'}
+          {session.status === 'IN_PROGRESS' && '진행중'}
+          {session.status === 'COMPLETED' && '완료'}
+        </Text>
+      </View>
+    </>
+  );
+};
 
 /**
  * 세션(여행) 목록을 표시하는 컴포넌트입니다.
@@ -123,10 +129,11 @@ const SessionList: React.FC<SessionListProps> = ({
       data={sessions}
       keyExtractor={(item) => item.sessionId.toString()}
       getHref={(item) => {
-        return {
-          pathname: '/guide/session/[id]',
-          params: { id: item.sessionId },
-        };
+        if (userRole === 'GUIDE' && item.status === 'RECRUITMENT_CLOSED') {
+          return `/guide/session/${item.sessionId.toString()}/session-room`;
+        }
+
+        return `/guide/session/${item.sessionId.toString()}`;
       }}
       renderItemContent={SessionListElement}
       {...rest}

@@ -10,9 +10,13 @@ import { clearTokens, getTokens, saveTokens } from '@/lib/tokenStorage';
 import { reissueToken } from '@/services/auth';
 import { kakaoSignIn, kakaoSignOut } from '@/services/kakaoAuth';
 import { getUser } from '@/services/users';
+import { AuthDecodedToken } from '@/types/auth';
 import { UserData, UserRole } from '@/types/users';
 import { isAxiosError } from 'axios';
+import { jwtDecode } from 'jwt-decode';
 import { createContext, useCallback, useEffect, useState } from 'react';
+
+type UserState = UserData & { id: number | null };
 
 /**
  * @interface AuthContextType
@@ -20,21 +24,22 @@ import { createContext, useCallback, useEffect, useState } from 'react';
  * @property {string | null} accessToken - 사용자의 액세스 토큰.
  * @property {boolean} isLoading - 인증 관련 비동기 작업의 로딩 상태.
  * @property {boolean} isNewUser - 새로운 사용자인지 여부.
- * @property {UserData | null} user - 현재 로그인된 사용자의 정보.
+ * @property {UserState | null} user - 현재 로그인된 사용자의 정보.
  * @property {() => Promise<void>} signIn - 소셜 로그인을 통해 앱에 로그인하는 함수.
  * @property {() => Promise<void>} signOut - 앱에서 로그아웃하는 함수.
  * @property {(newUserRole: UserRole) => Promise<void>} switchUserRole - 사용자 역할을 전환하는 함수.
- * @property {React.Dispatch<React.SetStateAction<UserData | null>>} setUser - 사용자 정보 상태를 직접 설정하는 함수.
+ * @property {React.Dispatch<React.SetStateAction<UserState | null>>} setUser - 사용자 정보 상태를 직접 설정하는 함수.
  */
 export interface AuthContextType {
   accessToken: string | null;
   isLoading: boolean;
   isNewUser: boolean;
-  user: UserData | null;
+  user: UserState | null;
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
   switchUserRole: (newUserRole: UserRole) => Promise<void>;
-  setUser: React.Dispatch<React.SetStateAction<UserData | null>>;
+  setUser: React.Dispatch<React.SetStateAction<UserState | null>>;
+  refreshUser: () => Promise<void>;
 }
 
 /**
@@ -71,7 +76,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
    * @description 현재 로그인된 사용자의 정보(이름, 역할, 프로필 이미지 등)를 담고 있습니다.
    * @state
    */
-  const [user, setUser] = useState<UserData | null>(null);
+  const [user, setUser] = useState<UserState | null>(null);
 
   /**
    * @description 사용자를 로그아웃 처리합니다.
@@ -116,8 +121,19 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setAccessToken(newAccessToken);
 
       try {
+        const newUserId = jwtDecode<AuthDecodedToken>(newAccessToken).userId;
         const newUser = await getUser();
-        setUser(newUser || null);
+
+        if (newUser) {
+          const res: UserState = {
+            ...newUser,
+            id: newUserId,
+            nickname: newUser.nickname || '',
+          };
+          setUser(res);
+        } else {
+          throw new Error('유저 정보 fetch 실패');
+        }
       } catch (error) {
         console.error('사용자 정보 조회 실패', error);
         await signOutHandler(); // 유효하지 않은 토큰은 로그아웃 처리
@@ -186,6 +202,28 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 
   /**
+   * @description 현재 사용자의 정보를 서버로부터 다시 불러와 상태를 갱신합니다.
+   * @function refreshUserHandler
+   * @async
+   */
+  const refreshUserHandler = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const { accessToken: currentToken } = await getTokens();
+      if (currentToken) {
+        await processAndSetAuth(currentToken);
+      } else {
+        await signOutHandler();
+      }
+    } catch (error) {
+      console.error('Failed to refresh user:', error);
+      await signOutHandler();
+    } finally {
+      setIsLoading(false);
+    }
+  }, [processAndSetAuth, signOutHandler]);
+
+  /**
    * @description API 클라이언트 인터셉터를 설정합니다.
    * 컴포넌트 마운트 시, Axios 인터셉터를 설정하여 API 요청/응답을 가로채
    * 토큰 재발급과 같은 공통 로직을 처리합니다.
@@ -232,6 +270,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         signOut: signOutHandler,
         switchUserRole: switchUserRoleHandler,
         setUser,
+        refreshUser: refreshUserHandler,
       }}
     >
       {children}

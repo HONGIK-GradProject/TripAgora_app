@@ -1,3 +1,4 @@
+import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import GuideTemplateList from '@/components/guide/template/GuideTemplateList';
 import SearchWithAutoComplete from '@/components/search-bar/SearchWithAutoComplete';
 import FullScreenLoader from '@/components/ui/FullScreenLoader';
@@ -39,6 +40,13 @@ const MyTemplatesScreen: React.FC = () => {
     setSubmittedQuery(query);
   };
 
+  // 검색어가 비워졌을 때 자동으로 전체 조회
+  React.useEffect(() => {
+    if (searchQuery.trim() === '' && submittedQuery.trim() !== '') {
+      setSubmittedQuery('');
+    }
+  }, [searchQuery, submittedQuery]);
+
   useFocusEffect(
     useCallback(() => {
       refetch();
@@ -56,7 +64,7 @@ const MyTemplatesScreen: React.FC = () => {
       router.push(`/guide/template/${newTemplateId}`);
       console.log(newTemplateId);
     } catch (error) {
-      console.log('템플릿 생성 실패: ', error);
+      console.log('여행 계획 생성 실패: ', error);
     }
   };
 
@@ -80,60 +88,73 @@ const MyTemplatesScreen: React.FC = () => {
     refetch();
   }, [refetch]);
 
-
   return (
-    <View className='flex-1 bg-white pt-12 relative'>
-      <SearchWithAutoComplete
-        query={searchQuery}
-        onQueryChange={setSearchQuery}
-        fetchSuggestions={handleFetchSuggestions}
-        onSearch={handleSearch}
-        placeholder='제목으로 템플릿을 검색해보세요!'
-      />
-
-      {/* 초기 로딩 처리 */}
-      {isLoading && templates.length === 0 ? (
-        <FullScreenLoader />
-      ) : error ? (
-        <Text style={{ textAlign: 'center', marginTop: 50 }}>
-          오류가 발생했습니다.
-        </Text>
-      ) : (
-        <>
-          <View className='px-5'>
-            <Text className='text-3xl font-bold mb-5'>내 상품 템플릿</Text>
-          </View>
-          <View
-            className='bg-gray-50 rounded-2xl p-4'
-            style={{ marginBottom: 16 + bottom }}
-          >
-            <GuideTemplateList
-              templates={filteredTemplates}
-              onEndReached={handleLoadMore}
-              onEndReachedThreshold={0.5}
-              ListFooterComponent={renderFooter}
-              onRefresh={handleRefetch}
-              refreshing={isLoading}
-              contentContainerStyle={{ paddingBottom: 80 + bottom }}
+    <CustomSafeAreaView>
+      <View className='flex-1 bg-gray-50 pt-6 relative'>
+        {/* 초기 로딩 처리 */}
+        {isLoading && templates.length === 0 ? (
+          <FullScreenLoader />
+        ) : error ? (
+          <Text style={{ textAlign: 'center', marginTop: 50 }}>
+            오류가 발생했습니다.
+          </Text>
+        ) : (
+          <>
+            <View className='px-5'>
+              <Text className='text-3xl font-bold mb-5'>나의 여행 계획</Text>
+            </View>
+            <SearchWithAutoComplete
+              query={searchQuery}
+              onQueryChange={setSearchQuery}
+              fetchSuggestions={handleFetchSuggestions}
+              onSearch={handleSearch}
+              placeholder='제목으로 여행 계획 찾기'
             />
-          </View>
-        </>
-      )}
+            <View className='bg-gray-50 rounded-2xl p-4'>
+              <GuideTemplateList
+                templates={filteredTemplates}
+                userRole='GUIDE'
+                onEndReached={handleLoadMore}
+                onEndReachedThreshold={0.5}
+                ListFooterComponent={renderFooter}
+                ListEmptyComponent={
+                  <View className='flex-1 items-center justify-center py-20'>
+                    <Ionicons name='document-outline' size={48} color='#9CA3AF' />
+                    <Text className='text-gray-500 text-lg mt-4'>
+                      {submittedQuery.trim()
+                        ? '검색 결과가 없습니다.'
+                        : '등록된 여행 계획이 없습니다.'}
+                    </Text>
+                    {!submittedQuery.trim() && (
+                      <Text className='text-gray-400 text-sm mt-2'>
+                        우측 하단 버튼을 눌러 여행 계획을 만들어보세요!
+                      </Text>
+                    )}
+                  </View>
+                }
+                onRefresh={handleRefetch}
+                refreshing={isLoading}
+                contentContainerStyle={{ paddingBottom: 180 + bottom }}
+              />
+            </View>
+          </>
+        )}
 
-      {/* Floating action button - bottom right above bottom navbar */}
-      <TouchableOpacity
-        className='absolute right-6 w-16 h-16 rounded-full bg-white items-center justify-center'
-        style={{
-          elevation: 8,
-          bottom: bottom + 20,
-        }}
-        onPress={handleCreateTemplate}
-      >
-        <View style={{ marginLeft: -6, marginTop: -6 }}>
-          <Ionicons name='add-circle' size={68} color={'#613eea'} />
-        </View>
-      </TouchableOpacity>
-    </View>
+        {/* Floating action button - bottom right above bottom navbar */}
+        <TouchableOpacity
+          className='absolute right-6 w-16 h-16 rounded-full bg-white items-center justify-center'
+          style={{
+            elevation: 8,
+            bottom: 0,
+          }}
+          onPress={handleCreateTemplate}
+        >
+          <View style={{ marginLeft: -6, marginTop: -6 }}>
+            <Ionicons name='add-circle' size={68} color={'#613eea'} />
+          </View>
+        </TouchableOpacity>
+      </View>
+    </CustomSafeAreaView>
   );
 };
 

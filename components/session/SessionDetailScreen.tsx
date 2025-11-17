@@ -10,13 +10,20 @@ import {
   createParticipation,
   deleteSession,
 } from '@/services/sessions';
+import { addWishlist, deleteWishlist } from '@/services/wishlist';
 import { ReviewData, ReviewGetByTemplateData } from '@/types/reviews';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import {
+  useFocusEffect,
+  useLocalSearchParams,
+  useRouter,
+  useSegments,
+} from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
+  BackHandler,
   Dimensions,
   Modal,
   RefreshControl,
@@ -45,7 +52,15 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
 }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const bottomActionPadding = Math.min(Math.max(insets.bottom, 16), 24);
+  const segments = useSegments();
+  const { id, fromProfile } = useLocalSearchParams<{
+    id: string;
+    fromProfile?: string;
+  }>();
+
+  // 프로필에서 진입했는지 추적 (쿼리 파라미터로 전달)
+  const cameFromProfile = fromProfile === 'true';
 
   // 세션 상세 정보 가져오기
   const sessionDetails = useSessionDetails();
@@ -63,19 +78,59 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
     status = '',
     participants = [],
     isParticipating: contextIsParticipating = false,
-    hasWrittenReview = false,
+    isInWishlist: contextIsInWishlist = false,
+    setIsInWishlist,
     itineraries = {},
+    guideProfileId,
+    isMySession = false,
     isLoading = true,
     refetch = () => {},
   } = sessionDetails || {};
 
-  // 가이드만 화면 포커스 시 데이터 새로고침
+  // 공통 네비게이션 핸들러 (뒤로 가기, 세션 삭제 후 등에서 사용)
+  const handleNavigateBack = useCallback(() => {
+    if (userType === 'guide') {
+      // 프로필에서 진입한 경우 프로필로 돌아가기
+      if (cameFromProfile) {
+        router.push('/guide/profile');
+        return true; // 네비게이션 처리됨
+      } else {
+        // 세션 스택 내에 있으면 세션 목록으로 이동
+        const isInSessionStack =
+          segments[1] === 'guide' && segments[2] === 'session';
+        if (isInSessionStack) {
+          router.replace('/guide/session');
+          return true; // 네비게이션 처리됨
+        }
+      }
+    }
+    // 기본 동작 (router.back())
+    return false;
+  }, [userType, cameFromProfile, router, segments]);
+
+  // 하드웨어 뒤로 가기 버튼 핸들러
+  const handleBackPress = useCallback(() => {
+    const handled = handleNavigateBack();
+    return handled; // true면 이벤트 소비, false면 기본 동작
+  }, [handleNavigateBack]);
+
+  // 가이드만 화면 포커스 시 데이터 새로고침 및 하드웨어 뒤로 가기 버튼 처리
   useFocusEffect(
     useCallback(() => {
       if (userType === 'guide') {
         refetch();
       }
-    }, [refetch, userType])
+
+      // Android 하드웨어 뒤로 가기 버튼 처리
+      const backHandler = BackHandler.addEventListener(
+        'hardwareBackPress',
+        handleBackPress
+      );
+
+      return () => {
+        backHandler.remove();
+      };
+    }, [refetch, userType, handleBackPress])
   );
 
   // 참여 신청 상태 관리 (여행자용)
@@ -93,16 +148,14 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
   const [imageLoadErrors, setImageLoadErrors] = useState<Set<number>>(
     new Set()
   );
+  // 위시리스트 상태 관리 (여행자용)
+  const [isInWishlist, setIsInWishlistLocal] = useState(contextIsInWishlist);
+  const [isWishlistSubmitting, setIsWishlistSubmitting] = useState(false);
 
   // 컨텍스트의 isParticipating 상태가 변경되면 로컬 상태도 업데이트
   useEffect(() => {
     setIsParticipating(contextIsParticipating);
   }, [contextIsParticipating]);
-
-  // 가이드 정보 가져오기
-  const guide = useMemo(() => {
-    return participants.find((p) => p.role === 'GUIDE');
-  }, [participants]);
 
   // 템플릿 리뷰 데이터 로드
   useEffect(() => {
@@ -164,6 +217,10 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
 
     loadReviews();
   }, [templateId]);
+  // 컨텍스트의 isInWishlist 상태가 변경되면 로컬 상태도 업데이트
+  useEffect(() => {
+    setIsInWishlistLocal(contextIsInWishlist);
+  }, [contextIsInWishlist]);
 
   // 이미지 관련 상태
   const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
@@ -182,10 +239,17 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
 
   // 지역명과 태그명 변환
   const regionNames = useMemo(() => {
+    if (!regionIds || regionIds.length === 0) {
+      return [];
+    }
     return regionIds.map(
       (id: number) => REGION_ID_TO_NAME_MAP[id] || '알 수 없는 지역'
     );
   }, [regionIds]);
+
+  const regionText = useMemo(() => {
+    return regionNames.length > 0 ? regionNames.join(', ') : '지역 정보 없음';
+  }, [regionNames]);
 
   const tagNames = useMemo(() => {
     return tagIds.map(
@@ -204,21 +268,30 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
   // 일정 관련 상태
   const availableDays = useMemo(
     () =>
-      Object.keys(itineraries)
-        .map(Number)
+      Object.entries(itineraries)
+        .filter(([, items]) => Array.isArray(items) && items.length > 0)
+        .map(([day]) => Number(day))
         .sort((a, b) => a - b),
     [itineraries]
   );
 
-  const [selectedDay, setSelectedDay] = useState(
-    availableDays.length > 0 ? availableDays[0] : 1
+  const [selectedDay, setSelectedDay] = useState<number | null>(
+    availableDays.length > 0 ? availableDays[0] : null
   );
 
   useEffect(() => {
-    if (availableDays.length > 0 && !availableDays.includes(selectedDay)) {
-      setSelectedDay(availableDays[0]);
+    if (availableDays.length === 0) {
+      setSelectedDay(null);
+      return;
     }
-  }, [availableDays, selectedDay]);
+
+    setSelectedDay((prev) => {
+      if (prev !== null && availableDays.includes(prev)) {
+        return prev;
+      }
+      return availableDays[0];
+    });
+  }, [availableDays]);
 
   // 여행자용 참여 신청 처리
   const handleParticipation = useCallback(async () => {
@@ -250,7 +323,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
             Toast.show({
               type: 'error',
               text1: '참여 신청 실패',
-              text2: '본인의 세션 또는 이미 신청한 세션입니다',
+              text2: '본인의 여행 또는 이미 신청한 여행입니다',
             });
           } finally {
             setIsSubmitting(false);
@@ -259,6 +332,44 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
       },
     ]);
   }, [id, refetch]);
+
+  // 여행자용 위시리스트 토글 처리
+  const handleToggleWishlist = useCallback(async () => {
+    if (!id || isWishlistSubmitting) return;
+
+    try {
+      setIsWishlistSubmitting(true);
+
+      if (isInWishlist) {
+        // 위시리스트에서 제거
+        const success = await deleteWishlist(parseInt(id));
+        if (success) {
+          setIsInWishlistLocal(false);
+          setIsInWishlist?.(false);
+        } else {
+          throw new Error('위시리스트 제거 실패');
+        }
+      } else {
+        // 위시리스트에 추가
+        const success = await addWishlist(parseInt(id));
+        if (success) {
+          setIsInWishlistLocal(true);
+          setIsInWishlist?.(true);
+        } else {
+          throw new Error('위시리스트 추가 실패');
+        }
+      }
+    } catch (error) {
+      console.error('위시리스트 업데이트 에러:', error);
+      Toast.show({
+        type: 'error',
+        text1: '위시리스트 업데이트 실패',
+        text2: '잠시 후 다시 시도해주세요.',
+      });
+    } finally {
+      setIsWishlistSubmitting(false);
+    }
+  }, [id, isInWishlist, isWishlistSubmitting, setIsInWishlist]);
 
   // 여행자용 참여 취소 처리
   const handleCancelParticipation = useCallback(async () => {
@@ -344,7 +455,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
   const handleDeleteSession = useCallback(async () => {
     if (!id) return;
 
-    Alert.alert('세션 삭제', '정말로 이 세션을 삭제하시겠습니까?', [
+    Alert.alert('여행 삭제', '정말로 이 여행을 삭제하시겠습니까?', [
       {
         text: '취소',
         style: 'cancel',
@@ -358,36 +469,31 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
             if (success) {
               Toast.show({
                 type: 'success',
-                text1: '세션이 삭제되었습니다.',
+                text1: '여행이 삭제되었습니다.',
               });
-              router.push('/guide/session');
+              // 공통 네비게이션 핸들러 사용
+              const handled = handleNavigateBack();
+              if (!handled) {
+                router.back();
+              }
             } else {
               Toast.show({
                 type: 'error',
-                text1: '세션 삭제에 실패했습니다.',
+                text1: '여행 삭제에 실패했습니다.',
               });
             }
           } catch (error) {
-            console.error('세션 삭제 에러:', error);
+            console.error('여행 삭제 에러:', error);
             Toast.show({
               type: 'error',
-              text1: '세션 삭제 중 오류가 발생했습니다.',
+              text1: '여행 삭제 중 오류가 발생했습니다.',
               text2: '잠시 후 다시 시도해주세요.',
             });
           }
         },
       },
     ]);
-  }, [id, router]);
-
-  // 여행자용 리뷰 작성 처리
-  const handleWriteReview = useCallback(() => {
-    if (!id) return;
-    router.push({
-      pathname: '/ReviewWriteScreen',
-      params: { sessionId: id },
-    });
-  }, [id, router]);
+  }, [id, router, handleNavigateBack]);
 
   // 섹션으로 스크롤
   const scrollToSection = useCallback(
@@ -555,7 +661,13 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
         <View style={[styles.topBar, { paddingTop: insets.top + 10 }]}>
           <TouchableOpacity
             style={styles.iconButton}
-            onPress={() => router.back()}
+            onPress={() => {
+              const handled = handleNavigateBack();
+              if (!handled) {
+                // 기본 동작 (여행자 또는 일반 뒤로 가기)
+                router.back();
+              }
+            }}
           >
             <Ionicons name='arrow-back' size={24} color='#000' />
           </TouchableOpacity>
@@ -585,28 +697,71 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
 
         {/* 기본 정보 섹션 */}
         <View style={styles.section}>
-          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.title}>{title?.trim() || '제목 없음'}</Text>
 
           {/* 가이드 정보 */}
-          <View style={styles.guideContainer}>
-            {guide ? (
-              <Image
-                source={{ uri: guide.profileImageUrl }}
-                style={styles.guideAvatar}
-                contentFit='cover'
-              />
-            ) : (
-              <View style={styles.guideAvatarPlaceholder}>
-                <Ionicons name='person-outline' size={20} color='#9CA3AF' />
-              </View>
-            )}
-            <View style={styles.guideInfo}>
-              <Text style={styles.guideLabel}>가이드</Text>
-              <Text style={styles.guideName}>
-                {guide ? guide.nickname : '알 수 없음'}
-              </Text>
-            </View>
-          </View>
+          {(() => {
+            const guide = participants.find((p) => p.role === 'GUIDE');
+            // 여행자가 자신의 세션을 볼 때는 프로필 링크 제거
+            const isMySessionAsTraveler =
+              userType === 'traveler' && isMySession;
+            const Container = isMySessionAsTraveler ? View : TouchableOpacity;
+
+            return (
+              <Container
+                style={styles.guideContainer}
+                {...(!isMySessionAsTraveler && {
+                  onPress: () => {
+                    if (guide && id && guideProfileId) {
+                      // 현재 세션 스택 내에서 가이드 프로필 화면으로 이동
+                      // userType과 현재 경로에 따라 올바른 스택 내 경로로 이동
+                      // guideProfileId를 사용하여 프로필 조회
+                      const profilePath =
+                        userType === 'guide'
+                          ? `/guide/session/${id}/${guideProfileId}`
+                          : segments.join('/').includes('/trip/')
+                          ? `/traveler/trip/${id}/${guideProfileId}`
+                          : `/traveler/explore/${id}/${guideProfileId}`;
+                      // Expo Router 타입 정의 제한으로 인한 타입 캐스팅
+                      router.push(profilePath as any);
+                    }
+                  },
+                  activeOpacity: 0.7,
+                  disabled: !guide || !guideProfileId,
+                })}
+              >
+                {guide ? (
+                  <Image
+                    source={{ uri: guide.profileImageUrl }}
+                    style={styles.guideAvatar}
+                    contentFit='cover'
+                  />
+                ) : (
+                  <View style={styles.guideAvatarPlaceholder}>
+                    <Ionicons name='person-outline' size={20} color='#9CA3AF' />
+                  </View>
+                )}
+                <View style={styles.guideInfo}>
+                  <Text style={styles.guideLabel}>가이드</Text>
+                  <Text style={styles.guideName}>
+                    {guide
+                      ? isMySessionAsTraveler
+                        ? `${guide.nickname} (나)`
+                        : guide.nickname
+                      : '알 수 없음'}
+                  </Text>
+                </View>
+                {guide && !isMySessionAsTraveler && (
+                  <Ionicons
+                    name='chevron-forward'
+                    size={20}
+                    color='#9CA3AF'
+                    style={{ marginLeft: 'auto' }}
+                  />
+                )}
+              </Container>
+            );
+          })()}
 
           {/* 상태 배지 */}
           <View style={styles.statusContainer}>
@@ -617,7 +772,6 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
                 status === 'RECRUITMENT_CLOSED' && styles.statusClosed,
                 status === 'IN_PROGRESS' && styles.statusInProgress,
                 status === 'COMPLETED' && styles.statusCompleted,
-                userType === 'traveler' && styles.statusRecruiting,
               ]}
             >
               <Text
@@ -627,15 +781,13 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
                   status === 'RECRUITMENT_CLOSED' && { color: '#C2410C' },
                   status === 'IN_PROGRESS' && { color: '#FFFFFF' },
                   status === 'COMPLETED' && { color: '#15803D' },
-                  userType === 'traveler' && { color: '#7C3AED' },
                 ]}
               >
-                {userType === 'traveler'
-                  ? '모집 중'
-                  : (status === 'RECRUITING' && '모집중') ||
-                    (status === 'RECRUITMENT_CLOSED' && '모집마감') ||
-                    (status === 'IN_PROGRESS' && '진행중') ||
-                    (status === 'COMPLETED' && '완료')}
+                {(status === 'RECRUITING' && '모집중') ||
+                  (status === 'RECRUITMENT_CLOSED' && '모집마감') ||
+                  (status === 'IN_PROGRESS' && '진행중') ||
+                  (status === 'COMPLETED' && '완료') ||
+                  '알 수 없음'}
               </Text>
             </View>
           </View>
@@ -658,7 +810,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
 
           <View style={styles.infoItem}>
             <Ionicons name='location-outline' size={20} color='#6B7280' />
-            <Text style={styles.infoText}>{regionNames.join(', ')}</Text>
+            <Text style={styles.infoText}>{regionText}</Text>
           </View>
 
           {/* 태그 */}
@@ -724,7 +876,9 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
         {/* 여행 소개 섹션 */}
         <View ref={sectionRefs.info} style={styles.section}>
           <Text style={styles.sectionTitle}>여행 소개</Text>
-          <Text style={styles.description}>{content}</Text>
+          <Text style={styles.description}>
+            {content?.trim() || '내용 없음'}
+          </Text>
         </View>
 
         {/* 구분선 */}
@@ -761,12 +915,40 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
         <View style={styles.divider} />
 
         {/* 일정 섹션 */}
-        {availableDays.length > 0 && (
-          <>
-            <View ref={sectionRefs.itinerary} style={styles.section}>
-              <Text style={styles.sectionTitle}>일정</Text>
-            </View>
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>일정</Text>
+            {availableDays.length > 0 && userType === 'traveler' && (
+              <TouchableOpacity
+                onPress={() => {
+                  const itineraryDetailsPath = segments
+                    .join('/')
+                    .includes('/trip/')
+                    ? `/traveler/trip/${id}/itinerary-details`
+                    : `/traveler/explore/${id}/itinerary-details`;
+                  router.push(itineraryDetailsPath as any);
+                }}
+                style={styles.viewMoreButton}
+              >
+                <Text style={styles.viewMoreButtonText}>상세보기</Text>
+                <Ionicons name='chevron-forward' size={16} color='#8130FF' />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
 
+        {availableDays.length === 0 ? (
+          <View style={styles.emptyItineraryContainer}>
+            <Ionicons name='calendar-clear-outline' size={40} color='#9CA3AF' />
+            <Text style={styles.emptyItineraryTitle}>등록된 일정이 없어요</Text>
+            <Text style={styles.emptyItinerarySubtitle}>
+              {userType === 'guide'
+                ? '편집 화면에서 일정을 추가해 보세요.'
+                : '가이드가 일정을 추가하면 이곳에서 확인할 수 있어요.'}
+            </Text>
+          </View>
+        ) : (
+          <>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -794,7 +976,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
             </ScrollView>
 
             <View style={[styles.section, { paddingTop: 0 }]}>
-              {(itineraries[selectedDay] || [])
+              {(selectedDay !== null ? itineraries[selectedDay] || [] : [])
                 .sort((a, b) => a.startTime.localeCompare(b.startTime))
                 .map((item) => (
                   <View key={item.id} style={styles.itineraryItem}>
@@ -804,7 +986,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
                       </Text>
                     </View>
                     <View style={styles.itineraryContent}>
-                      <Text style={styles.itineraryTitle}>{item.title}</Text>
+                      <Text style={styles.itineraryTitle}>{item.location}</Text>
                       {item.content ? (
                         <Text style={styles.itineraryDesc}>{item.content}</Text>
                       ) : null}
@@ -816,6 +998,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
           </>
         )}
 
+        <View style={styles.divider} />
         {/* 리뷰 섹션 */}
         <View ref={sectionRefs.review} style={styles.section}>
           <Text style={styles.sectionTitle}>리뷰</Text>
@@ -959,7 +1142,6 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
                   </Text>
                 </View>
               </View>
-              <View style={styles.divider} />
             </>
           ) : null;
         })()}
@@ -971,7 +1153,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
       <TouchableOpacity
         style={[
           styles.scrollToTopButton,
-          { bottom: insets.bottom + 100 }, // 하단 액션 버튼 위에 위치
+          { bottom: insets.bottom + 12 }, // 하단 액션 버튼 위에 위치
         ]}
         onPress={scrollToTop}
         activeOpacity={0.8}
@@ -981,15 +1163,53 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
 
       {/* 하단 액션 버튼 */}
       <View
-        style={[styles.bottomActionContainer, { paddingBottom: insets.bottom }]}
+        style={[
+          styles.bottomActionContainer,
+          { paddingBottom: bottomActionPadding, bottom: -insets.bottom },
+        ]}
       >
-        {userType === 'guide' ? (
+        {status === 'COMPLETED' ? (
+          // 완료된 세션
+          userType === 'guide' ? (
+            // 가이드: 완료된 여행입니다 (비활성화)
+            <TouchableOpacity
+              style={[styles.ctaButton, styles.disabledButton]}
+              disabled={true}
+            >
+              <Text style={styles.disabledButtonText}>완료된 여행입니다</Text>
+            </TouchableOpacity>
+          ) : (
+            // 여행자: 세션 룸과 리뷰 작성 버튼
+            <>
+              <TouchableOpacity
+                style={[styles.ctaButton, styles.secondaryButton]}
+                onPress={() => {
+                  const sessionRoomPath = segments.join('/').includes('/trip/')
+                    ? `/traveler/trip/${id}/session-room`
+                    : `/traveler/explore/${id}/session-room`;
+                  router.push(sessionRoomPath as any);
+                }}
+              >
+                <Text style={styles.secondaryButtonText}>여행 룸</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.ctaButton, styles.primaryButton]}
+                onPress={() => {
+                  router.push('/ReviewWriteScreen' as any);
+                }}
+              >
+                <Text style={styles.primaryButtonText}>리뷰 작성</Text>
+              </TouchableOpacity>
+            </>
+          )
+        ) : userType === 'guide' ? (
+          // 가이드: 일반 상태
           <>
             <TouchableOpacity
               style={[styles.ctaButton, styles.secondaryButton]}
               onPress={handleDeleteSession}
             >
-              <Text style={styles.secondaryButtonText}>세션 삭제</Text>
+              <Text style={styles.secondaryButtonText}>여행 삭제</Text>
             </TouchableOpacity>
             {status === 'RECRUITING' && (
               <TouchableOpacity
@@ -1000,43 +1220,74 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
               </TouchableOpacity>
             )}
           </>
-        ) : status === 'COMPLETED' && isParticipating ? (
+        ) : isMySession ? (
+          // 여행자: 자신이 개설한 세션
           <TouchableOpacity
-            style={[styles.ctaButton, styles.completedButton]}
-            onPress={handleWriteReview}
+            style={[styles.ctaButton, styles.disabledButton]}
+            disabled={true}
           >
-            <Text style={styles.completedButtonText}>
-              {hasWrittenReview ? '리뷰 다시 작성하기' : '리뷰 작성하기'}
+            <Text style={styles.disabledButtonText}>
+              내가 개설한 여행입니다
             </Text>
           </TouchableOpacity>
         ) : isParticipating ? (
-          <TouchableOpacity
-            style={[
-              styles.ctaButton,
-              styles.cancelButton,
-              isSubmitting && { backgroundColor: '#9CA3AF' },
-            ]}
-            onPress={handleCancelParticipation}
-            disabled={isSubmitting}
-          >
-            <Text style={styles.cancelButtonText}>
-              {isSubmitting ? '취소 중...' : '참여 신청 취소'}
-            </Text>
-          </TouchableOpacity>
+          // 여행자: 참여 중인 세션
+          <>
+            {/* 여행자용 하트 버튼 */}
+            <TouchableOpacity
+              style={styles.wishlistButton}
+              onPress={handleToggleWishlist}
+              disabled={isWishlistSubmitting}
+            >
+              <Ionicons
+                name={isInWishlist ? 'heart' : 'heart-outline'}
+                size={24}
+                color={isInWishlist ? '#8130FF' : '#000'}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.ctaButton,
+                styles.cancelButton,
+                isSubmitting && { backgroundColor: '#9CA3AF' },
+              ]}
+              onPress={handleCancelParticipation}
+              disabled={isSubmitting}
+            >
+              <Text style={styles.cancelButtonText}>
+                {isSubmitting ? '취소 중...' : '참여 신청 취소'}
+              </Text>
+            </TouchableOpacity>
+          </>
         ) : (
-          <TouchableOpacity
-            style={[
-              styles.ctaButton,
-              styles.primaryButton,
-              isSubmitting && { backgroundColor: '#9CA3AF' },
-            ]}
-            onPress={handleParticipation}
-            disabled={isSubmitting}
-          >
-            <Text style={styles.primaryButtonText}>
-              {isSubmitting ? '신청 중...' : '여행에 참여 신청하기'}
-            </Text>
-          </TouchableOpacity>
+          // 여행자: 참여 신청 가능한 세션
+          <>
+            {/* 여행자용 하트 버튼 */}
+            <TouchableOpacity
+              style={styles.wishlistButton}
+              onPress={handleToggleWishlist}
+              disabled={isWishlistSubmitting}
+            >
+              <Ionicons
+                name={isInWishlist ? 'heart' : 'heart-outline'}
+                size={24}
+                color={isInWishlist ? '#8130FF' : '#000'}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.ctaButton,
+                styles.primaryButton,
+                isSubmitting && { backgroundColor: '#9CA3AF' },
+              ]}
+              onPress={handleParticipation}
+              disabled={isSubmitting}
+            >
+              <Text style={styles.primaryButtonText}>
+                {isSubmitting ? '신청 중...' : '여행에 참여 신청하기'}
+              </Text>
+            </TouchableOpacity>
+          </>
         )}
       </View>
 
@@ -1068,7 +1319,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
                 <Image
                   source={{ uri: imageUrl }}
                   style={styles.imageViewerImage}
-                  resizeMode='contain'
+                  contentFit='contain'
                 />
               </View>
             ))}
@@ -1178,6 +1429,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 20,
   },
+  itineraryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   title: {
     fontSize: 22,
     fontWeight: '700',
@@ -1282,9 +1538,28 @@ const styles = StyleSheet.create({
     height: 8,
     backgroundColor: '#F4F4F4',
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
+  },
+  viewMoreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#F3ECFF',
+    borderRadius: 16,
+  },
+  viewMoreButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#8130FF',
+    marginRight: 4,
   },
   description: {
     fontSize: 16,
@@ -1363,6 +1638,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#EF4444',
   },
+  disabledButton: {
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+  },
+  wishlistButton: {
+    width: 78,
+    height: 52,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   primaryButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
@@ -1383,6 +1673,12 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     color: '#EF4444',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  disabledButtonText: {
+    color: '#9CA3AF',
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
@@ -1501,6 +1797,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#444',
     lineHeight: 20,
+  },
+  emptyItineraryContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 48,
+    paddingHorizontal: 24,
+    gap: 8,
+  },
+  emptyItineraryTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4B5563',
+  },
+  emptyItinerarySubtitle: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    textAlign: 'center',
   },
   photoGrid: {
     flexDirection: 'row',

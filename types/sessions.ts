@@ -1,4 +1,5 @@
 import APIResponse from './apiResponse';
+import { TemplateItinerary } from './templates';
 
 /**
  * 세션 생성 요청 데이터
@@ -73,6 +74,7 @@ interface SessionInfo {
   startDate: string; // yyyy-mm-dd 형식
   endDate: string; // yyyy-mm-dd 형식
   status: SessionStatus;
+  roomId?: number; // 세션 룸 번호 (모집 완료 또는 진행 중인 세션에만 존재)
 }
 
 /**
@@ -186,6 +188,10 @@ interface SessionGetData {
   participants: Participant[];
   isParticipating: boolean;
   hasWrittenReview: boolean; // 리뷰 작성 여부
+  guideProfileId: number;
+  isMySession: boolean;
+  isInWishlist: boolean;
+  roomId: number; // 세션 룸 번호
 }
 
 interface SessionGetResponse extends APIResponse<SessionGetData> {
@@ -195,15 +201,7 @@ interface SessionGetResponse extends APIResponse<SessionGetData> {
 /**
  * 세션 일정 정보 타입
  */
-interface SessionItinerary {
-  id: number;
-  day: number;
-  title: string;
-  content: string;
-  startTime: string; // HH:mm:ss 형식
-  latitude: number;
-  longitude: number;
-}
+type SessionItinerary = TemplateItinerary & { startDate: string };
 
 /**
  * 세션 일정 조회 요청 데이터 (빈 데이터)

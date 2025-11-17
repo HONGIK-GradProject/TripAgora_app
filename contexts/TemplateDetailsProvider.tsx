@@ -5,8 +5,31 @@ import React, {
   createContext,
   ReactNode,
   useCallback,
-  useState
+  useEffect,
+  useState,
 } from 'react';
+
+const ensureDayKeys = (
+  source: Record<number, TemplateItinerary[]>,
+  baseDays: number[] = []
+): Record<number, TemplateItinerary[]> => {
+  const daySet = new Set<number>([
+    ...baseDays,
+    ...Object.keys(source)
+      .map(Number)
+      .filter((value) => Number.isFinite(value)),
+  ]);
+
+  if (daySet.size === 0) {
+    daySet.add(1);
+  }
+
+  const sortedDays = Array.from(daySet).sort((a, b) => a - b);
+  return sortedDays.reduce<Record<number, TemplateItinerary[]>>((acc, day) => {
+    acc[day] = source[day] ? [...source[day]] : [];
+    return acc;
+  }, {});
+};
 
 /**
  * 템플릿 상세 정보 관련 상태와 로직을 관리하는 내부 훅입니다.
@@ -16,14 +39,16 @@ import React, {
  */
 const useTemplateDetailsLogic = (id: string) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [title, setTitle] = useState<string>('샘플 여행 제목'); // 샘플 데이터용 제목
-  const [content, setContent] = useState<string>('샘플 여행 상세 내용입니다.'); // 샘플 데이터용 내용
+  const [title, setTitle] = useState<string>('');
+  const [content, setContent] = useState<string>('');
   const [regionIds, setRegionIds] = useState<number[]>([1]);
   const [tagIds, setTagIds] = useState<number[]>([]);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [itineraries, setItineraries] = useState<
     Record<number, TemplateItinerary[]>
-  >({});
+  >({
+    1: [],
+  });
   const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
   const [isEditingContent, setIsEditingContent] = useState<boolean>(false);
   const [day, setDay] = useState<number>(1);
@@ -39,7 +64,9 @@ const useTemplateDetailsLogic = (id: string) => {
       const itinerariesResponse = await getItineraries(+id);
 
       if (response && itinerariesResponse) {
-        const itinerariesByDay = groupItinerariesByDay(itinerariesResponse.itineraries);
+        const itinerariesByDay = ensureDayKeys(
+          groupItinerariesByDay(itinerariesResponse.itineraries)
+        );
         setTitle(response.title);
         setContent(response.content);
         setRegionIds(response.regionIds);
@@ -61,14 +88,21 @@ const useTemplateDetailsLogic = (id: string) => {
   const addItinerary = useCallback((newItinerary: TemplateItinerary) => {
     const day = newItinerary.day;
     setItineraries((prev) => {
+      const baseDays = Object.keys(prev)
+        .map(Number)
+        .filter((value) => Number.isFinite(value));
       const dayItineraries = prev[day] || [];
-      const updatedDayItineraries = [...dayItineraries, newItinerary].sort((a, b) =>
-        a.startTime.localeCompare(b.startTime)
+      const updatedDayItineraries = [...dayItineraries, newItinerary].sort(
+        (a, b) => a.startTime.localeCompare(b.startTime)
       );
-      return {
+      const draft = {
         ...prev,
         [day]: updatedDayItineraries,
       };
+      return ensureDayKeys(
+        draft,
+        baseDays.includes(day) ? baseDays : [...baseDays, day]
+      );
     });
   }, []);
 
@@ -76,20 +110,20 @@ const useTemplateDetailsLogic = (id: string) => {
    * 기존 일정 항목을 로컬 상태에서 업데이트합니다.
    * @param updatedItinerary - 업데이트할 일정 객체. ID를 기준으로 기존 항목을 찾습니다.
    */
-  const updateItinerary = useCallback(
-    (updatedItinerary: TemplateItinerary) => {
-      setItineraries((prev) => {
-        const flatList = flattenItineraries(prev);
-        const updatedList = flatList.map((item) =>
-          item.id === updatedItinerary.id ? updatedItinerary : item
-        );
-        const newItineraries = groupItinerariesByDay(updatedList);
-        // Ensure a new object reference is created to trigger re-renders
-        return { ...newItineraries };
-      });
-    },
-    []
-  );
+  const updateItinerary = useCallback((updatedItinerary: TemplateItinerary) => {
+    setItineraries((prev) => {
+      const baseDays = Object.keys(prev)
+        .map(Number)
+        .filter((value) => Number.isFinite(value));
+      const flatList = flattenItineraries(prev);
+      const updatedList = flatList.map((item) =>
+        item.id === updatedItinerary.id ? updatedItinerary : item
+      );
+      const newItineraries = groupItinerariesByDay(updatedList);
+
+      return ensureDayKeys(newItineraries, baseDays);
+    });
+  }, []);
 
   /**
    * 특정 일정 항목을 로컬 상태에서 삭제합니다.
@@ -97,13 +131,59 @@ const useTemplateDetailsLogic = (id: string) => {
    */
   const deleteItinerary = useCallback((itineraryId: number) => {
     setItineraries((prev) => {
+      const baseDays = Object.keys(prev)
+        .map(Number)
+        .filter((value) => Number.isFinite(value));
       const flatList = flattenItineraries(prev);
-      const updatedList = flatList.filter(
-        (item) => item.id !== itineraryId
-      );
-      return groupItinerariesByDay(updatedList);
+      const updatedList = flatList.filter((item) => item.id !== itineraryId);
+      const grouped = groupItinerariesByDay(updatedList);
+
+      return ensureDayKeys(grouped, baseDays);
     });
   }, []);
+
+  const addDay = useCallback(() => {
+    let nextDayValue = 1;
+    setItineraries((prev) => {
+      const baseDays = Object.keys(prev)
+        .map(Number)
+        .filter((value) => Number.isFinite(value));
+      const maxDay = baseDays.length === 0 ? 0 : Math.max(...baseDays);
+      nextDayValue = maxDay + 1;
+
+      if (prev[nextDayValue]) {
+        return prev;
+      }
+
+      const draft = {
+        ...prev,
+        [nextDayValue]: [],
+      };
+
+      return ensureDayKeys(draft, [...baseDays, nextDayValue]);
+    });
+    setDay(nextDayValue);
+    return nextDayValue;
+  }, [setDay]);
+
+  useEffect(() => {
+    const availableDays = Object.keys(itineraries)
+      .map(Number)
+      .filter((value) => Number.isFinite(value))
+      .sort((a, b) => a - b);
+
+    if (availableDays.length === 0) {
+      if (day !== 1) {
+        setDay(1);
+      }
+      return;
+    }
+
+    if (!availableDays.includes(day)) {
+      const nextDay = availableDays.find((availableDay) => availableDay > day);
+      setDay(nextDay ?? availableDays[availableDays.length - 1]);
+    }
+  }, [itineraries, day]);
 
   return {
     isLoading,
@@ -128,6 +208,7 @@ const useTemplateDetailsLogic = (id: string) => {
     updateItinerary,
     deleteItinerary,
     refetch: fetchTemplateDetails,
+    addDay,
     setDay,
   };
 };

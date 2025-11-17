@@ -1,3 +1,5 @@
+import CustomKeyboardAvoidingView from '@/components/CustomKeyboardAvoidingView';
+import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { SessionDetailsProvider } from '@/contexts/SessionDetailsProvider';
 import { useSessionDetails } from '@/hooks/sessions/useSessionDetails';
@@ -94,7 +96,7 @@ const EditRecruitmentContent: React.FC = () => {
     if (!id) {
       Toast.show({
         type: 'error',
-        text1: '세션 ID가 없습니다.',
+        text1: '여행 ID가 없습니다.',
       });
       return;
     }
@@ -123,7 +125,7 @@ const EditRecruitmentContent: React.FC = () => {
         });
       }
     } catch (error) {
-      console.error('세션 수정 에러:', error);
+      console.error('여행 수정 에러:', error);
       Toast.show({
         type: 'error',
         text1: '모집 정보 수정에 실패했습니다.',
@@ -151,7 +153,7 @@ const EditRecruitmentContent: React.FC = () => {
     <View className='flex-1 bg-white'>
       <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
         {/* 상단 네비게이션 */}
-        <View className='pt-12 pb-3 px-5 flex-row items-center justify-between border-b border-[#E9E9E9]'>
+        <View className='pt-6 pb-3 px-5 flex-row items-center justify-between border-b border-[#E9E9E9]'>
           <TouchableOpacity
             className='w-10 h-10 rounded-full bg-white/90 items-center justify-center'
             onPress={() => router.back()}
@@ -308,15 +310,19 @@ const EditRecruitmentScreen: React.FC = () => {
   if (!id) {
     return (
       <View className='flex-1 bg-white items-center justify-center'>
-        <Text className='text-gray-500 text-lg'>세션 ID가 없습니다.</Text>
+        <Text className='text-gray-500 text-lg'>여행 ID가 없습니다.</Text>
       </View>
     );
   }
 
   return (
-    <SessionDetailsProvider id={id}>
-      <EditRecruitmentContent />
-    </SessionDetailsProvider>
+    <CustomSafeAreaView>
+      <CustomKeyboardAvoidingView>
+        <SessionDetailsProvider id={id}>
+          <EditRecruitmentContent />
+        </SessionDetailsProvider>
+      </CustomKeyboardAvoidingView>
+    </CustomSafeAreaView>
   );
 };
 

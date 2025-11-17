@@ -1,9 +1,10 @@
+import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import FullScreenLoader from '@/components/ui/FullScreenLoader';
 import { SessionDetailsProvider } from '@/contexts/SessionDetailsProvider';
 import { useSessionDetails } from '@/hooks/sessions/useSessionDetails';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   ScrollView,
@@ -19,8 +20,10 @@ import {
  */
 const TravelerSessionRoomContent: React.FC = () => {
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>(); // sessionId는 SessionDetailsProvider에서 관리
-  const [selectedDay, setSelectedDay] = useState(1);
+  const { id, roomId: roomIdParam } = useLocalSearchParams<{
+    id: string;
+    roomId?: string;
+  }>(); // sessionId는 SessionDetailsProvider에서 관리
 
   // 세션 상세 정보 가져오기
   const sessionDetails = useSessionDetails();
@@ -30,18 +33,42 @@ const TravelerSessionRoomContent: React.FC = () => {
     endDate = '',
     maxParticipants = 0,
     currentParticipants = 0,
+    roomId: roomIdFromDetails,
     itineraries = {},
     isLoading = true,
   } = sessionDetails || {};
 
+  // 쿼리 파라미터의 roomId를 우선 사용, 없으면 상세 조회에서 받아온 roomId 사용
+  const roomId = roomIdParam ? parseInt(roomIdParam) : roomIdFromDetails;
+
   // 일정 관련 상태
   const availableDays = useMemo(
     () =>
-      Object.keys(itineraries)
-        .map(Number)
+      Object.entries(itineraries)
+        .filter(([, items]) => Array.isArray(items) && items.length > 0)
+        .map(([day]) => Number(day))
         .sort((a, b) => a - b),
     [itineraries]
   );
+
+  const [selectedDay, setSelectedDay] = useState<number | null>(
+    availableDays.length > 0 ? availableDays[0] : null
+  );
+
+  useEffect(() => {
+    if (availableDays.length === 0) {
+      setSelectedDay(null);
+      return;
+    }
+
+    setSelectedDay((prev) => {
+      if (prev !== null && availableDays.includes(prev)) {
+        return prev;
+      }
+
+      return availableDays[0];
+    });
+  }, [availableDays]);
 
   // 날짜 포맷팅
   const formatDate = (dateString: string) => {
@@ -129,8 +156,11 @@ const TravelerSessionRoomContent: React.FC = () => {
           <TouchableOpacity
             style={[styles.actionButton, styles.noticeButton]}
             onPress={() => {
-              router.push(`/traveler/trip/${id}/notice` as any);
+              if (roomId) {
+                router.push(`/traveler/trip/${id}/notice?roomId=${roomId}` as any);
+              }
             }}
+            disabled={!roomId}
           >
             <Ionicons name='megaphone' size={20} color='#FF8330' />
             <Text style={[styles.actionButtonText, styles.noticeButtonText]}>
@@ -189,25 +219,41 @@ const TravelerSessionRoomContent: React.FC = () => {
 
         {/* 일정 목록 */}
         <View style={styles.itinerarySection}>
-          {(itineraries[selectedDay] || [])
-            .sort((a, b) => a.startTime.localeCompare(b.startTime))
-            .map((item) => (
-              <View key={item.id} style={styles.itineraryItem}>
-                <View style={styles.itineraryTime}>
-                  <Text style={styles.itineraryTimeText}>
-                    {item.startTime.substring(0, 5)}
-                  </Text>
-                </View>
-                <View style={styles.itineraryContent}>
-                  <Text style={styles.itineraryTitle}>{item.title}</Text>
-                  {item.content ? (
-                    <Text style={styles.itineraryDescription}>
-                      {item.content}
+          {selectedDay === null ? (
+            <View style={styles.emptyItineraryContainer}>
+              <Ionicons
+                name='calendar-clear-outline'
+                size={40}
+                color='#9CA3AF'
+              />
+              <Text style={styles.emptyItineraryTitle}>
+                등록된 일정이 없어요
+              </Text>
+              <Text style={styles.emptyItinerarySubtitle}>
+                가이드가 일정을 추가하면 이곳에서 확인할 수 있어요.
+              </Text>
+            </View>
+          ) : (
+            (itineraries[selectedDay] || [])
+              .sort((a, b) => a.startTime.localeCompare(b.startTime))
+              .map((item) => (
+                <View key={item.id} style={styles.itineraryItem}>
+                  <View style={styles.itineraryTime}>
+                    <Text style={styles.itineraryTimeText}>
+                      {item.startTime.substring(0, 5)}
                     </Text>
-                  ) : null}
+                  </View>
+                  <View style={styles.itineraryContent}>
+                    <Text style={styles.itineraryTitle}>{item.location}</Text>
+                    {item.content ? (
+                      <Text style={styles.itineraryDescription}>
+                        {item.content}
+                      </Text>
+                    ) : null}
+                  </View>
                 </View>
-              </View>
-            ))}
+              ))
+          )}
         </View>
 
         <View style={{ height: 100 }} />
@@ -228,9 +274,11 @@ const TravelerSessionRoomScreen: React.FC = () => {
   }
 
   return (
-    <SessionDetailsProvider id={id}>
-      <TravelerSessionRoomContent />
-    </SessionDetailsProvider>
+    <CustomSafeAreaView>
+      <SessionDetailsProvider id={id}>
+        <TravelerSessionRoomContent />
+      </SessionDetailsProvider>
+    </CustomSafeAreaView>
   );
 };
 
@@ -437,6 +485,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6B7280',
     lineHeight: 20,
+  },
+  emptyItineraryContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 48,
+    paddingHorizontal: 24,
+    gap: 8,
+  },
+  emptyItineraryTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4B5563',
+  },
+  emptyItinerarySubtitle: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    textAlign: 'center',
   },
   errorContainer: {
     flex: 1,
