@@ -74,7 +74,7 @@ const StartRecruitmentContent: React.FC = () => {
 
   const handleStartRecruitment = async () => {
     if (!id) {
-      showErrorToast('템플릿 ID가 없습니다.');
+      showErrorToast('여행 계획 ID가 없습니다.');
       return;
     }
 
@@ -160,8 +160,6 @@ const StartRecruitmentContent: React.FC = () => {
       type: 'error',
       text1: '모집 시작 실패',
       text2: message,
-      position: 'bottom',
-      bottomOffset: 100,
     });
   };
 
@@ -170,8 +168,6 @@ const StartRecruitmentContent: React.FC = () => {
       type: 'success',
       text1: '모집이 시작되었습니다!',
       text2: '여행자들이 참여할 수 있습니다.',
-      position: 'bottom',
-      bottomOffset: 100,
     });
   };
 
@@ -292,7 +288,7 @@ const StartRecruitmentContent: React.FC = () => {
       )}
 
       {/* 하단 버튼 */}
-      <View className='absolute bottom-0 left-0 right-0 px-5 pt-[10px] pb-5 bg-white border-t border-[#E9E9E9]'>
+      <View className='absolute bottom-0 left-0 right-0 px-5 pt-2 bg-white border-t border-[#E9E9E9]'>
         <TouchableOpacity
           className={`h-[52px] rounded-lg items-center justify-center ${
             isCreating ? 'bg-gray-400' : 'bg-[#8130FF]'

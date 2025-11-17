@@ -41,7 +41,8 @@ interface GuideProfileSessionList {
  */
 interface GuideProfileGetData {
   nickname: string;
-  imageUrl: string;
+  userImageUrl?: string;
+  guideImageUrl?: string; // 배너 이미지 URL
   bio: string;
   tags: number[];
   portfolios: Portfolio[];
@@ -77,6 +78,7 @@ type GuideProfileUpdateImageRequest = FormData;
  */
 interface GuideProfileUpdateImageData {
   imageUrl: string;
+  guideImageUrl?: string; // 배너 이미지 URL (업로드 시 반환될 수 있음)
 }
 
 interface GuideProfileUpdateImageResponse

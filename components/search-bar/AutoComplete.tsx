@@ -87,7 +87,6 @@ const AutoComplete: React.FC<AutoCompleteProps> = ({
   }, [debouncedQuery, fetchSuggestions]); // debouncedQuery가 변경될 때만 실행
 
   const handleSearch = () => {
-    if (!query.trim()) return;
     Keyboard.dismiss();
     setSuggestions([]);
     onSearch(query);

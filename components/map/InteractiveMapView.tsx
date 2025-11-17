@@ -23,9 +23,9 @@ import { MapOverlay } from './MapOverlay';
 import { MapView } from './MapView';
 
 const DEFAULT_COORDS = [
-  { latitude: 0, longitude: 0},
-  { latitude: 0, longitude: 0}
-]
+  { latitude: 0, longitude: 0 },
+  { latitude: 0, longitude: 0 },
+];
 
 export interface MapOverlayOptions {
   searchBar?: boolean;
@@ -37,12 +37,18 @@ interface InteractiveMapViewProps {
   cameraPosition: Camera;
   clusterMarkers: ClusterMarkerProp[];
   options?: MapOverlayOptions;
-  onPlaceSelect?: (place: { name: string, latitude: number; longitude: number }) => void;
+  onPlaceSelect?: (place: {
+    name: string;
+    latitude: number;
+    longitude: number;
+  }) => void;
   onMarkerClick?: (markerIdentifier: string) => void;
 }
 
 export interface InteractiveMapViewRef {
-  animateCameraTo: (camera: CameraMoveBaseParams & Coord & { zoom: number }) => void
+  animateCameraTo: (
+    camera: CameraMoveBaseParams & Coord & { zoom: number }
+  ) => void;
   animateRegionTo: (camera: CameraMoveBaseParams & Region) => void;
 }
 
@@ -56,7 +62,7 @@ export const InteractiveMapView = memo(
       const { status, requestPermission } = useLocationPermission();
       const [searchQuery, setSearchQuery] = useState('');
       const [isMapReady, setIsMapReady] = useState(false);
-      
+
       // Child component의 렌더링 딜레이
       useEffect(() => {
         const timer = setTimeout(() => setIsMapReady(true), 100);
@@ -70,10 +76,15 @@ export const InteractiveMapView = memo(
         },
         animateRegionTo: (camera) => {
           mapViewRef.current?.animateRegionTo(camera);
-        }
+        },
       }));
 
       const handleSearch = async (query: string) => {
+        // 빈 쿼리일 때는 검색을 실행하지 않음
+        if (!query.trim()) {
+          return;
+        }
+
         try {
           const data = await fetchKakaoPlaceSearch(query);
           if (data && data.documents.length > 0) {
@@ -137,22 +148,28 @@ export const InteractiveMapView = memo(
           <MapView
             ref={mapViewRef}
             cameraPosition={cameraPosition}
-            clusterMarkers={clusterMarkers.length > 0 ? clusterMarkers : undefined}
+            clusterMarkers={
+              clusterMarkers.length > 0 ? clusterMarkers : undefined
+            }
             onMarkerClick={onMarkerClick}
           >
             {isMapReady && (
               <NaverMapPathOverlay
-                coords={clusterMarkers && clusterMarkers.length >= 2 ?
-                  clusterMarkers.map(marker => ({
-                    latitude: marker.latitude,
-                    longitude: marker.longitude
-                  } as Coord)) :
-                  DEFAULT_COORDS
+                coords={
+                  clusterMarkers && clusterMarkers.length >= 2
+                    ? clusterMarkers.map(
+                        (marker) =>
+                          ({
+                            latitude: marker.latitude,
+                            longitude: marker.longitude,
+                          } as Coord)
+                      )
+                    : DEFAULT_COORDS
                 }
                 width={8}
-                color="#8130FF"
+                color='#8130FF'
                 outlineWidth={2}
-                outlineColor="#dbc7ff"
+                outlineColor='#dbc7ff'
               />
             )}
           </MapView>

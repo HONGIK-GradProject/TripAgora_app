@@ -37,6 +37,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
   const handleClear = () => {
     setQuery('');
+    // 검색어를 지울 때는 검색을 트리거하지 않음
+    // (템플릿 검색의 경우 useEffect에서 처리하고, 지도 검색의 경우 빈 쿼리 검색을 방지)
   };
 
   const handleSearchPress = () => {

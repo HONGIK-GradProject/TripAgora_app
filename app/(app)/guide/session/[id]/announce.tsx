@@ -38,8 +38,18 @@ const AnnounceScreen: React.FC<AnnounceScreenProps> = ({
 }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, roomId } = useLocalSearchParams<{
+    id: string;
+    roomId?: string;
+  }>();
   const isTraveler = userType === 'traveler';
+
+  // roomId가 쿼리 파라미터로 전달된 경우 사용, 없으면 id(sessionId)를 사용 (하위 호환성)
+  const effectiveRoomId = roomId
+    ? parseInt(roomId)
+    : id
+    ? parseInt(id)
+    : undefined;
 
   const [announcementTitle, setAnnouncementTitle] = useState('');
   const [announcement, setAnnouncement] = useState('');
@@ -58,12 +68,12 @@ const AnnounceScreen: React.FC<AnnounceScreenProps> = ({
 
   // 공지 목록 조회
   const fetchNotices = useCallback(async () => {
-    if (!id) return;
+    if (!effectiveRoomId) return;
 
     try {
       setIsLoading(true);
       setError(null);
-      const data = await getNoticeList(parseInt(id), 0);
+      const data = await getNoticeList(effectiveRoomId, 0);
       setNotices(data?.notices || []);
     } catch (err) {
       console.error('공지 목록 조회 에러:', err);
@@ -71,7 +81,7 @@ const AnnounceScreen: React.FC<AnnounceScreenProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [id]);
+  }, [effectiveRoomId]);
 
   // 컴포넌트 마운트 시 공지 목록 조회
   useEffect(() => {
@@ -81,11 +91,11 @@ const AnnounceScreen: React.FC<AnnounceScreenProps> = ({
   // 공지 상세 조회
   const fetchNoticeDetail = useCallback(
     async (noticeId: number) => {
-      if (!id || noticeDetails[noticeId]) return; // 이미 로드된 경우 스킵
+      if (!effectiveRoomId || noticeDetails[noticeId]) return; // 이미 로드된 경우 스킵
 
       try {
         setLoadingDetails((prev) => new Set(prev).add(noticeId));
-        const data = await getNoticeDetail(parseInt(id), noticeId);
+        const data = await getNoticeDetail(effectiveRoomId, noticeId);
         setNoticeDetails((prev) => ({
           ...prev,
           [noticeId]: data?.content || '',
@@ -105,7 +115,7 @@ const AnnounceScreen: React.FC<AnnounceScreenProps> = ({
         });
       }
     },
-    [id, noticeDetails]
+    [effectiveRoomId, noticeDetails]
   );
 
   // 공지 항목 토글
@@ -142,7 +152,7 @@ const AnnounceScreen: React.FC<AnnounceScreenProps> = ({
     if (!id) {
       Toast.show({
         type: 'error',
-        text1: '세션 정보를 찾을 수 없습니다',
+        text1: '여행 정보를 찾을 수 없습니다',
       });
       return;
     }
@@ -160,8 +170,9 @@ const AnnounceScreen: React.FC<AnnounceScreenProps> = ({
             try {
               setIsUpdating(true);
 
+              if (!effectiveRoomId) return;
               await updateNotice(
-                parseInt(id),
+                effectiveRoomId,
                 editingNoticeId,
                 announcementTitle.trim(),
                 announcement.trim()
@@ -206,8 +217,9 @@ const AnnounceScreen: React.FC<AnnounceScreenProps> = ({
             setIsSubmitting(true);
 
             // 공지 작성 API 호출
+            if (!effectiveRoomId) return;
             const result = await createNotice(
-              parseInt(id),
+              effectiveRoomId,
               announcementTitle.trim(),
               announcement.trim()
             );
@@ -241,8 +253,9 @@ const AnnounceScreen: React.FC<AnnounceScreenProps> = ({
 
   // 공지 수정 모드로 전환
   const handleEditNotice = async (noticeId: number) => {
+    if (!effectiveRoomId) return;
     try {
-      const data = await getNoticeDetail(parseInt(id!), noticeId);
+      const data = await getNoticeDetail(effectiveRoomId, noticeId);
       if (data) {
         setAnnouncementTitle(data.title);
         setAnnouncement(data.content);
@@ -277,9 +290,10 @@ const AnnounceScreen: React.FC<AnnounceScreenProps> = ({
         text: '삭제',
         style: 'destructive',
         onPress: async () => {
+          if (!effectiveRoomId) return;
           try {
             setIsDeleting(true);
-            await deleteNotice(parseInt(id!), noticeId);
+            await deleteNotice(effectiveRoomId, noticeId);
             await fetchNotices();
             Toast.show({
               type: 'success',
@@ -415,7 +429,9 @@ const AnnounceScreen: React.FC<AnnounceScreenProps> = ({
             >
               {isLoading ? (
                 <View style={styles.loadingContainer}>
-                  <Text style={styles.loadingText}>공지 목록을 불러오는 중...</Text>
+                  <Text style={styles.loadingText}>
+                    공지 목록을 불러오는 중...
+                  </Text>
                 </View>
               ) : error ? (
                 <View style={styles.errorContainer}>
@@ -429,7 +445,9 @@ const AnnounceScreen: React.FC<AnnounceScreenProps> = ({
                 </View>
               ) : notices.length === 0 ? (
                 <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>아직 발송된 공지가 없습니다.</Text>
+                  <Text style={styles.emptyText}>
+                    아직 발송된 공지가 없습니다.
+                  </Text>
                 </View>
               ) : (
                 notices.map((notice) => (
@@ -441,20 +459,27 @@ const AnnounceScreen: React.FC<AnnounceScreenProps> = ({
                         activeOpacity={0.7}
                       >
                         <View style={styles.avatarContainer}>
-                          <Ionicons name='megaphone' size={20} color='#8130FF' />
+                          <Ionicons
+                            name='megaphone'
+                            size={20}
+                            color='#8130FF'
+                          />
                         </View>
                         <View style={styles.announcementContent}>
                           <Text style={styles.announcementText}>
                             {notice.title}
                           </Text>
                           <Text style={styles.announcementTime}>
-                            {new Date(notice.createdAt).toLocaleString('ko-KR', {
-                              year: 'numeric',
-                              month: '2-digit',
-                              day: '2-digit',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
+                            {new Date(notice.createdAt + 'Z').toLocaleString(
+                              'ko-KR',
+                              {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              }
+                            )}
                           </Text>
                         </View>
                         <View style={styles.expandIcon}>

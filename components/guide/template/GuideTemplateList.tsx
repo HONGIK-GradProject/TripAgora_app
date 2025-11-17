@@ -34,46 +34,52 @@ interface TemplateListProps
  * @param {TemplateInfo} item - 렌더링할 템플릿 정보.
  * @returns {React.ReactElement} - 템플릿 아이템의 JSX 엘리먼트.
  */
-const TemplateListElement = (item: TemplateInfo) => (
-  <>
-    <Image
-      source={{ uri: item.firstImageUrl }}
-      style={{
-        width: 80,
-        height: 80,
-        borderRadius: 12,
-        marginRight: 16,
-      }}
-      contentFit='cover'
-    />
-    <View className='flex-1'>
-      <Text className='text-lg font-semibold text-gray-900 mb-1'>
-        {item.title}
-      </Text>
-      <View className='flex-row items-start'>
-        <Ionicons
-          name='location-outline'
-          size={16}
-          color='#6B7280'
-          style={{ marginTop: 2 }}
-        />
-        <Text
-          className='text-gray-600 ml-1 flex-1'
-          numberOfLines={2}
-          ellipsizeMode='tail'
-        >
-          {item.regionIds
-            .map((id) => REGION_ID_TO_NAME_MAP[id])
-            .join(', ')}
+const TemplateListElement = (item: TemplateInfo) => {
+  const title = item.title?.trim() || '제목 없음';
+  const regionText =
+    item.regionIds && item.regionIds.length > 0
+      ? item.regionIds.map((id) => REGION_ID_TO_NAME_MAP[id]).join(', ')
+      : '지역 정보 없음';
+
+  return (
+    <>
+      <Image
+        source={{ uri: item.firstImageUrl }}
+        style={{
+          width: 80,
+          height: 80,
+          borderRadius: 12,
+          marginRight: 16,
+        }}
+        contentFit='cover'
+      />
+      <View className='flex-1'>
+        <Text className='text-lg font-semibold text-gray-900 mb-1'>
+          {title}
         </Text>
+        <View className='flex-row items-start'>
+          <Ionicons
+            name='location-outline'
+            size={16}
+            color='#6B7280'
+            style={{ marginTop: 2 }}
+          />
+          <Text
+            className='text-gray-600 ml-1 flex-1'
+            numberOfLines={2}
+            ellipsizeMode='tail'
+          >
+            {regionText}
+          </Text>
+        </View>
       </View>
-    </View>
-    <Ionicons name='chevron-forward' size={20} color={'#9CA3AF'} />
-  </>
-);
+      <Ionicons name='chevron-forward' size={20} color={'#9CA3AF'} />
+    </>
+  );
+};
 
 /**
- * 
+ *
  *
  * @param {TemplateListProps} props - 컴포넌트에 전달되는 props.
  * @returns {React.ReactElement} - 렌더링된 템플릿 리스트 컴포넌트.

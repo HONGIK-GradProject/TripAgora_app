@@ -96,7 +96,7 @@ const EditRecruitmentContent: React.FC = () => {
     if (!id) {
       Toast.show({
         type: 'error',
-        text1: '세션 ID가 없습니다.',
+        text1: '여행 ID가 없습니다.',
       });
       return;
     }
@@ -125,7 +125,7 @@ const EditRecruitmentContent: React.FC = () => {
         });
       }
     } catch (error) {
-      console.error('세션 수정 에러:', error);
+      console.error('여행 수정 에러:', error);
       Toast.show({
         type: 'error',
         text1: '모집 정보 수정에 실패했습니다.',
@@ -310,7 +310,7 @@ const EditRecruitmentScreen: React.FC = () => {
   if (!id) {
     return (
       <View className='flex-1 bg-white items-center justify-center'>
-        <Text className='text-gray-500 text-lg'>세션 ID가 없습니다.</Text>
+        <Text className='text-gray-500 text-lg'>여행 ID가 없습니다.</Text>
       </View>
     );
   }
