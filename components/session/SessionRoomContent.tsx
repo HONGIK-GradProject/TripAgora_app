@@ -1,8 +1,23 @@
+import {
+  InteractiveMapView,
+  InteractiveMapViewRef,
+} from '@/components/map/InteractiveMapView';
 import FullScreenLoader from '@/components/ui/FullScreenLoader';
 import { useSessionDetails } from '@/hooks/sessions/useSessionDetails';
+import { SessionItinerary } from '@/types/sessions';
 import { Ionicons } from '@expo/vector-icons';
+import type {
+  ClusterMarkerProp,
+  MarkerSymbol,
+} from '@mj-studio/react-native-naver-map';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Alert,
   ScrollView,
@@ -17,6 +32,12 @@ type SessionRoomUserType = 'guide' | 'traveler';
 interface SessionRoomContentProps {
   userType: SessionRoomUserType;
 }
+
+type UpcomingItinerary = {
+  dayNumber: number;
+  itinerary: SessionItinerary;
+  timestamp: number;
+};
 
 const SessionRoomContent: React.FC<SessionRoomContentProps> = ({
   userType,
@@ -54,6 +75,44 @@ const SessionRoomContent: React.FC<SessionRoomContentProps> = ({
   const [selectedDay, setSelectedDay] = useState<number | null>(
     availableDays.length > 0 ? availableDays[0] : null
   );
+  const [selectedItineraryId, setSelectedItineraryId] = useState<number | null>(
+    null
+  );
+  const [mapKey, setMapKey] = useState(0);
+  const mapViewRef = useRef<InteractiveMapViewRef>(null);
+  const autoFocusInitializedRef = useRef(false);
+
+  const focusItineraryOnMap = useCallback((itinerary?: SessionItinerary) => {
+    if (!itinerary?.latitude || !itinerary?.longitude) return;
+
+    mapViewRef.current?.animateCameraTo({
+      latitude: itinerary.latitude,
+      longitude: itinerary.longitude,
+      zoom: 16,
+      duration: 500,
+      easing: 'EaseOut',
+    });
+  }, []);
+
+  const getItineraryDateTime = useCallback(
+    (dayNumber: number, time?: string) => {
+      if (!startDate || !time) return null;
+      const baseDate = new Date(startDate);
+      if (Number.isNaN(baseDate.getTime())) return null;
+
+      const [hourStr, minuteStr] = time.split(':');
+      if (hourStr === undefined || minuteStr === undefined) return null;
+      const hours = parseInt(hourStr, 10);
+      const minutes = parseInt(minuteStr, 10);
+      if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
+
+      const date = new Date(baseDate);
+      date.setDate(baseDate.getDate() + (dayNumber - 1));
+      date.setHours(hours, minutes, 0, 0);
+      return date;
+    },
+    [startDate]
+  );
 
   useEffect(() => {
     if (availableDays.length === 0) {
@@ -69,6 +128,60 @@ const SessionRoomContent: React.FC<SessionRoomContentProps> = ({
     });
   }, [availableDays]);
 
+  useEffect(() => {
+    setSelectedItineraryId(null);
+    setMapKey((prev) => prev + 1);
+  }, [selectedDay]);
+
+  useEffect(() => {
+    if (autoFocusInitializedRef.current) return;
+    if (!startDate || availableDays.length === 0) return;
+
+    const now = new Date();
+
+    let upcoming: UpcomingItinerary | null = null;
+
+    availableDays.forEach((dayNumber) => {
+      const sortedItineraries = [...(itineraries[dayNumber] || [])].sort(
+        (a, b) => a.startTime.localeCompare(b.startTime)
+      );
+
+      sortedItineraries.forEach((itinerary) => {
+        const itineraryDate = getItineraryDateTime(
+          dayNumber,
+          itinerary.startTime
+        );
+        if (!itineraryDate) return;
+        const timestamp = itineraryDate.getTime();
+        if (timestamp < now.getTime()) return;
+
+        if (!upcoming || timestamp < upcoming.timestamp) {
+          upcoming = { dayNumber, itinerary, timestamp };
+        }
+      });
+    });
+
+    if (upcoming !== null) {
+      const upcomingItinerary = upcoming as UpcomingItinerary;
+      setSelectedDay(upcomingItinerary.dayNumber);
+      setSelectedItineraryId(upcomingItinerary.itinerary.id);
+      autoFocusInitializedRef.current = true;
+      return;
+    }
+
+    const fallbackDay = availableDays[0];
+    const fallbackItineraries = [...(itineraries[fallbackDay] || [])].sort(
+      (a, b) => a.startTime.localeCompare(b.startTime)
+    );
+
+    if (fallbackItineraries.length > 0) {
+      setSelectedDay(fallbackDay);
+      setSelectedItineraryId(fallbackItineraries[0].id);
+    }
+
+    autoFocusInitializedRef.current = true;
+  }, [availableDays, itineraries, startDate, getItineraryDateTime]);
+
   const selectedDayItineraries = useMemo(() => {
     if (selectedDay === null) {
       return [];
@@ -76,6 +189,102 @@ const SessionRoomContent: React.FC<SessionRoomContentProps> = ({
     const dayList = itineraries[selectedDay] || [];
     return [...dayList].sort((a, b) => a.startTime.localeCompare(b.startTime));
   }, [itineraries, selectedDay]);
+
+  useEffect(() => {
+    if (selectedItineraryId == null) return;
+    const itinerary = selectedDayItineraries.find(
+      (item) => item.id === selectedItineraryId
+    );
+    if (itinerary) {
+      focusItineraryOnMap(itinerary);
+    }
+  }, [selectedItineraryId, selectedDayItineraries, focusItineraryOnMap]);
+
+  // 지도 마커 생성
+  const clusterMarkers: ClusterMarkerProp[] = useMemo(() => {
+    return selectedDayItineraries.map((itinerary, index) => {
+      const isSelected = itinerary.id === selectedItineraryId;
+      return {
+        identifier: itinerary.id.toString(),
+        latitude: itinerary.latitude,
+        longitude: itinerary.longitude,
+        image: {
+          symbol: (isSelected ? 'red' : 'blue') as MarkerSymbol,
+          size: isSelected ? 24 : 20,
+        },
+        caption: (index + 1).toString(),
+        captionSize: 12,
+        captionColor: '#FFFFFF',
+      };
+    });
+  }, [selectedDayItineraries, selectedItineraryId]);
+
+  // 카메라 초기 위치
+  const cameraPosition = useMemo(
+    () => ({
+      latitude: 37.5665,
+      longitude: 126.978,
+      zoom: 10,
+    }),
+    []
+  );
+
+  // 지도 카메라 자동 조정
+  useEffect(() => {
+    if (selectedDayItineraries.length === 0) {
+      mapViewRef.current?.animateCameraTo({
+        latitude: 37.551567,
+        longitude: 126.925168,
+        zoom: 16,
+        easing: 'EaseIn',
+      });
+      return;
+    }
+
+    if (selectedDayItineraries.length === 1) {
+      const itinerary = selectedDayItineraries[0];
+      mapViewRef.current?.animateCameraTo({
+        latitude: itinerary.latitude,
+        longitude: itinerary.longitude,
+        zoom: 16,
+        easing: 'EaseIn',
+      });
+      return;
+    }
+
+    const boundary = selectedDayItineraries.reduce(
+      (prev, cur) => ({
+        minLat: Math.min(prev.minLat, cur.latitude),
+        maxLat: Math.max(prev.maxLat, cur.latitude),
+        minLng: Math.min(prev.minLng, cur.longitude),
+        maxLng: Math.max(prev.maxLng, cur.longitude),
+      }),
+      {
+        minLat: Infinity,
+        maxLat: -Infinity,
+        minLng: Infinity,
+        maxLng: -Infinity,
+      }
+    );
+
+    const padFactor = 0.4;
+    const latDelta = boundary.maxLat - boundary.minLat;
+    const lngDelta = boundary.maxLng - boundary.minLng;
+    const latPadding = latDelta * padFactor;
+    const lngPadding = lngDelta * padFactor;
+
+    const camera = {
+      latitude: boundary.minLat - latPadding / 2,
+      longitude: boundary.minLng - lngPadding / 2,
+      latitudeDelta: latDelta + latPadding,
+      longitudeDelta: lngDelta + lngPadding,
+    };
+
+    mapViewRef.current?.animateRegionTo({
+      ...camera,
+      easing: 'EaseIn',
+    });
+  }, [selectedDayItineraries, mapKey]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -126,6 +335,19 @@ const SessionRoomContent: React.FC<SessionRoomContentProps> = ({
     } else {
       router.push(`/traveler/trip/${id}` as any);
     }
+  };
+
+  // 마커 클릭 핸들러
+  const handleMarkerClick = (markerIdentifier: string) => {
+    const clickedId = parseInt(markerIdentifier, 10);
+    if (!Number.isNaN(clickedId)) {
+      setSelectedItineraryId(clickedId);
+    }
+  };
+
+  // 일정 항목 클릭 핸들러 (지도 포커스)
+  const handleItemPress = (item: SessionItinerary) => {
+    setSelectedItineraryId(item.id);
   };
 
   if (isLoading) {
@@ -184,7 +406,10 @@ const SessionRoomContent: React.FC<SessionRoomContentProps> = ({
           <Ionicons name='arrow-back' size={24} color='#000' />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.detailButton} onPress={handleGoToDetail}>
+        <TouchableOpacity
+          style={styles.detailButton}
+          onPress={handleGoToDetail}
+        >
           <Ionicons name='information-circle-outline' size={24} color='#000' />
         </TouchableOpacity>
       </View>
@@ -202,15 +427,13 @@ const SessionRoomContent: React.FC<SessionRoomContentProps> = ({
           <Text style={styles.summaryDates}>
             {formatDate(startDate)} - {formatDate(endDate)}
           </Text>
-          {summaryMeta && (
-            <Text style={styles.summaryMeta}>{summaryMeta}</Text>
-          )}
+          {summaryMeta && <Text style={styles.summaryMeta}>{summaryMeta}</Text>}
           <TouchableOpacity
             style={styles.outlineButton}
             onPress={isGuide ? handleEditItinerary : handleGoToDetail}
           >
             <Text style={styles.outlineButtonText}>
-              {isGuide ? '일정 편집하기' : '세션 상세 보기'}
+              {isGuide ? '일정 편집하기' : '여행 상세 보기'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -263,14 +486,30 @@ const SessionRoomContent: React.FC<SessionRoomContentProps> = ({
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeaderRow}>
             <Text style={styles.sectionTitle}>다음 일정 미리보기</Text>
-            <Text style={styles.sectionSubtitle}>지도 연동 준비 중</Text>
+            <Text style={styles.sectionSubtitle}>
+              {selectedDayItineraries.length > 0
+                ? `${selectedDayItineraries.length}개의 일정`
+                : '일정 없음'}
+            </Text>
           </View>
-          <View style={styles.mapContainer}>
-            <View style={styles.mapPlaceholder}>
-              <Ionicons name='map' size={48} color='#9CA3AF' />
-              <Text style={styles.mapPlaceholderText}>지도 영역</Text>
-              <Text style={styles.mapSubText}>다음 일정이 표시됩니다</Text>
-            </View>
+          <View style={styles.mapContainer} key={mapKey}>
+            {selectedDayItineraries.length > 0 ? (
+              <InteractiveMapView
+                ref={mapViewRef}
+                cameraPosition={cameraPosition}
+                clusterMarkers={clusterMarkers}
+                options={{
+                  drawPath: true,
+                }}
+                onMarkerClick={handleMarkerClick}
+              />
+            ) : (
+              <View style={styles.mapPlaceholder}>
+                <Ionicons name='map' size={48} color='#9CA3AF' />
+                <Text style={styles.mapPlaceholderText}>지도 영역</Text>
+                <Text style={styles.mapSubText}>일정이 없습니다</Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -308,23 +547,33 @@ const SessionRoomContent: React.FC<SessionRoomContentProps> = ({
 
         <View style={styles.itinerarySection}>
           {selectedDayItineraries.length > 0 ? (
-            selectedDayItineraries.map((item) => (
-              <View key={item.id} style={styles.itineraryCard}>
-                <View style={styles.timeBadge}>
-                  <Text style={styles.timeBadgeText}>
-                    {item.startTime.substring(0, 5)}
-                  </Text>
-                </View>
-                <View style={styles.itineraryInfo}>
-                  <Text style={styles.itineraryTitle}>{item.location}</Text>
-                  {item.content ? (
-                    <Text style={styles.itineraryDescription}>
-                      {item.content}
+            selectedDayItineraries.map((item) => {
+              const isSelected = item.id === selectedItineraryId;
+              return (
+                <View key={item.id} style={styles.itineraryItem}>
+                  <View style={styles.timeBadge}>
+                    <Text style={styles.timeBadgeText}>
+                      {item.startTime.substring(0, 5)}
                     </Text>
-                  ) : null}
+                  </View>
+                  <TouchableOpacity
+                    style={[
+                      styles.itineraryCard,
+                      isSelected && styles.itineraryCardSelected,
+                    ]}
+                    onPress={() => handleItemPress(item)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.itineraryTitle}>{item.location}</Text>
+                    {item.content ? (
+                      <Text style={styles.itineraryDescription}>
+                        {item.content}
+                      </Text>
+                    ) : null}
+                  </TouchableOpacity>
                 </View>
-              </View>
-            ))
+              );
+            })
           ) : (
             <View style={styles.emptyItinerary}>
               <Ionicons name='calendar-outline' size={28} color='#9CA3AF' />
@@ -590,15 +839,27 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     gap: 12,
   },
-  itineraryCard: {
+  itineraryItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
+    gap: 12,
+  },
+  itineraryCard: {
+    flex: 1,
     padding: 16,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#E5E7EB',
     backgroundColor: '#FFFFFF',
-    gap: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  itineraryCardSelected: {
+    borderColor: '#5B67F5',
+    shadowOpacity: 0.15,
   },
   timeBadge: {
     width: 72,
@@ -658,4 +919,3 @@ const styles = StyleSheet.create({
 });
 
 export default SessionRoomContent;
-
