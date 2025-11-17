@@ -1,4 +1,5 @@
 import { reviewsApi } from '@/api/reviews';
+import { useAuth } from '@/hooks/useAuth';
 import { getSession } from '@/services/sessions';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
@@ -25,6 +26,7 @@ const ReviewWriteScreen: React.FC = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { sessionId } = useLocalSearchParams<{ sessionId: string }>();
+  const { user } = useAuth();
 
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState('');
@@ -34,6 +36,9 @@ const ReviewWriteScreen: React.FC = () => {
   const [sessionImageUrl, setSessionImageUrl] = useState('');
   const [guideNickname, setGuideNickname] = useState('');
   const [guideProfileImageUrl, setGuideProfileImageUrl] = useState('');
+  const [hasWrittenReview, setHasWrittenReview] = useState(false);
+  const [reviewId, setReviewId] = useState<number | null>(null);
+  const [templateId, setTemplateId] = useState<number | null>(null);
 
   // 세션 정보 로드
   useEffect(() => {
@@ -48,6 +53,8 @@ const ReviewWriteScreen: React.FC = () => {
         if (sessionData) {
           setSessionTitle(sessionData.title);
           setSessionImageUrl(sessionData.imageUrls?.[0] || '');
+          setTemplateId(sessionData.templateId);
+          setHasWrittenReview(sessionData.hasWrittenReview ?? false);
 
           // 가이드 정보 찾기
           const guide = sessionData.participants.find(
@@ -56,6 +63,29 @@ const ReviewWriteScreen: React.FC = () => {
           if (guide) {
             setGuideNickname(guide.nickname);
             setGuideProfileImageUrl(guide.profileImageUrl);
+          }
+
+          // 이미 작성한 리뷰가 있는 경우 리뷰 ID 조회
+          if (sessionData.hasWrittenReview && sessionData.templateId && user) {
+            try {
+              const reviewsResponse = await reviewsApi.getReviewsByTemplate(
+                sessionData.templateId
+              );
+              if (reviewsResponse.data?.review) {
+                // 현재 사용자가 작성한 리뷰 찾기 (닉네임으로 비교)
+                const myReview = reviewsResponse.data.review.find(
+                  (review) => review.authorNickname === user.nickname
+                );
+                if (myReview) {
+                  setReviewId(myReview.reviewId);
+                  // 기존 리뷰 내용 불러오기
+                  setRating(myReview.rating);
+                  setReviewText(myReview.content);
+                }
+              }
+            } catch (error) {
+              console.error('리뷰 조회 실패:', error);
+            }
           }
         }
       } catch (error) {
@@ -66,7 +96,7 @@ const ReviewWriteScreen: React.FC = () => {
     };
 
     loadSessionData();
-  }, [sessionId]);
+  }, [sessionId, user]);
 
   // 별점 설정 (1-5개만 가능)
   const handleStarPress = (starCount: number) => {
@@ -91,13 +121,19 @@ const ReviewWriteScreen: React.FC = () => {
       return;
     }
 
-    Alert.alert('리뷰 작성', '리뷰를 작성하시겠습니까?', [
+    const alertTitle = hasWrittenReview ? '리뷰 수정' : '리뷰 작성';
+    const alertMessage = hasWrittenReview
+      ? '리뷰를 수정하시겠습니까?'
+      : '리뷰를 작성하시겠습니까?';
+    const confirmText = hasWrittenReview ? '수정' : '작성';
+
+    Alert.alert(alertTitle, alertMessage, [
       {
         text: '취소',
         style: 'cancel',
       },
       {
-        text: '작성',
+        text: confirmText,
         onPress: async () => {
           if (!sessionId) {
             Toast.show({
@@ -109,25 +145,41 @@ const ReviewWriteScreen: React.FC = () => {
 
           try {
             setIsSubmitting(true);
-            const response = await reviewsApi.createReview(
-              parseInt(sessionId),
-              reviewText,
-              rating
-            );
+            let response;
+
+            if (hasWrittenReview && reviewId) {
+              // 리뷰 수정
+              response = await reviewsApi.updateReview(
+                reviewId,
+                reviewText,
+                rating
+              );
+            } else {
+              // 리뷰 생성
+              response = await reviewsApi.createReview(
+                parseInt(sessionId),
+                reviewText,
+                rating
+              );
+            }
 
             if (response.code === 200 || response.code === 0) {
               Toast.show({
                 type: 'success',
-                text1: '리뷰가 작성되었습니다',
+                text1: hasWrittenReview
+                  ? '리뷰가 수정되었습니다'
+                  : '리뷰가 작성되었습니다',
                 text2: '소중한 후기 감사합니다.',
               });
               router.back();
             }
           } catch (error) {
-            console.error('리뷰 작성 에러:', error);
+            console.error('리뷰 처리 에러:', error);
             Toast.show({
               type: 'error',
-              text1: '리뷰 작성에 실패했습니다',
+              text1: hasWrittenReview
+                ? '리뷰 수정에 실패했습니다'
+                : '리뷰 작성에 실패했습니다',
               text2: '잠시 후 다시 시도해주세요.',
             });
           } finally {
@@ -148,7 +200,9 @@ const ReviewWriteScreen: React.FC = () => {
         >
           <Ionicons name='arrow-back' size={24} color='#000' />
         </TouchableOpacity>
-        <Text style={styles.title}>리뷰 남기기</Text>
+        <Text style={styles.title}>
+          {hasWrittenReview ? '리뷰 수정' : '리뷰 남기기'}
+        </Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -282,7 +336,13 @@ const ReviewWriteScreen: React.FC = () => {
                 : 'text-white'
             }`}
           >
-            {isSubmitting ? '작성 중...' : '작성 완료하기'}
+            {isSubmitting
+              ? hasWrittenReview
+                ? '수정 중...'
+                : '작성 중...'
+              : hasWrittenReview
+              ? '수정 완료하기'
+              : '작성 완료하기'}
           </Text>
         </TouchableOpacity>
       </View>
