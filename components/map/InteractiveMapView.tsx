@@ -153,7 +153,7 @@ export const InteractiveMapView = memo(
             }
             onMarkerClick={onMarkerClick}
           >
-            {isMapReady && (
+            {(isMapReady && options?.drawPath) && (
               <NaverMapPathOverlay
                 coords={
                   clusterMarkers && clusterMarkers.length >= 2
