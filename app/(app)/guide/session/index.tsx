@@ -109,7 +109,8 @@ const GuideTripListScreen: React.FC = () => {
             </Text>
 
             <TouchableOpacity
-              className='bg-purple-500 rounded-2xl p-5'
+              className='rounded-2xl p-5 border-2'
+              style={{ borderColor: '#5B67F5', backgroundColor: '#FFFFFF' }}
               onPress={() => {
                 const roomIdParam = currentSession.roomId
                   ? `?roomId=${currentSession.roomId}`
@@ -132,36 +133,42 @@ const GuideTripListScreen: React.FC = () => {
                 />
                 <View className='flex-1'>
                   <View className='flex-row items-center mb-2'>
-                    <View className='bg-white/20 px-3 py-1 rounded-full mr-2'>
-                      <Text className='text-sm font-semibold text-white'>
+                    <View
+                      className='px-3 py-1 rounded-full mr-2'
+                      style={{ backgroundColor: '#E6E9FF' }}
+                    >
+                      <Text
+                        className='text-sm font-semibold'
+                        style={{ color: '#5B67F5' }}
+                      >
                         진행중
                       </Text>
                     </View>
                   </View>
-                  <Text className='text-xl font-bold text-white mb-1'>
+                  <Text className='text-xl font-bold text-gray-900 mb-1'>
                     {currentSession.title?.trim() || '제목 없음'}
                   </Text>
-                  <Text className='text-white/90 mb-2'>
+                  <Text className='text-gray-600 mb-2'>
                     {currentSession.startDate} ~ {currentSession.endDate}
                   </Text>
                   <View className='flex-row items-start'>
                     <MaterialIcons
                       name='person-outline'
                       size={16}
-                      color='white'
+                      color='#5B67F5'
                       style={{ marginTop: 2 }}
                     />
-                    <Text className='text-white/90 ml-1 mr-4'>
+                    <Text className='text-gray-700 ml-1 mr-4'>
                       {currentSession.currentParticipants}명
                     </Text>
                     <Ionicons
                       name='location-outline'
                       size={16}
-                      color='white'
+                      color='#5B67F5'
                       style={{ marginTop: 2 }}
                     />
                     <Text
-                      className='text-white/90 ml-1 flex-1'
+                      className='text-gray-700 ml-1 flex-1'
                       numberOfLines={2}
                       ellipsizeMode='tail'
                     >
@@ -220,7 +227,7 @@ const GuideTripListScreen: React.FC = () => {
         <View className='flex-1 px-6 py-4'>
           {isLoading && filteredSessions.length === 0 ? (
             <View className='flex-1 items-center justify-center py-20'>
-              <ActivityIndicator size='large' color='#8130FF' />
+              <ActivityIndicator size='large' color='#5B67F5' />
               <Text className='text-gray-500 text-lg mt-4'>로딩 중...</Text>
             </View>
           ) : error ? (

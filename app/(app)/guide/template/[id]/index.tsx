@@ -397,6 +397,7 @@ const ProductDetailScreen: React.FC = () => {
                   onChangeText={setLocalTitle}
                   style={styles.titleInput}
                   placeholder='제목을 입력하세요'
+                  placeholderTextColor='#9CA3AF'
                   editable={!isSavingTitle}
                 />
                 <TouchableOpacity
@@ -482,6 +483,7 @@ const ProductDetailScreen: React.FC = () => {
                 multiline
                 textAlignVertical='top'
                 placeholder='여행 소개를 입력하세요'
+                placeholderTextColor='#9CA3AF'
                 editable={!isSavingContent}
               />
             </View>

@@ -119,7 +119,11 @@ const MyTemplatesScreen: React.FC = () => {
                 ListFooterComponent={renderFooter}
                 ListEmptyComponent={
                   <View className='flex-1 items-center justify-center py-20'>
-                    <Ionicons name='document-outline' size={48} color='#9CA3AF' />
+                    <Ionicons
+                      name='document-outline'
+                      size={48}
+                      color='#9CA3AF'
+                    />
                     <Text className='text-gray-500 text-lg mt-4'>
                       {submittedQuery.trim()
                         ? '검색 결과가 없습니다.'

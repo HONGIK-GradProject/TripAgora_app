@@ -355,12 +355,12 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   dayButtonActive: {
-    backgroundColor: '#8130FF',
-    borderColor: '#8130FF',
+    backgroundColor: '#5B67F5',
+    borderColor: '#5B67F5',
   },
   dayButtonText: {
     fontSize: 16,
-    color: '#8130FF',
+    color: '#5B67F5',
     fontWeight: '600',
   },
   dayButtonTextActive: {
@@ -391,8 +391,8 @@ const styles = StyleSheet.create({
   itineraryTimeText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#8130FF',
-    backgroundColor: '#F3ECFF',
+    color: '#5B67F5',
+    backgroundColor: '#E6E9FF',
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: 12,
@@ -411,7 +411,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   itineraryCardSelected: {
-    borderColor: '#8130FF',
+    borderColor: '#5B67F5',
     shadowOpacity: 0.15,
   },
   itineraryTitle: {

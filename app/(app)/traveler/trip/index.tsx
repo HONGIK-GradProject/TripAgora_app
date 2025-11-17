@@ -123,8 +123,8 @@ const TravelerTripListScreen: React.FC = () => {
   const getStatusBadge = useCallback((status: string) => {
     const statusMap = {
       RECRUITING: {
-        bg: 'bg-purple-100',
-        text: 'text-purple-700',
+        bg: 'bg-[#E6E9FF]',
+        text: 'text-[#5B67F5]',
         label: '모집 중',
       },
       RECRUITMENT_CLOSED: {
@@ -397,59 +397,109 @@ const TravelerTripListScreen: React.FC = () => {
           </View>
         </View>
 
+        {activeTab === 'completed' && filteredSessions.length > 0 && (
+          <View className='px-6 pt-4'>
+            <TouchableOpacity
+              className='bg-[#E6E9FF] border border-[#C5CCFF] rounded-2xl py-4 px-5 mb-4'
+              onPress={() =>
+                router.push({
+                  pathname: '/ReviewWriteScreen',
+                  params: {
+                    sessionId: filteredSessions[0].sessionId.toString(),
+                  },
+                } as any)
+              }
+            >
+              <Text className='text-center text-[#5B67F5] font-semibold'>
+                (임시) 리뷰 화면 보기
+              </Text>
+              <Text className='text-center text-xs text-gray-500 mt-1'>
+                완료된 여행 중 첫 번째 항목을 기준으로 이동합니다
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* 여행 목록 */}
         <View className='flex-1 px-6 py-4'>
-          {isLoading && filteredSessions.length === 0 ? (
-            <View className='flex-1 items-center justify-center py-20'>
-              <ActivityIndicator size='large' color='#3B82F6' />
-              <Text className='text-gray-500 text-lg mt-4'>로딩 중...</Text>
-            </View>
-          ) : error ? (
-            <View className='flex-1 items-center justify-center py-20'>
-              <Text className='text-red-500 text-lg'>오류가 발생했습니다.</Text>
-            </View>
-          ) : filteredSessions.length === 0 ? (
-            <View className='flex-1 items-center justify-center py-20'>
-              <Text className='text-gray-500 text-lg'>
-                {activeTab === 'upcoming'
-                  ? '예정된 여행이 없습니다.'
-                  : '완료된 여행이 없습니다.'}
-              </Text>
-            </View>
-          ) : (
-            <FlatList
-              data={filteredSessions}
-              renderItem={renderSessionItem}
-              keyExtractor={(item) => item.sessionId.toString()}
-              showsVerticalScrollIndicator={false}
-              onEndReached={() => {
-                if (activeTab === 'upcoming') {
-                  loadMoreParticipating(['RECRUITING', 'RECRUITMENT_CLOSED']);
-                } else {
-                  loadMoreCompleted();
+          {(() => {
+            if (isLoading && filteredSessions.length === 0) {
+              return (
+                <View className='flex-1 items-center justify-center py-20'>
+                  <ActivityIndicator size='large' color='#3B82F6' />
+                  <Text className='text-gray-500 text-lg mt-4'>로딩 중...</Text>
+                </View>
+              );
+            }
+
+            if (error && filteredSessions.length === 0) {
+              return (
+                <View className='flex-1 items-center justify-center py-20'>
+                  <Text className='text-red-500 text-lg'>
+                    오류가 발생했습니다.
+                  </Text>
+                </View>
+              );
+            }
+
+            const listData =
+              filteredSessions.length > 0
+                ? filteredSessions
+                : activeTab === 'completed'
+                ? [
+                    {
+                      sessionId: -1,
+                      status: 'COMPLETED',
+                      title: '완료된 여행 예시',
+                      startDate: '2025-01-01',
+                      endDate: '2025-01-03',
+                      regionIds: [],
+                      regionNames: ['서울', '부산'],
+                      currentParticipants: 4,
+                      maxParticipants: 8,
+                      firstImageUrl:
+                        'https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=800&q=80',
+                      roomId: undefined,
+                      hasWrittenReview: false,
+                    } as SessionCompletedInfo,
+                  ]
+                : filteredSessions;
+
+            return (
+              <FlatList
+                data={listData}
+                renderItem={renderSessionItem}
+                keyExtractor={(item) => item.sessionId.toString()}
+                showsVerticalScrollIndicator={false}
+                onEndReached={() => {
+                  if (activeTab === 'upcoming') {
+                    loadMoreParticipating(['RECRUITING', 'RECRUITMENT_CLOSED']);
+                  } else {
+                    loadMoreCompleted();
+                  }
+                }}
+                onEndReachedThreshold={0.5}
+                ListFooterComponent={renderFooter}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={isLoading && filteredSessions.length > 0}
+                    onRefresh={() => {
+                      if (activeTab === 'upcoming') {
+                        refetchParticipating([
+                          'RECRUITING',
+                          'RECRUITMENT_CLOSED',
+                          'IN_PROGRESS',
+                        ]);
+                      } else {
+                        refetchCompleted();
+                      }
+                    }}
+                  />
                 }
-              }}
-              onEndReachedThreshold={0.5}
-              ListFooterComponent={renderFooter}
-              refreshControl={
-                <RefreshControl
-                  refreshing={isLoading && filteredSessions.length > 0}
-                  onRefresh={() => {
-                    if (activeTab === 'upcoming') {
-                      refetchParticipating([
-                        'RECRUITING',
-                        'RECRUITMENT_CLOSED',
-                        'IN_PROGRESS',
-                      ]);
-                    } else {
-                      refetchCompleted();
-                    }
-                  }}
-                />
-              }
-              contentContainerStyle={{ paddingBottom: 24 }}
-            />
-          )}
+                contentContainerStyle={{ paddingBottom: 24 }}
+              />
+            );
+          })()}
         </View>
       </View>
     </CustomSafeAreaView>

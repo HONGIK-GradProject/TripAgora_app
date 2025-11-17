@@ -119,8 +119,8 @@ const WishListScreen: React.FC = () => {
                     <RefreshControl
                       refreshing={isRefreshing}
                       onRefresh={() => fetchWishlist(true)}
-                      colors={['#8130FF']}
-                      tintColor='#8130FF'
+                      colors={['#5B67F5']}
+                      tintColor='#5B67F5'
                     />
                   }
                 >
@@ -140,8 +140,8 @@ const WishListScreen: React.FC = () => {
                     <RefreshControl
                       refreshing={isRefreshing}
                       onRefresh={() => fetchWishlist(true)}
-                      colors={['#8130FF']}
-                      tintColor='#8130FF'
+                      colors={['#5B67F5']}
+                      tintColor='#5B67F5'
                     />
                   }
                   contentContainerStyle={{
@@ -151,7 +151,7 @@ const WishListScreen: React.FC = () => {
                   ListFooterComponent={
                     isLoading && sessions.length > 0 ? (
                       <View className='py-4 items-center'>
-                        <ActivityIndicator size='small' color='#8130FF' />
+                        <ActivityIndicator size='small' color='#5B67F5' />
                         <Text className='text-gray-500 text-sm mt-2'>
                           위시리스트를 불러오는 중...
                         </Text>

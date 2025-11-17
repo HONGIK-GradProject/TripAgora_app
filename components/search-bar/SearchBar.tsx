@@ -57,7 +57,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         <Feather
           name='search'
           size={20}
-          color={isFocused ? '#8130FF' : '#6B7280'}
+          color={isFocused ? '#5B67F5' : '#6B7280'}
           style={styles.icon}
         />
       </TouchableOpacity>
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   containerFocused: {
-    borderColor: '#8130FF',
+    borderColor: '#5B67F5',
     backgroundColor: '#FFFFFF',
     shadowOpacity: 0.1,
     shadowRadius: 4,

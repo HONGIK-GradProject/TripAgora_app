@@ -48,6 +48,11 @@ const SessionRoomContent: React.FC = () => {
     [itineraries]
   );
 
+  const selectedDayItineraries = useMemo(() => {
+    const dayList = itineraries[selectedDay] || [];
+    return [...dayList].sort((a, b) => a.startTime.localeCompare(b.startTime));
+  }, [itineraries, selectedDay]);
+
   // 날짜 포맷팅
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -81,64 +86,95 @@ const SessionRoomContent: React.FC = () => {
 
   return (
     <View style={styles.container}>
+      {/* 헤더 섹션 */}
+      <View style={styles.headerSection}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Ionicons name='arrow-back' size={24} color='#000' />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.detailButton}
+          onPress={() => {
+            router.push(`/guide/session/${id}` as any);
+          }}
+        >
+          <Ionicons
+            name='information-circle-outline'
+            size={24}
+            color='#000'
+          />
+        </TouchableOpacity>
+      </View>
+
       <ScrollView
+        style={styles.scrollContainer}
         contentContainerStyle={styles.scrollViewContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* 헤더 섹션 */}
-        <View style={styles.headerSection}>
+        <View style={styles.summaryCard}>
+          <Text style={styles.summaryLabel}>현재 진행 중</Text>
+          <Text style={styles.summaryTitle}>{title || '여행 일정'}</Text>
+          <Text style={styles.summaryDates}>
+            {formatDate(startDate)} - {formatDate(endDate)}
+          </Text>
           <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
+            style={styles.outlineButton}
+            onPress={handleEditItinerary}
           >
-            <Ionicons name='arrow-back' size={24} color='#000' />
-          </TouchableOpacity>
-
-          <View style={styles.titleContainer}>
-            <Text style={styles.sessionTitle}>{title}</Text>
-            <Text style={styles.dateText}>
-              {formatDate(startDate)} - {formatDate(endDate)}
-            </Text>
-          </View>
-
-          <TouchableOpacity
-            style={styles.detailButton}
-            onPress={() => {
-              router.push(`/guide/session/${id}` as any);
-            }}
-          >
-            <Ionicons
-              name='information-circle-outline'
-              size={24}
-              color='#000'
-            />
+            <Text style={styles.outlineButtonText}>일정 편집하기</Text>
           </TouchableOpacity>
         </View>
 
         {/* 액션 버튼들 */}
-        <View style={styles.actionButtonsContainer}>
+        <View style={styles.actionsGrid}>
           <TouchableOpacity
-            style={[styles.actionButton, styles.locationButton]}
+            style={styles.actionCard}
             onPress={handleCheckLocations}
+            activeOpacity={0.85}
           >
-            <Ionicons name='location' size={20} color='#8130FF' />
-            <Text style={styles.actionButtonText}>일행 확인하기</Text>
+            <View style={[styles.actionIcon, styles.actionIconPrimary]}>
+              <Ionicons name='location' size={20} color='#5B67F5' />
+            </View>
+            <View style={styles.actionInfo}>
+              <Text style={styles.actionTitle}>일행 확인하기</Text>
+              <Text style={styles.actionSubtitle}>
+                참여자들의 현재 위치를 확인하세요
+              </Text>
+            </View>
+            <Ionicons name='chevron-forward' size={20} color='#9CA3AF' />
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.actionButton, styles.announceButton]}
+            style={[
+              styles.actionCard,
+              styles.actionCardSecondary,
+              !roomId && styles.actionCardDisabled,
+            ]}
             onPress={handleAnnounce}
             disabled={!roomId}
+            activeOpacity={0.85}
           >
-            <Ionicons name='notifications' size={20} color='#FF8330' />
-            <Text style={[styles.actionButtonText, styles.announceButtonText]}>
-              공지하기
-            </Text>
+            <View style={[styles.actionIcon, styles.actionIconSecondary]}>
+              <Ionicons name='notifications' size={20} color='#5B67F5' />
+            </View>
+            <View style={styles.actionInfo}>
+              <Text style={styles.actionTitle}>공지하기</Text>
+              <Text style={styles.actionSubtitle}>
+                일행에게 공지를 발송할 수 있어요
+              </Text>
+            </View>
+            <Ionicons name='chevron-forward' size={20} color='#9CA3AF' />
           </TouchableOpacity>
         </View>
 
         {/* 지도 섹션 */}
-        <View style={styles.mapSection}>
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>다음 일정 미리보기</Text>
+            <Text style={styles.sectionSubtitle}>지도 연동 준비 중</Text>
+          </View>
           <View style={styles.mapContainer}>
             <View style={styles.mapPlaceholder}>
               <Ionicons name='map' size={48} color='#9CA3AF' />
@@ -148,51 +184,50 @@ const SessionRoomContent: React.FC = () => {
           </View>
         </View>
 
-        {/* 일정 편집 버튼 */}
-        <TouchableOpacity
-          style={styles.editButton}
-          onPress={handleEditItinerary}
-        >
-          <Text style={styles.editButtonText}>일정 편집하기</Text>
-        </TouchableOpacity>
-
         {/* 일정 탭 */}
         {availableDays.length > 0 && (
-          <View style={styles.dayTabsContainer}>
-            {availableDays.map((dayNumber) => (
-              <TouchableOpacity
-                key={dayNumber}
-                style={[
-                  styles.dayTab,
-                  selectedDay === dayNumber && styles.dayTabActive,
-                ]}
-                onPress={() => setSelectedDay(dayNumber)}
-              >
-                <Text
+          <View style={styles.dayTabsWrapper}>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionTitle}>일정 보기</Text>
+              <Text style={styles.sectionSubtitle}>
+                {`총 ${selectedDayItineraries.length}개의 일정`}
+              </Text>
+            </View>
+            <View style={styles.dayTabsContainer}>
+              {availableDays.map((dayNumber) => (
+                <TouchableOpacity
+                  key={dayNumber}
                   style={[
-                    styles.dayTabText,
-                    selectedDay === dayNumber && styles.dayTabTextActive,
+                    styles.dayTab,
+                    selectedDay === dayNumber && styles.dayTabActive,
                   ]}
+                  onPress={() => setSelectedDay(dayNumber)}
                 >
-                  {dayNumber}일차
-                </Text>
-              </TouchableOpacity>
-            ))}
+                  <Text
+                    style={[
+                      styles.dayTabText,
+                      selectedDay === dayNumber && styles.dayTabTextActive,
+                    ]}
+                  >
+                    {dayNumber}일차
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
         )}
 
         {/* 일정 목록 */}
         <View style={styles.itinerarySection}>
-          {(itineraries[selectedDay] || [])
-            .sort((a, b) => a.startTime.localeCompare(b.startTime))
-            .map((item) => (
-              <View key={item.id} style={styles.itineraryItem}>
-                <View style={styles.itineraryTime}>
-                  <Text style={styles.itineraryTimeText}>
+          {selectedDayItineraries.length > 0 ? (
+            selectedDayItineraries.map((item) => (
+              <View key={item.id} style={styles.itineraryCard}>
+                <View style={styles.timeBadge}>
+                  <Text style={styles.timeBadgeText}>
                     {item.startTime.substring(0, 5)}
                   </Text>
                 </View>
-                <View style={styles.itineraryContent}>
+                <View style={styles.itineraryInfo}>
                   <Text style={styles.itineraryTitle}>{item.location}</Text>
                   {item.content ? (
                     <Text style={styles.itineraryDescription}>
@@ -201,7 +236,15 @@ const SessionRoomContent: React.FC = () => {
                   ) : null}
                 </View>
               </View>
-            ))}
+            ))
+          ) : (
+            <View style={styles.emptyItinerary}>
+              <Ionicons name='calendar-outline' size={28} color='#9CA3AF' />
+              <Text style={styles.emptyItineraryText}>
+                등록된 일정이 없습니다.
+              </Text>
+            </View>
+          )}
         </View>
 
         <View style={{ height: 100 }} />
@@ -235,47 +278,56 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  scrollContainer: {
+    flex: 1,
+    paddingTop: 80,
+  },
   scrollViewContent: {
     paddingBottom: 120,
   },
   headerSection: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
-    backgroundColor: '#fff',
+    paddingTop: 16,
+    paddingBottom: 16,
+    zIndex: 20,
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 16,
   },
   titleContainer: {
     flex: 1,
     marginRight: 12,
   },
+  headerTitle: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
+  },
   detailButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  sessionTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000',
-    marginBottom: 4,
-  },
-  dateText: {
-    fontSize: 16,
-    color: '#6B7280',
   },
   participantInfo: {
     flexDirection: 'row',
@@ -290,48 +342,122 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginLeft: 4,
   },
-  actionButtonsContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    gap: 12,
+  summaryCard: {
+    marginHorizontal: 20,
+    marginBottom: 20,
+    padding: 20,
+    borderRadius: 20,
+    backgroundColor: '#F8F9FF',
+    borderWidth: 1,
+    borderColor: '#E0E7FF',
   },
-  actionButton: {
-    flex: 1,
+  summaryLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#5B67F5',
+    marginBottom: 8,
+  },
+  summaryTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  summaryDates: {
+    fontSize: 16,
+    color: '#6B7280',
+    marginBottom: 16,
+  },
+  outlineButton: {
+    borderWidth: 1,
+    borderColor: '#C5CCFF',
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  outlineButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#5B67F5',
+  },
+  actionsGrid: {
+    paddingHorizontal: 20,
+    gap: 12,
+    marginBottom: 20,
+  },
+  actionCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 25,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    borderRadius: 18,
     borderWidth: 1,
-    gap: 8,
+    borderColor: '#E0E7FF',
+    backgroundColor: '#FFFFFF',
+    gap: 14,
   },
-  locationButton: {
-    backgroundColor: '#F3ECFF',
-    borderColor: '#8130FF',
+  actionCardSecondary: {
+    borderColor: '#F3E8FF',
+    backgroundColor: '#FBF8FF',
   },
-  announceButton: {
-    backgroundColor: '#FFF4E6',
-    borderColor: '#FF8330',
+  actionCardDisabled: {
+    opacity: 0.6,
   },
-  actionButtonText: {
+  actionIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionIconPrimary: {
+    backgroundColor: '#E6E9FF',
+  },
+  actionIconSecondary: {
+    backgroundColor: '#F1ECFF',
+  },
+  actionInfo: {
+    flex: 1,
+  },
+  actionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#8130FF',
+    color: '#111827',
+    marginBottom: 4,
   },
-  announceButtonText: {
-    color: '#FF8330',
-  },
-  mapSection: {
-    paddingHorizontal: 20,
-    marginBottom: 20,
+  actionSubtitle: {
+    fontSize: 13,
+    color: '#6B7280',
   },
   mapContainer: {
     height: 300,
     borderRadius: 16,
     overflow: 'hidden',
     backgroundColor: '#F9FAFB',
+  },
+  sectionCard: {
+    marginHorizontal: 20,
+    marginBottom: 20,
+    padding: 20,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  sectionSubtitle: {
+    fontSize: 14,
+    color: '#6B7280',
   },
   mapPlaceholder: {
     flex: 1,
@@ -350,41 +476,30 @@ const styles = StyleSheet.create({
     color: '#9CA3AF',
     marginTop: 4,
   },
-  editButton: {
-    marginHorizontal: 20,
+  dayTabsWrapper: {
+    paddingHorizontal: 20,
     marginBottom: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.55)',
-    borderWidth: 1,
-    borderColor: '#000',
-    borderRadius: 5,
-    paddingVertical: 10,
-    alignItems: 'center',
-  },
-  editButtonText: {
-    fontSize: 20,
-    fontWeight: '400',
-    color: '#000',
   },
   dayTabsContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
-    marginBottom: 20,
     gap: 8,
+    flexWrap: 'wrap',
   },
   dayTab: {
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 25,
     borderWidth: 1,
-    borderColor: '#8130FF',
+    borderColor: '#C5CCFF',
     backgroundColor: '#fff',
   },
   dayTabActive: {
-    backgroundColor: '#8130FF',
+    backgroundColor: '#5B67F5',
+    borderColor: '#5B67F5',
   },
   dayTabText: {
     fontSize: 16,
-    color: '#8130FF',
+    color: '#5B67F5',
     fontWeight: '400',
   },
   dayTabTextActive: {
@@ -392,24 +507,32 @@ const styles = StyleSheet.create({
   },
   itinerarySection: {
     paddingHorizontal: 20,
+    marginBottom: 20,
+    gap: 12,
   },
-  itineraryItem: {
+  itineraryCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    backgroundColor: '#FFFFFF',
+    gap: 16,
   },
-  itineraryTime: {
-    width: 70,
-    marginRight: 16,
+  timeBadge: {
+    width: 72,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: '#E6E9FF',
+    alignItems: 'center',
   },
-  itineraryTimeText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#8130FF',
+  timeBadgeText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#5B67F5',
   },
-  itineraryContent: {
+  itineraryInfo: {
     flex: 1,
   },
   itineraryTitle: {
@@ -422,6 +545,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6B7280',
     lineHeight: 20,
+  },
+  emptyItinerary: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+  },
+  emptyItineraryText: {
+    fontSize: 14,
+    color: '#6B7280',
   },
   errorContainer: {
     flex: 1,

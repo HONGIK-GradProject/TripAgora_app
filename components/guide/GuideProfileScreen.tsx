@@ -414,7 +414,7 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
         className='flex-1 bg-gray-50 justify-center items-center'
         style={{ paddingTop: insets.top }}
       >
-        <ActivityIndicator size='large' color='#8130FF' />
+        <ActivityIndicator size='large' color='#5B67F5' />
         <Text className='text-gray-500 mt-4'>프로필을 불러오는 중...</Text>
       </View>
     );
@@ -471,8 +471,8 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
               <RefreshControl
                 refreshing={isLoadingProfile}
                 onRefresh={handleRefresh}
-                colors={['#8130FF']}
-                tintColor='#8130FF'
+                colors={['#5B67F5']}
+                tintColor='#5B67F5'
               />
             ) : undefined
           }
@@ -870,7 +870,10 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
 
                 {/* 포트폴리오 추가 폼 */}
                 {isAddingPortfolio && (
-                  <View className='bg-purple-50 rounded-lg p-4 mb-3 mt-4'>
+                  <View
+                    className='rounded-lg p-4 mb-3 mt-4'
+                    style={{ backgroundColor: '#E6E9FF' }}
+                  >
                     <Text className='text-gray-900 font-semibold mb-2'>
                       포트폴리오 추가
                     </Text>
@@ -881,19 +884,25 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
                           <TouchableOpacity
                             key={type}
                             onPress={() => setNewPortfolioType(type)}
-                            className={`mr-2 mb-2 px-3 py-1 rounded-full ${
-                              newPortfolioType === type
-                                ? 'bg-purple-600'
-                                : 'bg-white border border-gray-300'
-                            }`}
+                            className='mr-2 mb-2 px-3 py-1 rounded-full'
+                            style={{
+                              backgroundColor:
+                                newPortfolioType === type
+                                  ? '#5B67F5'
+                                  : '#FFFFFF',
+                              borderWidth: newPortfolioType === type ? 0 : 1,
+                              borderColor: '#C5CCFF',
+                            }}
                             activeOpacity={0.7}
                           >
                             <Text
-                              className={`text-sm ${
-                                newPortfolioType === type
-                                  ? 'text-white'
-                                  : 'text-gray-700'
-                              }`}
+                              className='text-sm'
+                              style={{
+                                color:
+                                  newPortfolioType === type
+                                    ? '#FFFFFF'
+                                    : '#4B5563',
+                              }}
                             >
                               {type}
                             </Text>
@@ -929,9 +938,14 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
                       </TouchableOpacity>
                       <TouchableOpacity
                         onPress={handleConfirmAddPortfolio}
-                        className='flex-1 bg-purple-600 rounded-lg px-4 py-2 items-center ml-2'
+                        className='flex-1 rounded-lg px-4 py-2 items-center ml-2'
                         activeOpacity={0.7}
                         disabled={!newPortfolioType || !newPortfolioUrl}
+                        style={{
+                          backgroundColor: '#5B67F5',
+                          opacity:
+                            !newPortfolioType || !newPortfolioUrl ? 0.6 : 1,
+                        }}
                       >
                         <Text className='text-white font-semibold'>추가</Text>
                       </TouchableOpacity>
@@ -942,15 +956,23 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
                 {!isAddingPortfolio && (
                   <TouchableOpacity
                     onPress={handleAddPortfolio}
-                    className='bg-purple-50 border border-purple-200 rounded-xl px-4 py-3 flex-row items-center justify-center mb-3 mt-4'
+                    className='rounded-xl px-4 py-3 flex-row items-center justify-center mb-3 mt-4'
                     activeOpacity={0.7}
+                    style={{
+                      backgroundColor: '#E6E9FF',
+                      borderWidth: 1,
+                      borderColor: '#C5CCFF',
+                    }}
                   >
                     <Ionicons
                       name='add-circle-outline'
                       size={20}
-                      color='#8130FF'
+                      color='#5B67F5'
                     />
-                    <Text className='text-purple-700 font-semibold ml-2'>
+                    <Text
+                      className='font-semibold ml-2'
+                      style={{ color: '#5B67F5' }}
+                    >
                       포트폴리오 추가
                     </Text>
                   </TouchableOpacity>
@@ -966,9 +988,13 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={handleSavePortfolios}
-                    className='flex-1 bg-purple-600 rounded-xl px-6 py-3 items-center ml-2'
+                    className='flex-1 rounded-xl px-6 py-3 items-center ml-2'
                     activeOpacity={0.7}
                     disabled={isSavingPortfolios}
+                    style={{
+                      backgroundColor: '#5B67F5',
+                      opacity: isSavingPortfolios ? 0.7 : 1,
+                    }}
                   >
                     {isSavingPortfolios ? (
                       <ActivityIndicator size='small' color='#fff' />

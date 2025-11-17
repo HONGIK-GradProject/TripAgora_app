@@ -317,7 +317,7 @@ const TravelerExploreScreen: React.FC = () => {
               <MaterialCommunityIcons
                 name='calendar-start'
                 size={18}
-                color={searchStartDate ? '#8130FF' : '#6B7280'}
+                color={searchStartDate ? '#5B67F5' : '#6B7280'}
               />
               <View className='ml-2 flex-1'>
                 <Text className='text-xs text-gray-500 mb-0.5'>이 날부터</Text>
@@ -339,7 +339,7 @@ const TravelerExploreScreen: React.FC = () => {
                   }}
                   className='ml-2'
                 >
-                  <Ionicons name='close-circle' size={16} color='#8130FF' />
+                  <Ionicons name='close-circle' size={16} color='#5B67F5' />
                 </TouchableOpacity>
               )}
             </TouchableOpacity>
@@ -356,7 +356,7 @@ const TravelerExploreScreen: React.FC = () => {
               <MaterialCommunityIcons
                 name='calendar-end'
                 size={18}
-                color={searchEndDate ? '#8130FF' : '#6B7280'}
+                color={searchEndDate ? '#5B67F5' : '#6B7280'}
               />
               <View className='ml-2 flex-1'>
                 <Text className='text-xs text-gray-500 mb-0.5'>이 날까지</Text>
@@ -376,7 +376,7 @@ const TravelerExploreScreen: React.FC = () => {
                   }}
                   className='ml-2'
                 >
-                  <Ionicons name='close-circle' size={16} color='#8130FF' />
+                  <Ionicons name='close-circle' size={16} color='#5B67F5' />
                 </TouchableOpacity>
               )}
             </TouchableOpacity>
@@ -396,7 +396,7 @@ const TravelerExploreScreen: React.FC = () => {
               <Ionicons
                 name='location'
                 size={18}
-                color={selectedRegionIds.length > 0 ? '#8130FF' : '#6B7280'}
+                color={selectedRegionIds.length > 0 ? '#5B67F5' : '#6B7280'}
               />
               <Text
                 className={`text-sm ml-2 ${
@@ -423,7 +423,7 @@ const TravelerExploreScreen: React.FC = () => {
               <Ionicons
                 name='pricetag'
                 size={18}
-                color={selectedTagIds.length > 0 ? '#8130FF' : '#6B7280'}
+                color={selectedTagIds.length > 0 ? '#5B67F5' : '#6B7280'}
               />
               <Text
                 className={`text-sm ml-2 ${
@@ -507,7 +507,7 @@ const TravelerExploreScreen: React.FC = () => {
                           <Ionicons
                             name='close-circle'
                             size={16}
-                            color='#8130FF'
+                            color='#5B67F5'
                           />
                         </TouchableOpacity>
                       </View>
@@ -652,8 +652,10 @@ const TravelerExploreScreen: React.FC = () => {
                 <RefreshControl
                   refreshing={isLoading && sessions.length === 0}
                   onRefresh={refetch}
-                  colors={['#8130FF']}
-                  tintColor='#8130FF'
+                  colors={['#5B67F5']}
+                  tintColor='#5B67F5'
+                  colors={['#5B67F5']}
+                  tintColor='#5B67F5'
                 />
               }
               ListEmptyComponent={
@@ -684,7 +686,7 @@ const TravelerExploreScreen: React.FC = () => {
               ListFooterComponent={
                 isLoading && sessions.length > 0 ? (
                   <View className='py-4 items-center'>
-                    <ActivityIndicator size='small' color='#8130FF' />
+                    <ActivityIndicator size='small' color='#5B67F5' />
                     <Text className='text-gray-500 text-sm mt-2'>
                       더 많은 여행을 불러오는 중...
                     </Text>

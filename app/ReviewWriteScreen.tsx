@@ -38,7 +38,6 @@ const ReviewWriteScreen: React.FC = () => {
   const [guideProfileImageUrl, setGuideProfileImageUrl] = useState('');
   const [hasWrittenReview, setHasWrittenReview] = useState(false);
   const [reviewId, setReviewId] = useState<number | null>(null);
-  const [templateId, setTemplateId] = useState<number | null>(null);
 
   // 세션 정보 로드
   useEffect(() => {
@@ -53,7 +52,6 @@ const ReviewWriteScreen: React.FC = () => {
         if (sessionData) {
           setSessionTitle(sessionData.title);
           setSessionImageUrl(sessionData.imageUrls?.[0] || '');
-          setTemplateId(sessionData.templateId);
           setHasWrittenReview(sessionData.hasWrittenReview ?? false);
 
           // 가이드 정보 찾기
@@ -218,7 +216,7 @@ const ReviewWriteScreen: React.FC = () => {
             {/* 여행 이미지 */}
             {isLoading ? (
               <View className='w-full h-48 rounded-xl bg-gray-200 mb-4 overflow-hidden items-center justify-center'>
-                <ActivityIndicator size='large' color='#8130FF' />
+                <ActivityIndicator size='large' color='#5B67F5' />
               </View>
             ) : sessionImageUrl ? (
               <View className='w-full h-48 rounded-xl mb-4 overflow-hidden'>
@@ -245,7 +243,10 @@ const ReviewWriteScreen: React.FC = () => {
             {/* 가이드 정보 */}
             <View className='flex-row items-center justify-center'>
               {isLoading ? (
-                <View className='w-10 h-10 rounded-full bg-purple-100 items-center justify-center mr-3' />
+                <View
+                  className='w-10 h-10 rounded-full items-center justify-center mr-3'
+                  style={{ backgroundColor: '#E6E9FF' }}
+                />
               ) : guideProfileImageUrl ? (
                 <Image
                   source={{ uri: guideProfileImageUrl }}
@@ -253,8 +254,11 @@ const ReviewWriteScreen: React.FC = () => {
                   contentFit='cover'
                 />
               ) : (
-                <View className='w-10 h-10 rounded-full bg-purple-100 items-center justify-center mr-3'>
-                  <Ionicons name='person-outline' size={20} color='#7C3AED' />
+                <View
+                  className='w-10 h-10 rounded-full items-center justify-center mr-3'
+                  style={{ backgroundColor: '#E6E9FF' }}
+                >
+                  <Ionicons name='person-outline' size={20} color='#5B67F5' />
                 </View>
               )}
               <Text className='text-lg text-gray-700 ml-3'>
@@ -271,7 +275,10 @@ const ReviewWriteScreen: React.FC = () => {
         {/* 별점 섹션 */}
         <View className='px-5 mb-6'>
           <View className='bg-white rounded-2xl p-5 border border-gray-200 shadow-sm'>
-            <Text className='text-xl font-bold text-center mb-6 text-primary'>
+            <Text
+              className='text-xl font-bold text-center mb-6'
+              style={{ color: '#5B67F5' }}
+            >
               여행 즐거우셨나요?
             </Text>
             <View className='flex-row justify-center items-center'>
@@ -296,7 +303,10 @@ const ReviewWriteScreen: React.FC = () => {
         {/* 리뷰 작성 섹션 */}
         <View className='px-5 mb-6'>
           <View className='bg-white rounded-2xl p-5 border border-gray-200 shadow-sm'>
-            <Text className='text-xl font-bold mb-4 text-primary'>
+            <Text
+              className='text-xl font-bold mb-4'
+              style={{ color: '#5B67F5' }}
+            >
               간단한 한줄평을 작성해주세요
             </Text>
             <View className='bg-gray-50 rounded-xl border border-gray-200 p-4 relative min-h-32'>
@@ -321,20 +331,24 @@ const ReviewWriteScreen: React.FC = () => {
       {/* 하단 작성 버튼 */}
       <View className='absolute bottom-0 left-0 right-0 bg-white px-5 py-5 border-t border-gray-200'>
         <TouchableOpacity
-          className={`rounded-xl py-4 items-center justify-center ${
-            rating === 0 || !reviewText.trim() || isSubmitting
-              ? 'bg-gray-300'
-              : 'bg-primary'
-          }`}
+          className='rounded-xl py-4 items-center justify-center'
+          style={{
+            backgroundColor:
+              rating === 0 || !reviewText.trim() || isSubmitting
+                ? '#D1D5DB'
+                : '#5B67F5',
+          }}
           onPress={handleSubmitReview}
           disabled={rating === 0 || !reviewText.trim() || isSubmitting}
         >
           <Text
-            className={`text-lg font-bold ${
-              rating === 0 || !reviewText.trim() || isSubmitting
-                ? 'text-gray-500'
-                : 'text-white'
-            }`}
+            className='text-lg font-bold'
+            style={{
+              color:
+                rating === 0 || !reviewText.trim() || isSubmitting
+                  ? '#6B7280'
+                  : '#FFFFFF',
+            }}
           >
             {isSubmitting
               ? hasWrittenReview
