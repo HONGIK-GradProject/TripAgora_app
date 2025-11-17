@@ -915,7 +915,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
         <View style={styles.divider} />
 
         {/* 일정 섹션 */}
-        <View style={styles.section}>
+        <View ref={sectionRefs.itinerary} style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>일정</Text>
             {availableDays.length > 0 && userType === 'traveler' && (

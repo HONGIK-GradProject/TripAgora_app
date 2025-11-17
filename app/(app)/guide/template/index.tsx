@@ -100,8 +100,8 @@ const MyTemplatesScreen: React.FC = () => {
           </Text>
         ) : (
           <>
-            <View className='px-5'>
-              <Text className='text-3xl font-bold mb-5'>나의 여행 계획</Text>
+            <View className='px-6'>
+              <Text className='text-3xl font-bold mb-2'>나의 여행 계획</Text>
             </View>
             <SearchWithAutoComplete
               query={searchQuery}
@@ -110,7 +110,7 @@ const MyTemplatesScreen: React.FC = () => {
               onSearch={handleSearch}
               placeholder='제목으로 여행 계획 찾기'
             />
-            <View className='bg-gray-50 rounded-2xl p-4'>
+            <View className='bg-gray-50 rounded-2xl px-6 py-4'>
               <GuideTemplateList
                 templates={filteredTemplates}
                 userRole='GUIDE'
