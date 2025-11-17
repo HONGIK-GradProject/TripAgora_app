@@ -41,7 +41,6 @@ interface GuideProfileSessionList {
  */
 interface GuideProfileGetData {
   nickname: string;
-  imageUrl: string;
   userImageUrl?: string;
   guideImageUrl?: string; // 배너 이미지 URL
   bio: string;

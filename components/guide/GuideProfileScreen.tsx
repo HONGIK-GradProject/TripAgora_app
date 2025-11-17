@@ -124,8 +124,8 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
     if (guideProfile) {
       return {
         nickname: guideProfile.nickname,
-        profileImageUrl: guideProfile.userImageUrl || guideProfile.imageUrl,
-        bannerImageUrl: guideProfile.imageUrl,
+        profileImageUrl: guideProfile.userImageUrl,
+        bannerImageUrl: guideProfile.guideImageUrl,
         bio: guideProfile.bio,
         tags: guideProfile.tags,
         portfolios: guideProfile.portfolios,
@@ -188,7 +188,7 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
           // 자신의 프로필인 경우 초기 데이터 생성
           return {
             nickname: user?.nickname || '닉네임 없음',
-            imageUrl: user?.profileImageUrl || '',
+            userImageUrl: user?.profileImageUrl,
             bio: result.bio,
             tags: [],
             portfolios: [],
@@ -222,12 +222,19 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
       if (result) {
         setGuideProfile((prev) => {
           if (prev) {
-            return { ...prev, imageUrl: result.imageUrl };
+            return {
+              ...prev,
+              ...(result.guideImageUrl && {
+                guideImageUrl: result.guideImageUrl,
+              }),
+            };
           }
           // 자신의 프로필인 경우 초기 데이터 생성
           return {
             nickname: user?.nickname || '닉네임 없음',
-            imageUrl: result.imageUrl,
+            ...(result.guideImageUrl && {
+              guideImageUrl: result.guideImageUrl,
+            }),
             bio: '',
             tags: [],
             portfolios: [],
@@ -317,7 +324,7 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
           // 자신의 프로필인 경우 초기 데이터 생성
           return {
             nickname: user?.nickname || '닉네임 없음',
-            imageUrl: user?.profileImageUrl || '',
+            userImageUrl: user?.profileImageUrl,
             bio: '',
             tags: [],
             portfolios: result.portfolios,
