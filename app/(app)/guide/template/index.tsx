@@ -150,7 +150,7 @@ const MyTemplatesScreen: React.FC = () => {
           onPress={handleCreateTemplate}
         >
           <View style={{ marginLeft: -6, marginTop: -6 }}>
-            <Ionicons name='add-circle' size={68} color={'#613eea'} />
+            <Ionicons name='add-circle' size={68} color={'#5B67F5'} />
           </View>
         </TouchableOpacity>
       </View>

@@ -279,11 +279,12 @@ const MyPageScreen: React.FC = () => {
         </View>
 
         <TouchableOpacity
-          className='bg-purple-50 border border-purple-200 rounded-xl py-3 px-4 flex-row items-center justify-center'
+          className='rounded-xl py-3 px-4 flex-row items-center justify-center'
+          style={{ backgroundColor: '#E6E9FF', borderWidth: 1, borderColor: '#C5CCFF' }}
           onPress={handleSwitchUserRole}
         >
-          <Ionicons name='swap-horizontal' size={20} color='#7C3AED' />
-          <Text className='text-purple-700 font-semibold ml-2'>
+          <Ionicons name='swap-horizontal' size={20} color='#5B67F5' />
+          <Text className='font-semibold ml-2' style={{ color: '#5B67F5' }}>
             {getRoleDisplayText()}
           </Text>
         </TouchableOpacity>
@@ -300,8 +301,8 @@ const MyPageScreen: React.FC = () => {
               className='flex-row items-center py-4 px-6 border-b border-gray-100'
               onPress={handleEditTags}
             >
-              <View className='w-10 h-10 rounded-full bg-blue-50 items-center justify-center mr-4'>
-                <Ionicons name='heart' size={20} color='#3B82F6' />
+              <View className='w-10 h-10 rounded-full items-center justify-center mr-4' style={{ backgroundColor: '#F3ECFF' }}>
+                <Ionicons name='heart' size={20} color='#7C3AED' />
               </View>
               <Text className='text-lg font-medium text-gray-900 flex-1'>
                 나의 관심사 설정

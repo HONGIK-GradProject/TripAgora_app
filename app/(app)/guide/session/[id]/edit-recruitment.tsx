@@ -18,6 +18,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
 /**
@@ -27,8 +28,8 @@ import Toast from 'react-native-toast-message';
 const EditRecruitmentContent: React.FC = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id?: string }>();
-
-  // 세션 상세 정보 가져오기
+  const insets = useSafeAreaInsets();
+  const bottomActionPadding = Math.min(Math.max(insets.bottom, 12), 18);
   const sessionDetails = useSessionDetails();
   const {
     title = '',
@@ -143,7 +144,7 @@ const EditRecruitmentContent: React.FC = () => {
   if (isLoading) {
     return (
       <View className='flex-1 bg-white items-center justify-center'>
-        <ActivityIndicator size='large' color='#8130FF' />
+        <ActivityIndicator size='large' color='#5B67F5' />
         <Text className='text-gray-500 text-lg mt-4'>로딩 중...</Text>
       </View>
     );
@@ -151,7 +152,11 @@ const EditRecruitmentContent: React.FC = () => {
 
   return (
     <View className='flex-1 bg-white'>
-      <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className='flex-1'
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: bottomActionPadding + 90 }}
+      >
         {/* 상단 네비게이션 */}
         <View className='pt-6 pb-3 px-5 flex-row items-center justify-between border-b border-[#E9E9E9]'>
           <TouchableOpacity
@@ -166,7 +171,7 @@ const EditRecruitmentContent: React.FC = () => {
 
         {/* 메인 제목 */}
         <View className='px-5 mb-5 pt-5'>
-          <Text className='text-xl font-bold text-[#8130FF]'>
+          <Text className='text-xl font-bold text-[#5B67F5]'>
             모집 정보를 수정해요
           </Text>
         </View>
@@ -200,18 +205,18 @@ const EditRecruitmentContent: React.FC = () => {
 
         {/* 현재 모집 정보 표시 */}
         <View className='px-5 mb-6'>
-          <Text className='text-lg font-bold text-[#8130FF] mb-4'>
+          <Text className='text-lg font-bold text-[#5B67F5] mb-4'>
             현재 모집 정보
           </Text>
           <View className='bg-[#F8F9FA] rounded-2xl p-4'>
             <View className='flex-row items-center mb-3'>
-              <Ionicons name='people-outline' size={20} color='#8130FF' />
+              <Ionicons name='people-outline' size={20} color='#5B67F5' />
               <Text className='text-base text-black ml-3'>
                 모집 인원 : {maxParticipants}명
               </Text>
             </View>
             <View className='flex-row items-center'>
-              <Ionicons name='calendar-outline' size={20} color='#8130FF' />
+              <Ionicons name='calendar-outline' size={20} color='#5B67F5' />
               <Text className='text-base text-black ml-3'>
                 시작 날짜:{' '}
                 {startDate ? formatDate(new Date(startDate)) : '날짜 정보 없음'}
@@ -222,15 +227,15 @@ const EditRecruitmentContent: React.FC = () => {
 
         {/* 모집 인원 수정 */}
         <View className='px-5 mb-8'>
-          <Text className='text-lg font-bold text-[#8130FF] mb-4'>
+          <Text className='text-lg font-bold text-[#5B67F5] mb-4'>
             모집 인원 (가이드 제외)
           </Text>
           <View className='flex-row items-center justify-center gap-5'>
             <TouchableOpacity
-              className='w-12 h-12 rounded-full bg-[#F3ECFF] items-center justify-center'
+              className='w-12 h-12 rounded-full bg-[#E6E9FF] items-center justify-center'
               onPress={handleDecreaseMembers}
             >
-              <Ionicons name='remove' size={24} color='#613EEA' />
+              <Ionicons name='remove' size={24} color='#5B67F5' />
             </TouchableOpacity>
             <TextInput
               className='text-lg font-semibold text-black min-w-[60px] text-center border border-gray-300 rounded-lg py-2'
@@ -240,27 +245,27 @@ const EditRecruitmentContent: React.FC = () => {
               selectTextOnFocus
             />
             <TouchableOpacity
-              className='w-12 h-12 rounded-full bg-[#F3ECFF] items-center justify-center'
+              className='w-12 h-12 rounded-full bg-[#E6E9FF] items-center justify-center'
               onPress={handleIncreaseMembers}
             >
-              <Ionicons name='add' size={24} color='#613EEA' />
+              <Ionicons name='add' size={24} color='#5B67F5' />
             </TouchableOpacity>
           </View>
         </View>
 
         {/* 날짜 수정 */}
         <View className='px-5 mb-[100px]'>
-          <Text className='text-lg font-bold text-[#8130FF] mb-4'>
+          <Text className='text-lg font-bold text-[#5B67F5] mb-4'>
             시작 날짜
           </Text>
           <TouchableOpacity
-            className='bg-[#F3ECFF] rounded-2xl border border-[#D9C7FF] mt-5'
+            className='bg-[#E6E9FF] rounded-2xl border border-[#C5CCFF] mt-5'
             onPress={showDatePickerModal}
           >
             <View className='flex-row items-center p-4'>
-              <Ionicons name='calendar-outline' size={24} color='#613EEA' />
+              <Ionicons name='calendar-outline' size={24} color='#5B67F5' />
               <View className='flex-1 ml-3'>
-                <Text className='text-sm text-[#8130FF] font-medium mb-1'>
+                <Text className='text-sm text-[#5B67F5] font-medium mb-1'>
                   여행 날짜
                 </Text>
                 <Text className='text-base text-black font-semibold'>
@@ -285,10 +290,17 @@ const EditRecruitmentContent: React.FC = () => {
       )}
 
       {/* 하단 버튼 */}
-      <View className='absolute bottom-0 left-0 right-0 px-5 pt-[10px] pb-5 bg-white border-t border-[#E9E9E9]'>
+      <View
+        className='absolute bottom-0 left-0 right-0 px-5 border-t border-[#E9E9E9]'
+        style={{
+          paddingTop: 8,
+          paddingBottom: bottomActionPadding,
+          bottom: -insets.bottom,
+        }}
+      >
         <TouchableOpacity
           className={`h-[52px] rounded-lg items-center justify-center ${
-            isUpdating ? 'bg-gray-400' : 'bg-[#8130FF]'
+            isUpdating ? 'bg-gray-400' : 'bg-[#5B67F5]'
           }`}
           onPress={handleSaveChanges}
           disabled={isUpdating}

@@ -69,7 +69,7 @@ const TravelerTripListScreen: React.FC = () => {
           ['RECRUITING', 'RECRUITMENT_CLOSED'].includes(session.status)
       );
 
-      // 모집마감 > 모집중 순서로 정렬
+      // 모집마감 > 모집 중 순서로 정렬
       filtered.sort(
         (
           a: SessionInfo | SessionCompletedInfo,
@@ -125,7 +125,7 @@ const TravelerTripListScreen: React.FC = () => {
       RECRUITING: {
         bg: 'bg-purple-100',
         text: 'text-purple-700',
-        label: '모집중',
+        label: '모집 중',
       },
       RECRUITMENT_CLOSED: {
         bg: 'bg-orange-100',

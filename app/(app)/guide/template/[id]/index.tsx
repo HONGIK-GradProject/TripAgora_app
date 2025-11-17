@@ -1003,12 +1003,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 6,
-    backgroundColor: '#F3ECFF',
+    backgroundColor: '#E6E9FF',
     borderWidth: 1,
-    borderColor: '#D9C7FF',
+    borderColor: '#C5CCFF',
   },
   editButtonText: {
-    color: '#8130FF',
+    color: '#5B67F5',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -1025,12 +1025,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F3ECFF',
+    backgroundColor: '#E6E9FF',
     borderWidth: 1,
-    borderColor: '#D9C7FF',
+    borderColor: '#C5CCFF',
   },
   editActionText: {
-    color: '#8130FF',
+    color: '#5B67F5',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -1072,12 +1072,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   dayButtonActive: {
-    backgroundColor: '#8130FF',
-    borderColor: '#8130FF',
+    backgroundColor: '#5B67F5',
+    borderColor: '#5B67F5',
   },
   dayButtonText: {
     fontSize: 16,
-    color: '#8130FF',
+    color: '#5B67F5',
   },
   dayButtonTextActive: {
     fontSize: 16,
@@ -1099,7 +1099,7 @@ const styles = StyleSheet.create({
   },
   itineraryTimeText: {
     fontSize: 14,
-    color: '#8130FF',
+    color: '#5B67F5',
     fontWeight: 'bold',
   },
   itineraryContent: {
@@ -1155,7 +1155,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   primaryButton: {
-    backgroundColor: '#8130FF',
+    backgroundColor: '#5B67F5',
   },
   primaryButtonText: {
     color: '#fff',
@@ -1163,12 +1163,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   secondaryButton: {
-    backgroundColor: '#F3ECFF',
+    backgroundColor: '#E6E9FF',
     borderWidth: 1,
-    borderColor: '#D9C7FF',
+    borderColor: '#C5CCFF',
   },
   secondaryButtonText: {
-    color: '#8130FF',
+    color: '#5B67F5',
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 6,

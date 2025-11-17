@@ -777,13 +777,13 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
               <Text
                 style={[
                   styles.statusText,
-                  status === 'RECRUITING' && { color: '#7C3AED' },
+                  status === 'RECRUITING' && { color: '#5B67F5' },
                   status === 'RECRUITMENT_CLOSED' && { color: '#C2410C' },
                   status === 'IN_PROGRESS' && { color: '#FFFFFF' },
                   status === 'COMPLETED' && { color: '#15803D' },
                 ]}
               >
-                {(status === 'RECRUITING' && '모집중') ||
+                {(status === 'RECRUITING' && '모집 중') ||
                   (status === 'RECRUITMENT_CLOSED' && '모집마감') ||
                   (status === 'IN_PROGRESS' && '진행중') ||
                   (status === 'COMPLETED' && '완료') ||
@@ -931,7 +931,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
                 style={styles.viewMoreButton}
               >
                 <Text style={styles.viewMoreButtonText}>상세보기</Text>
-                <Ionicons name='chevron-forward' size={16} color='#8130FF' />
+                <Ionicons name='chevron-forward' size={16} color='#5B67F5' />
               </TouchableOpacity>
             )}
           </View>
@@ -994,7 +994,6 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
                   </View>
                 ))}
             </View>
-            <View style={styles.divider} />
           </>
         )}
 
@@ -1136,7 +1135,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
               <View ref={sectionRefs.participants} style={styles.section}>
                 <Text style={styles.sectionTitle}>참여자 목록</Text>
                 <View style={styles.emptyParticipantsContainer}>
-                  <Ionicons name='people-outline' size={48} color='#D1D5DB' />
+                  <Ionicons name='people-outline' size={48} color='#9CA3AF' />
                   <Text style={styles.emptyParticipantsText}>
                     아직 신청인원이 없습니다.
                   </Text>
@@ -1242,7 +1241,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
               <Ionicons
                 name={isInWishlist ? 'heart' : 'heart-outline'}
                 size={24}
-                color={isInWishlist ? '#8130FF' : '#000'}
+                color={isInWishlist ? '#5B67F5' : '#000'}
               />
             </TouchableOpacity>
             <TouchableOpacity
@@ -1271,7 +1270,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
               <Ionicons
                 name={isInWishlist ? 'heart' : 'heart-outline'}
                 size={24}
-                color={isInWishlist ? '#8130FF' : '#000'}
+                color={isInWishlist ? '#5B67F5' : '#000'}
               />
             </TouchableOpacity>
             <TouchableOpacity
@@ -1487,7 +1486,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   statusRecruiting: {
-    backgroundColor: '#DDD6FE',
+    backgroundColor: '#E6E9FF',
   },
   statusClosed: {
     backgroundColor: '#FED7AA',
@@ -1552,13 +1551,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: '#F3ECFF',
+    backgroundColor: '#E6E9FF',
     borderRadius: 16,
   },
   viewMoreButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#8130FF',
+    color: '#5B67F5',
     marginRight: 4,
   },
   description: {
@@ -1621,12 +1620,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   primaryButton: {
-    backgroundColor: '#8130FF',
+    backgroundColor: '#5B67F5',
   },
   secondaryButton: {
-    backgroundColor: '#F3ECFF',
+    backgroundColor: '#E6E9FF',
     borderWidth: 1,
-    borderColor: '#D9C7FF',
+    borderColor: '#C5CCFF',
   },
   completedButton: {
     backgroundColor: '#F0FDF4',
@@ -1660,7 +1659,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   secondaryButtonText: {
-    color: '#8130ff',
+    color: '#5B67F5',
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
@@ -1719,8 +1718,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   participantRoleGuide: {
-    color: '#7C3AED',
-    backgroundColor: '#DDD6FE',
+    color: '#5B67F5',
+    backgroundColor: '#E6E9FF',
   },
   participantRoleTraveler: {
     color: '#15803D',
@@ -1761,12 +1760,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   dayButtonActive: {
-    backgroundColor: '#8130FF',
-    borderColor: '#8130FF',
+    backgroundColor: '#5B67F5',
+    borderColor: '#5B67F5',
   },
   dayButtonText: {
     fontSize: 16,
-    color: '#8130FF',
+    color: '#5B67F5',
   },
   dayButtonTextActive: {
     fontSize: 16,
@@ -1782,7 +1781,7 @@ const styles = StyleSheet.create({
   },
   itineraryTimeText: {
     fontSize: 14,
-    color: '#8130FF',
+    color: '#5B67F5',
     fontWeight: 'bold',
   },
   itineraryContent: {
@@ -2019,7 +2018,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#8130FF',
+    backgroundColor: '#5B67F5',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',

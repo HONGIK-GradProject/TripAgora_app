@@ -611,9 +611,16 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
                   {guideInfo.tags.map((tagId) => (
                     <View
                       key={tagId}
-                      className='bg-purple-50 border border-purple-200 rounded-full px-3 py-1 mr-2 mb-2'
+                      className='rounded-full px-3 py-1 mr-2 mb-2 border'
+                      style={{
+                        backgroundColor: '#E6E9FF',
+                        borderColor: '#C5CCFF',
+                      }}
                     >
-                      <Text className='text-purple-700 text-sm font-medium'>
+                      <Text
+                        className='text-sm font-medium'
+                        style={{ color: '#5B67F5' }}
+                      >
                         {TAG_ID_TO_NAME_MAP[tagId] || `태그 ${tagId}`}
                       </Text>
                     </View>
@@ -714,9 +721,15 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
                           : '지역 정보 없음'}
                       </Text>
                     </View>
-                    <View className='bg-purple-100 px-3 py-1 rounded-full ml-2'>
-                      <Text className='text-sm text-purple-700 font-medium'>
-                        모집중
+                    <View
+                      className='px-3 py-1 rounded-full ml-2'
+                      style={{ backgroundColor: '#E6E9FF' }}
+                    >
+                      <Text
+                        className='text-sm font-medium'
+                        style={{ color: '#5B67F5' }}
+                      >
+                        모집 중
                       </Text>
                     </View>
                   </TouchableOpacity>

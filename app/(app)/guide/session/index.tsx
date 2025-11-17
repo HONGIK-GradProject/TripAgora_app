@@ -47,7 +47,7 @@ const GuideTripListScreen: React.FC = () => {
         ['RECRUITING', 'RECRUITMENT_CLOSED'].includes(session.status)
       );
 
-      // 모집마감 > 모집중 순서로 정렬
+      // 모집마감 > 모집 중 순서로 정렬
       filtered.sort((a, b) => {
         if (a.status === 'RECRUITMENT_CLOSED' && b.status === 'RECRUITING') {
           return -1; // a가 b보다 앞에 와야 함

@@ -6,6 +6,34 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { FlatListProps, Text, View } from 'react-native';
 
+const STATUS_BADGE_STYLES = {
+  RECRUITING: {
+    label: '모집 중',
+    backgroundColor: '#E6E9FF',
+    textColor: '#5B67F5',
+  },
+  RECRUITMENT_CLOSED: {
+    label: '모집마감',
+    backgroundColor: '#FFEDD5',
+    textColor: '#C2410C',
+  },
+  IN_PROGRESS: {
+    label: '진행중',
+    backgroundColor: '#F3F4F6',
+    textColor: '#4B5563',
+  },
+  COMPLETED: {
+    label: '완료',
+    backgroundColor: '#DCFCE7',
+    textColor: '#15803D',
+  },
+  DEFAULT: {
+    label: '상태 미정',
+    backgroundColor: '#F3F4F6',
+    textColor: '#4B5563',
+  },
+} as const;
+
 /**
  * @interface SessionListProps
  * @extends Omit<FlatListProps<SessionInfo>, 'data' | 'renderItem' | 'keyExtractor'> `FlatList`의 props를 상속받지만, 내부적으로 처리되는 props는 제외합니다.
@@ -42,6 +70,10 @@ const SessionListElement = (session: SessionInfo) => {
     )
       .filter(Boolean)
       .join(', ') || '지역 정보 없음';
+
+  const badgeStyle =
+    STATUS_BADGE_STYLES[session.status as keyof typeof STATUS_BADGE_STYLES] ??
+    STATUS_BADGE_STYLES.DEFAULT;
 
   return (
     <>
@@ -83,31 +115,14 @@ const SessionListElement = (session: SessionInfo) => {
         </View>
       </View>
       <View
-        className={`px-3 py-1 rounded-full ${
-          session.status === 'RECRUITING'
-            ? 'bg-purple-100'
-            : session.status === 'RECRUITMENT_CLOSED'
-            ? 'bg-orange-100'
-            : session.status === 'COMPLETED'
-            ? 'bg-green-100'
-            : 'bg-gray-100'
-        }`}
+        className='px-3 py-1 rounded-full'
+        style={{ backgroundColor: badgeStyle.backgroundColor }}
       >
         <Text
-          className={`text-sm ${
-            session.status === 'RECRUITING'
-              ? 'text-purple-700'
-              : session.status === 'RECRUITMENT_CLOSED'
-              ? 'text-orange-700'
-              : session.status === 'COMPLETED'
-              ? 'text-green-700'
-              : 'text-gray-600'
-          }`}
+          className='text-sm font-medium'
+          style={{ color: badgeStyle.textColor }}
         >
-          {session.status === 'RECRUITING' && '모집중'}
-          {session.status === 'RECRUITMENT_CLOSED' && '모집마감'}
-          {session.status === 'IN_PROGRESS' && '진행중'}
-          {session.status === 'COMPLETED' && '완료'}
+          {badgeStyle.label}
         </Text>
       </View>
     </>
