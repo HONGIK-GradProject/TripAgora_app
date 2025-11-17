@@ -104,6 +104,19 @@ const SessionRoomContent: React.FC = () => {
           <TouchableOpacity
             style={styles.detailButton}
             onPress={() => {
+              router.push(`/guide/session/${id}/chat?roomId=${roomId}` as any);
+            }}
+          >
+            <Ionicons
+              name='chatbubbles-outline'
+              size={24}
+              color='#000'
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.detailButton}
+            onPress={() => {
               router.push(`/guide/session/${id}` as any);
             }}
           >

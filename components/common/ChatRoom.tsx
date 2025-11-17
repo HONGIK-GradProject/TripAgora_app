@@ -1,4 +1,3 @@
-import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import { useAuth } from '@/hooks/useAuth';
 import { usePaginatedList } from '@/hooks/usePaginatedList';
 import { useStomp } from '@/hooks/useStomp';
@@ -64,16 +63,14 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId }) => {
   const allMessages = [...newMessages, ...paginatedMessages];
 
   return (
-    <CustomSafeAreaView>
-      <ChatView
-        messages={allMessages}
-        onSend={handleSendMessage}
-        user={{
-          _id: user ? (user.id || '') : ''
-        }}
-        onLoadEarlier={handleLoadEarlier}
-      />
-    </CustomSafeAreaView>
+    <ChatView
+      messages={allMessages}
+      onSend={handleSendMessage}
+      user={{
+        _id: user ? (user.id || '') : ''
+      }}
+      onLoadEarlier={handleLoadEarlier}
+    />
   );
 };
 
