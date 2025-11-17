@@ -137,7 +137,7 @@ const TravelerTripListScreen: React.FC = () => {
                 ? `?roomId=${session.roomId}`
                 : '';
               router.push(
-                `/traveler/trip/${session.sessionId}/session-room${roomIdParam}` as any
+                `/traveler/trip/${session.sessionId}/session-room/${roomIdParam}` as any
               );
             } else {
               router.push(`/traveler/trip/${session.sessionId}` as any);

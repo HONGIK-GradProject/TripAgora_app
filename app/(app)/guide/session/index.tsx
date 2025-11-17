@@ -115,7 +115,7 @@ const GuideTripListScreen: React.FC = () => {
                   ? `?roomId=${currentSession.roomId}`
                   : '';
                 router.push(
-                  `/guide/session/${currentSession.sessionId.toString()}/session-room${roomIdParam}` as any
+                  `/guide/session/${currentSession.sessionId.toString()}/session-room/${roomIdParam}` as any
                 );
               }}
             >
