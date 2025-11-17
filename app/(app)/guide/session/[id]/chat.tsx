@@ -1,6 +1,6 @@
 import ChatRoom from '@/components/common/ChatRoom';
 import CustomSafeAreaView from '@/components/CustomSafeAreaView';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 
 const TravelerChatScreen: React.FC = () => {
@@ -10,12 +10,12 @@ const TravelerChatScreen: React.FC = () => {
   }>();
 
   if (!roomId) {
-    return (<></>);
+    router.back();
   }
 
   else {
     return (
-      <CustomSafeAreaView>
+      <CustomSafeAreaView edges={['top', 'right', 'left']}>
         <ChatRoom roomId={+roomId}/>
       </CustomSafeAreaView>
     );
