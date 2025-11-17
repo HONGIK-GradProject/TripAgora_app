@@ -5,16 +5,19 @@ import { Platform, TouchableOpacity } from 'react-native';
 interface MultipleImagePickerProps {
   onImagesSelected: (uris: string[]) => void;
   children: ReactNode;
+  disabled?: boolean;
 }
 
 export default function MultipleImagePicker({
   onImagesSelected,
   children,
+  disabled = false,
 }: MultipleImagePickerProps) {
   useEffect(() => {
     (async () => {
       if (Platform.OS !== 'web') {
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        const { status } =
+          await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
           alert('Sorry, we need camera roll permissions to make this work!');
         }
@@ -38,7 +41,7 @@ export default function MultipleImagePicker({
   };
 
   return (
-    <TouchableOpacity onPress={pickImages}>
+    <TouchableOpacity onPress={pickImages} disabled={disabled}>
       {children}
     </TouchableOpacity>
   );

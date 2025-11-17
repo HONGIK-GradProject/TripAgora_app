@@ -33,7 +33,8 @@ interface TravelerProductListProps {
   products: Product[];
   onEndReached?: () => void;
   refreshControl?: React.ReactElement<RefreshControlProps>;
-  ListFooterComponent?: React.ReactElement | null;
+  ListEmptyComponent?: React.ReactElement | React.ComponentType<any> | null;
+  ListFooterComponent?: React.ReactElement | React.ComponentType<any> | null;
   detailPath?: string; // 세션 상세 페이지 경로 (기본값: '/traveler/explore/[id]')
   contentContainerStyle?: any;
 }

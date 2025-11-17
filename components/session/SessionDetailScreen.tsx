@@ -311,6 +311,21 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
 
             if (result) {
               setIsParticipating(true);
+
+              // 위시리스트에 있으면 자동으로 제거
+              if (isInWishlist) {
+                try {
+                  const deleteSuccess = await deleteWishlist(parseInt(id));
+                  if (deleteSuccess) {
+                    setIsInWishlistLocal(false);
+                    setIsInWishlist?.(false);
+                  }
+                } catch (wishlistError) {
+                  console.error('위시리스트 제거 에러:', wishlistError);
+                  // 위시리스트 제거 실패해도 참여 신청은 성공했으므로 계속 진행
+                }
+              }
+
               refetch(); // 세션 정보 새로고침
               Toast.show({
                 type: 'success',
@@ -331,7 +346,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
         },
       },
     ]);
-  }, [id, refetch]);
+  }, [id, refetch, isInWishlist, setIsInWishlist]);
 
   // 여행자용 위시리스트 토글 처리
   const handleToggleWishlist = useCallback(async () => {
@@ -784,8 +799,8 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
                 ]}
               >
                 {(status === 'RECRUITING' && '모집 중') ||
-                  (status === 'RECRUITMENT_CLOSED' && '모집마감') ||
-                  (status === 'IN_PROGRESS' && '진행중') ||
+                  (status === 'RECRUITMENT_CLOSED' && '모집 마감') ||
+                  (status === 'IN_PROGRESS' && '진행 중') ||
                   (status === 'COMPLETED' && '완료') ||
                   '알 수 없음'}
               </Text>
@@ -1201,6 +1216,14 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
               </TouchableOpacity>
             </>
           )
+        ) : status === 'IN_PROGRESS' ? (
+          // 진행 중인 세션: 여행 삭제/참여 취소 불가
+          <TouchableOpacity
+            style={[styles.ctaButton, styles.disabledButton]}
+            disabled={true}
+          >
+            <Text style={styles.disabledButtonText}>여행이 진행중입니다</Text>
+          </TouchableOpacity>
         ) : userType === 'guide' ? (
           // 가이드: 일반 상태
           <>
@@ -1230,34 +1253,20 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
             </Text>
           </TouchableOpacity>
         ) : isParticipating ? (
-          // 여행자: 참여 중인 세션
-          <>
-            {/* 여행자용 하트 버튼 */}
-            <TouchableOpacity
-              style={styles.wishlistButton}
-              onPress={handleToggleWishlist}
-              disabled={isWishlistSubmitting}
-            >
-              <Ionicons
-                name={isInWishlist ? 'heart' : 'heart-outline'}
-                size={24}
-                color={isInWishlist ? '#5B67F5' : '#000'}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.ctaButton,
-                styles.cancelButton,
-                isSubmitting && { backgroundColor: '#9CA3AF' },
-              ]}
-              onPress={handleCancelParticipation}
-              disabled={isSubmitting}
-            >
-              <Text style={styles.cancelButtonText}>
-                {isSubmitting ? '취소 중...' : '참여 신청 취소'}
-              </Text>
-            </TouchableOpacity>
-          </>
+          // 여행자: 참여 중인 세션 (위시리스트 버튼 없음)
+          <TouchableOpacity
+            style={[
+              styles.ctaButton,
+              styles.cancelButton,
+              isSubmitting && { backgroundColor: '#9CA3AF' },
+            ]}
+            onPress={handleCancelParticipation}
+            disabled={isSubmitting}
+          >
+            <Text style={styles.cancelButtonText}>
+              {isSubmitting ? '취소 중...' : '참여 신청 취소'}
+            </Text>
+          </TouchableOpacity>
         ) : (
           // 여행자: 참여 신청 가능한 세션
           <>

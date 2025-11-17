@@ -61,6 +61,7 @@ const ProductDetailScreen: React.FC = () => {
   const [isSavingTitle, setIsSavingTitle] = useState(false);
   const [isSavingContent, setIsSavingContent] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
 
   // 이미지 뷰어 상태
   const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
@@ -261,15 +262,22 @@ const ProductDetailScreen: React.FC = () => {
 
   const handleSetImages = useCallback(
     async (uris: string[]) => {
+      setIsUploadingImages(true);
       try {
         const newImageUrls = await setTemplateImageUrls(_id, uris);
         if (newImageUrls) {
           setImageUrls(newImageUrls);
           console.log(newImageUrls);
+          Toast.show({
+            type: 'success',
+            text1: '이미지가 업로드되었습니다.',
+          });
         }
       } catch (error) {
         console.error(error);
         showErrorToast(error);
+      } finally {
+        setIsUploadingImages(false);
       }
     },
     [_id, setImageUrls]
@@ -498,9 +506,30 @@ const ProductDetailScreen: React.FC = () => {
                 >
                   사진
                 </Text>
-                <MultipleImagePicker onImagesSelected={handleSetImages}>
-                  <View style={styles.editButton}>
-                    <Text style={styles.editButtonText}>편집</Text>
+                <MultipleImagePicker
+                  onImagesSelected={handleSetImages}
+                  disabled={isUploadingImages}
+                >
+                  <View
+                    style={[
+                      styles.editButton,
+                      isUploadingImages && { opacity: 0.6 },
+                    ]}
+                  >
+                    {isUploadingImages ? (
+                      <View
+                        style={{ flexDirection: 'row', alignItems: 'center' }}
+                      >
+                        <ActivityIndicator
+                          size='small'
+                          color='#5B67F5'
+                          style={{ marginRight: 8 }}
+                        />
+                        <Text style={styles.editButtonText}>업로드 중...</Text>
+                      </View>
+                    ) : (
+                      <Text style={styles.editButtonText}>편집</Text>
+                    )}
                   </View>
                 </MultipleImagePicker>
               </View>

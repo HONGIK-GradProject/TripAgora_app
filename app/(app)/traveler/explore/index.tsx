@@ -58,8 +58,6 @@ const TravelerExploreScreen: React.FC = () => {
     'start'
   );
 
-  const { bottom } = useSafeAreaInsets();
-
   // useRef를 사용하여 의존성 배열로 인한 무한 루프를 방지합니다.
   const stateRef = useRef({
     isLoading,
@@ -82,12 +80,19 @@ const TravelerExploreScreen: React.FC = () => {
     selectedTagIds,
   };
 
-  // 날짜를 yyyy-MM-dd 형식으로 변환
-  const formatDate = (date: Date): string => {
+  // 날짜를 yyyy-MM-dd 형식으로 변환 (API용)
+  const formatDateForAPI = (date: Date): string => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  };
+
+  // 날짜를 UI 표시용 형식으로 변환 (예: 1월 1일)
+  const formatDateForDisplay = (date: Date): string => {
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    return `${month}월 ${day}일`;
   };
 
   // 세션 검색/조회 함수
@@ -95,10 +100,10 @@ const TravelerExploreScreen: React.FC = () => {
     const pageToLoad = isRefresh ? 0 : stateRef.current.page;
     const keyword = stateRef.current.submittedQuery.trim() || undefined;
     const startDate = stateRef.current.searchStartDate
-      ? formatDate(stateRef.current.searchStartDate)
+      ? formatDateForAPI(stateRef.current.searchStartDate)
       : undefined;
     const endDate = stateRef.current.searchEndDate
-      ? formatDate(stateRef.current.searchEndDate)
+      ? formatDateForAPI(stateRef.current.searchEndDate)
       : undefined;
     const regionIds =
       stateRef.current.selectedRegionIds.length > 0
@@ -328,7 +333,9 @@ const TravelerExploreScreen: React.FC = () => {
                       : 'text-gray-600'
                   }`}
                 >
-                  {searchStartDate ? formatDate(searchStartDate) : '선택'}
+                  {searchStartDate
+                    ? formatDateForDisplay(searchStartDate)
+                    : '선택'}
                 </Text>
               </View>
               {searchStartDate && (
@@ -365,7 +372,7 @@ const TravelerExploreScreen: React.FC = () => {
                     searchEndDate ? 'text-primary font-medium' : 'text-gray-600'
                   }`}
                 >
-                  {searchEndDate ? formatDate(searchEndDate) : '선택'}
+                  {searchEndDate ? formatDateForDisplay(searchEndDate) : '선택'}
                 </Text>
               </View>
               {searchEndDate && (
@@ -654,8 +661,6 @@ const TravelerExploreScreen: React.FC = () => {
                   onRefresh={refetch}
                   colors={['#5B67F5']}
                   tintColor='#5B67F5'
-                  colors={['#5B67F5']}
-                  tintColor='#5B67F5'
                 />
               }
               ListEmptyComponent={
@@ -693,7 +698,7 @@ const TravelerExploreScreen: React.FC = () => {
                   </View>
                 ) : undefined
               }
-              contentContainerStyle={{ paddingBottom: bottom + 160 }}
+              contentContainerStyle={{ paddingBottom: insets.bottom + 160 }}
             />
           )}
         </View>
