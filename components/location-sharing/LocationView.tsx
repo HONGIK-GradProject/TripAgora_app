@@ -2,10 +2,10 @@ import { InteractiveMapView } from '@/components/map/InteractiveMapView';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocationPermission } from '@/hooks/useLocationPermission';
 import { Ionicons } from '@expo/vector-icons';
-import { ClusterMarkerProp, Coord } from '@mj-studio/react-native-naver-map';
+import { ClusterMarkerProp } from '@mj-studio/react-native-naver-map';
 import * as Location from 'expo-location';
 import haversine from 'haversine-distance';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   ScrollView,
@@ -34,21 +34,45 @@ const MOCK_DATA = [
   { userId: 321, nickname: 'User2', latitude: 37.5700, longitude: 126.980 },
 ];
 
-/**
- * 모집 정보를 수정하는 화면입니다.
- * 모집 인원과 시작 날짜를 수정할 수 있습니다.
- */
 const LocationSharingView: React.FC<LocationSharingProps> = ({ roomId }) => {
   const [locations, setLocations] = useState<LocationData[]>(MOCK_DATA);
-  const [myLocation, setMyLocation] = useState<Coord | null>(null);
+  const [myLocation, setMyLocation] = useState<LocationData | null>(null);
 
   const { user } = useAuth();
   // Location 권한
   const { status, requestPermission } = useLocationPermission();
 
+  const handleUpdateLocation = useCallback(async () => {
+    if (status !== Location.PermissionStatus.GRANTED) {
+      return;
+    }
+
+    const location = await Location.getCurrentPositionAsync({});
+
+    const { latitude, longitude } = location.coords;
+    setMyLocation({
+      latitude,
+      longitude,
+      userId: user?.id || 0,
+      nickname: user?.nickname || ''
+    });
+  }, [status, user]);
+
   useEffect(() => {
-    handleGetPermission();
-  }, []);
+    const handleInit = async () => {
+      await handleGetPermission();
+      await handleUpdateLocation();
+    }
+
+    handleInit();
+  }, [roomId]);
+
+  useEffect(() => {
+    if (status === Location.PermissionStatus.GRANTED) {
+      const intervalId = setInterval(handleUpdateLocation, 5000);
+      return () => clearInterval(intervalId);
+    }
+  }, [status, handleUpdateLocation]);
 
   const handleGetPermission = async () => {
     let currentStatus = status;
@@ -66,31 +90,19 @@ const LocationSharingView: React.FC<LocationSharingProps> = ({ roomId }) => {
     }
   };
 
-  const handleUpdateLocation = async () => {
-    if (status !== Location.PermissionStatus.GRANTED) {
-      return;
+  const finalLocations = useMemo(() => {
+    if (myLocation) {
+      return [myLocation, ...locations];
     }
-
-    const location = await Location.getCurrentPositionAsync({});
-
-    const { latitude, longitude } = location.coords;
-    setMyLocation({ latitude, longitude });
-
-    const updateData = {
-      roomId: roomId,
-      nickname: user?.nickname,
-      latitude, longitude
-    };
-  };
+    return locations;
+  }, [locations, myLocation]);
 
   const clusterMarkers = useMemo(() => {
-    if (!locations || locations.length < 1) {
+    if (!finalLocations || finalLocations.length < 1) {
       return [];
     }
 
-    console.log(locations);
-
-    return locations.map((loc, index) => {
+    return finalLocations.map((loc, index) => {
       return {
         identifier: Date.now().toString(),
         latitude: loc.latitude,
@@ -102,7 +114,7 @@ const LocationSharingView: React.FC<LocationSharingProps> = ({ roomId }) => {
         height: 40,
       } as ClusterMarkerProp;
     });
-  }, [locations]);
+  }, [finalLocations]);
 
   const getDistance = (latitude: number, longitude: number) => {
     if (!myLocation) return 0;
@@ -128,7 +140,7 @@ const LocationSharingView: React.FC<LocationSharingProps> = ({ roomId }) => {
         </View>
 
         <View style={styles.memberList}>
-          {locations.map((loc, index) => (
+          {finalLocations.map((loc, index) => (
             <View style={styles.memberItem} key={loc.userId}>
               <Ionicons name="person-circle" size={40} color={COLOR_CODES[index % COLOR_CODES.length]} style={styles.memberIcon} />
               <Text style={styles.memberName}>{loc.nickname}</Text>
