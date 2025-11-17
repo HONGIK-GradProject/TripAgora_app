@@ -16,13 +16,6 @@ export default function SessionLayout() {
           headerShown: false,
         }}
       />
-      <Stack.Screen
-        name='view-location'
-        options={{
-          headerShown: false,
-          title: '위치 보기',
-        }}
-      />
     </Stack>
   );
 }
