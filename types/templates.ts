@@ -6,7 +6,7 @@ import APIResponse from "./apiResponse";
 interface TemplateItinerary {
   id: number;
   day: number;
-  title: string;
+  location: string;
   content: string;
   startTime: string;
   latitude: number;

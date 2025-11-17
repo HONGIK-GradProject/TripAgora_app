@@ -1,69 +1,45 @@
-import { getTemplateList } from '@/services/templates';
+/**
+ * @file useTemplateList.ts
+ * @description 가이드가 생성한 템플릿 목록을 페이지네이션으로 불러오는 커스텀 훅입니다.
+ */
+import { getTemplateList as apiGetTemplateList } from '@/services/templates';
 import { TemplateInfo } from '@/types/templates';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
+import { usePaginatedList } from '../usePaginatedList';
 
-export const useTemplateList = () => {
-  const [products, setProducts] = useState<TemplateInfo[]>([]);
-  const [page, setPage] = useState(0); // API가 0-indexed 페이지를 사용한다고 가정
-  const [hasNextPage, setHasNextPage] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+/**
+ * 템플릿 목록을 가져오는 fetcher 함수.
+ * @param {number} page - 페이지 번호.
+ * @returns {Promise<{data: TemplateInfo[], hasNext: boolean} | null>} 템플릿 목록과 다음 페이지 존재 여부를 반환합니다.
+ */
+const fetcher = async (page: number): Promise<{ data: TemplateInfo[]; hasNext: boolean; } | null> => {
+  const response = await apiGetTemplateList(page);
 
-  // useRef를 사용하여 의존성 배열로 인한 무한 루프를 방지합니다.
-  const stateRef = useRef({ isLoading, hasNextPage, page });
-  stateRef.current = { isLoading, hasNextPage, page };
+  if (response) {
+    return { data: response.templates, hasNext: response.hasNext };
+  }
+  return null;
+};
 
-  const fetchTemplates = useCallback(
-    async (isRefresh: boolean) => {
-      const pageToLoad = isRefresh ? 0 : stateRef.current.page;
-      // ref를 통해 최신 상태를 확인합니다.
-      if (
-        stateRef.current.isLoading ||
-        (!isRefresh && !stateRef.current.hasNextPage)
-      ) {
-        return;
-      }
-
-      setIsLoading(true);
-      setError(null);
-      console.log('Calling page ', pageToLoad);
-
-      try {
-        const response = await getTemplateList(pageToLoad);
-
-        if (response) {
-          setProducts((prev) =>
-            isRefresh ? response.templates : [...prev, ...response.templates]
-          );
-          setPage(pageToLoad + 1);
-          setHasNextPage(response.hasNext);
-        } else {
-          setHasNextPage(false);
-        }
-      } catch (e) {
-        setError(e as Error);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [] // 의존성 배열을 비워서 함수가 재생성되지 않도록 합니다.
-  );
-
-  const loadMore = useCallback(() => {
-    // loadMore는 항상 false로 fetchTemplates를 호출합니다.
-    if (stateRef.current.hasNextPage && !stateRef.current.isLoading) {
-      fetchTemplates(false);
-    }
-  }, [fetchTemplates]);
-
-  const refetch = useCallback(() => {
-    fetchTemplates(true);
-  }, [fetchTemplates]);
+/**
+ * 가이드가 생성한 템플릿 목록을 페이지네이션으로 불러오는 커스텀 훅.
+ * `usePaginatedList`를 사용하여 템플릿 목록을 관리합니다.
+ * @returns {{templates: TemplateInfo[], loadMore: Function, refetch: Function, isLoading: boolean, error: Error | null, hasNextPage: boolean}}
+ */
+export const useTemplateList = (): { templates: TemplateInfo[]; loadMore: Function; refetch: Function; isLoading: boolean; error: Error | null; hasNextPage: boolean; } => {
+  const { items, loadMore, refetch, isLoading, error, hasNextPage } =
+    usePaginatedList(fetcher);
 
   useEffect(() => {
-    // 컴포넌트 마운트 시 첫 페이지 로드
-    fetchTemplates(true);
-  }, [fetchTemplates]);
+    refetch();
+  }, [refetch]);
 
-  return { products, isLoading, error, hasNextPage, loadMore, refetch };
+  return {
+    templates: items,
+    loadMore,
+    refetch,
+    isLoading,
+    error,
+    hasNextPage,
+  };
 };

@@ -6,6 +6,7 @@ interface UserData {
   nickname: string;
   role: UserRole;
   profileImageUrl: string;
+  tagIds: number[];
 }
 
 interface UserSetNicknameRequest {
@@ -45,8 +46,14 @@ interface UserSetProfileImageResponse
 type UserGetMeData = UserData;
 interface UserGetMeResponse extends APIResponse<UserGetMeData> {}
 
+interface UserDeleteMeData {}
+interface UserDeleteMeResponse extends APIResponse<UserDeleteMeData> {}
+
 export {
-  UserData, UserGetMeData,
+  UserData,
+  UserDeleteMeData,
+  UserDeleteMeResponse,
+  UserGetMeData,
   UserGetMeResponse,
   UserRole,
   UserSetNicknameData,

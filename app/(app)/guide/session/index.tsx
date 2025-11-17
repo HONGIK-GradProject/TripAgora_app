@@ -1,17 +1,19 @@
+import CustomSafeAreaView from '@/components/CustomSafeAreaView';
+import GuideSessionList from '@/components/guide/session/GuideSessionList';
+import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { useSessionList } from '@/hooks/sessions/useSessionList';
-import { SessionInfo } from '@/types/sessions';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  FlatList,
   RefreshControl,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const GuideTripListScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'ongoing' | 'completed'>(
@@ -20,6 +22,7 @@ const GuideTripListScreen: React.FC = () => {
   const router = useRouter();
 
   const { sessions, isLoading, error, loadMore, refetch } = useSessionList();
+  const { bottom } = useSafeAreaInsets();
 
   // 탭 변경 시 데이터 새로고침
   const handleTabChange = useCallback(
@@ -88,248 +91,181 @@ const GuideTripListScreen: React.FC = () => {
     return null;
   };
 
-  /**
-   * 세션 아이템을 렌더링하는 함수
-   */
-  const renderSessionItem = ({ item: session }: { item: SessionInfo }) => (
-    <TouchableOpacity
-      className='bg-white rounded-2xl mb-2 p-5 shadow-sm border border-gray-100'
-      onPress={() =>
-        router.push(`/guide/session/${session.sessionId.toString()}` as any)
-      }
-    >
-      <View className='flex-row items-center'>
-        <Image
-          source={{ uri: session.firstImageUrl }}
-          style={{ width: 80, height: 80, borderRadius: 12, marginRight: 16 }}
-          contentFit='cover'
-        />
-        <View className='flex-1'>
-          <Text className='text-lg font-semibold text-gray-900 mb-1'>
-            {session.title}
-          </Text>
-          <Text className='text-gray-600 mb-2'>
-            {session.startDate} ~ {session.endDate}
-          </Text>
-          <View className='flex-row items-start'>
-            <MaterialIcons
-              name='person-outline'
-              size={16}
-              color='#6B7280'
-              style={{ marginTop: 2 }}
-            />
-            <Text className='text-gray-600 ml-1 mr-4'>
-              {session.currentParticipants}/{session.maxParticipants}명
-            </Text>
-            <Ionicons
-              name='location-outline'
-              size={16}
-              color='#6B7280'
-              style={{ marginTop: 2 }}
-            />
-            <Text
-              className='text-gray-600 ml-1 flex-1'
-              numberOfLines={2}
-              ellipsizeMode='tail'
-            >
-              {session.regionNames.join(', ')}
-            </Text>
-          </View>
-        </View>
-        <View
-          className={`px-3 py-1 rounded-full ${
-            session.status === 'RECRUITING'
-              ? 'bg-purple-100'
-              : session.status === 'RECRUITMENT_CLOSED'
-              ? 'bg-orange-100'
-              : session.status === 'COMPLETED'
-              ? 'bg-green-100'
-              : 'bg-gray-100'
-          }`}
-        >
-          <Text
-            className={`text-sm ${
-              session.status === 'RECRUITING'
-                ? 'text-purple-700'
-                : session.status === 'RECRUITMENT_CLOSED'
-                ? 'text-orange-700'
-                : session.status === 'COMPLETED'
-                ? 'text-green-700'
-                : 'text-gray-600'
-            }`}
-          >
-            {session.status === 'RECRUITING' && '모집중'}
-            {session.status === 'RECRUITMENT_CLOSED' && '모집마감'}
-            {session.status === 'IN_PROGRESS' && '진행중'}
-            {session.status === 'COMPLETED' && '완료'}
-          </Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-
   return (
-    <View className='flex-1 bg-gray-50'>
-      {/* 헤더 */}
-      <View className='bg-white pt-12 pb-4 px-6'>
-        <Text className='text-3xl font-bold text-gray-900'>나의 여행 목록</Text>
-      </View>
-
-      {/* 현재 진행 중인 여행 섹션 */}
-      {currentSession && (
-        <View className='px-6 py-4'>
-          <Text className='text-xl font-semibold text-gray-800 mb-3'>
-            현재 진행 중인 여행
+    <CustomSafeAreaView>
+      <View className='flex-1 bg-gray-50'>
+        {/* 헤더 */}
+        <View className='bg-white pt-6 pb-4 px-6'>
+          <Text className='text-3xl font-bold text-gray-900'>
+            나의 여행 목록
           </Text>
+        </View>
 
-          <TouchableOpacity
-            className='bg-purple-500 rounded-2xl p-5'
-            onPress={() =>
-              router.push(
-                `/guide/session/${currentSession.sessionId.toString()}` as any
-              )
-            }
-          >
-            <View className='flex-row items-center'>
-              <Image
-                source={{ uri: currentSession.firstImageUrl }}
-                style={{
-                  width: 80,
-                  height: 80,
-                  borderRadius: 12,
-                  marginRight: 16,
-                }}
-                contentFit='cover'
-              />
-              <View className='flex-1'>
-                <View className='flex-row items-center mb-2'>
-                  <View className='bg-white/20 px-3 py-1 rounded-full mr-2'>
-                    <Text className='text-sm font-semibold text-white'>
-                      진행중
+        {/* 현재 진행 중인 여행 섹션 */}
+        {currentSession && (
+          <View className='px-6 py-4'>
+            <Text className='text-xl font-semibold text-gray-800 mb-3'>
+              현재 진행 중인 여행
+            </Text>
+
+            <TouchableOpacity
+              className='bg-purple-500 rounded-2xl p-5'
+              onPress={() => {
+                const roomIdParam = currentSession.roomId
+                  ? `?roomId=${currentSession.roomId}`
+                  : '';
+                router.push(
+                  `/guide/session/${currentSession.sessionId.toString()}/session-room/${roomIdParam}` as any
+                );
+              }}
+            >
+              <View className='flex-row items-center'>
+                <Image
+                  source={{ uri: currentSession.firstImageUrl }}
+                  style={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: 12,
+                    marginRight: 16,
+                  }}
+                  contentFit='cover'
+                />
+                <View className='flex-1'>
+                  <View className='flex-row items-center mb-2'>
+                    <View className='bg-white/20 px-3 py-1 rounded-full mr-2'>
+                      <Text className='text-sm font-semibold text-white'>
+                        진행중
+                      </Text>
+                    </View>
+                  </View>
+                  <Text className='text-xl font-bold text-white mb-1'>
+                    {currentSession.title?.trim() || '제목 없음'}
+                  </Text>
+                  <Text className='text-white/90 mb-2'>
+                    {currentSession.startDate} ~ {currentSession.endDate}
+                  </Text>
+                  <View className='flex-row items-start'>
+                    <MaterialIcons
+                      name='person-outline'
+                      size={16}
+                      color='white'
+                      style={{ marginTop: 2 }}
+                    />
+                    <Text className='text-white/90 ml-1 mr-4'>
+                      {currentSession.currentParticipants}명
+                    </Text>
+                    <Ionicons
+                      name='location-outline'
+                      size={16}
+                      color='white'
+                      style={{ marginTop: 2 }}
+                    />
+                    <Text
+                      className='text-white/90 ml-1 flex-1'
+                      numberOfLines={2}
+                      ellipsizeMode='tail'
+                    >
+                      {(Array.isArray(currentSession.regionIds) &&
+                      currentSession.regionIds.length > 0
+                        ? currentSession.regionIds.map(
+                            (id: number) => REGION_ID_TO_NAME_MAP[id]
+                          )
+                        : (currentSession as any).regionNames || []
+                      )
+                        .filter(Boolean)
+                        .join(', ') || '지역 정보 없음'}
                     </Text>
                   </View>
                 </View>
-                <Text className='text-xl font-bold text-white mb-1'>
-                  {currentSession.title}
-                </Text>
-                <Text className='text-white/90 mb-2'>
-                  {currentSession.startDate} ~ {currentSession.endDate}
-                </Text>
-                <View className='flex-row items-start'>
-                  <MaterialIcons
-                    name='person-outline'
-                    size={16}
-                    color='white'
-                    style={{ marginTop: 2 }}
-                  />
-                  <Text className='text-white/90 ml-1 mr-4'>
-                    {currentSession.currentParticipants}명
-                  </Text>
-                  <Ionicons
-                    name='location-outline'
-                    size={16}
-                    color='white'
-                    style={{ marginTop: 2 }}
-                  />
-                  <Text
-                    className='text-white/90 ml-1 flex-1'
-                    numberOfLines={2}
-                    ellipsizeMode='tail'
-                  >
-                    {currentSession.regionNames.join(', ')}
-                  </Text>
-                </View>
               </View>
-            </View>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {/* 탭 메뉴 */}
-      <View className='bg-white px-6 py-2 border-b border-gray-200'>
-        <View className='flex-row bg-gray-100 rounded-xl p-1'>
-          <TouchableOpacity
-            className={`flex-1 py-3 rounded-lg ${
-              activeTab === 'ongoing' ? 'bg-white' : ''
-            }`}
-            onPress={() => handleTabChange('ongoing')}
-          >
-            <Text
-              className={`text-center font-medium ${
-                activeTab === 'ongoing' ? 'text-gray-900' : 'text-gray-500'
-              }`}
-            >
-              모집 중
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className={`flex-1 py-3 rounded-lg ${
-              activeTab === 'completed' ? 'bg-white' : ''
-            }`}
-            onPress={() => handleTabChange('completed')}
-          >
-            <Text
-              className={`text-center font-medium ${
-                activeTab === 'completed' ? 'text-gray-900' : 'text-gray-500'
-              }`}
-            >
-              완료
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* 여행 목록 */}
-      <View className='flex-1 px-6 py-4'>
-        {isLoading && filteredSessions.length === 0 ? (
-          <View className='flex-1 items-center justify-center py-20'>
-            <ActivityIndicator size='large' color='#8130FF' />
-            <Text className='text-gray-500 text-lg mt-4'>로딩 중...</Text>
+            </TouchableOpacity>
           </View>
-        ) : error ? (
-          <View className='flex-1 items-center justify-center py-20'>
-            <Text className='text-red-500 text-lg'>오류가 발생했습니다.</Text>
-          </View>
-        ) : filteredSessions.length === 0 ? (
-          <View className='flex-1 items-center justify-center py-20'>
-            <Text className='text-gray-500 text-lg'>
-              {activeTab === 'ongoing'
-                ? '모집 중인 여행이 없습니다.'
-                : '완료된 여행이 없습니다.'}
-            </Text>
-          </View>
-        ) : (
-          <FlatList
-            data={filteredSessions}
-            renderItem={renderSessionItem}
-            keyExtractor={(item) => item.sessionId.toString()}
-            showsVerticalScrollIndicator={false}
-            onEndReached={() => {
-              const statuses =
-                activeTab === 'ongoing'
-                  ? ['RECRUITING', 'RECRUITMENT_CLOSED', 'IN_PROGRESS']
-                  : ['COMPLETED', 'IN_PROGRESS'];
-              loadMore(statuses);
-            }}
-            onEndReachedThreshold={0.5}
-            ListFooterComponent={renderFooter}
-            refreshControl={
-              <RefreshControl
-                refreshing={isLoading && filteredSessions.length > 0}
-                onRefresh={() => {
-                  const statuses =
-                    activeTab === 'ongoing'
-                      ? ['RECRUITING', 'RECRUITMENT_CLOSED', 'IN_PROGRESS']
-                      : ['COMPLETED', 'IN_PROGRESS'];
-                  refetch(statuses);
-                }}
-              />
-            }
-            contentContainerStyle={{ paddingBottom: 24 }}
-          />
         )}
+
+        {/* 탭 메뉴 */}
+        <View className='bg-white px-6 py-2 border-b border-gray-200'>
+          <View className='flex-row bg-gray-100 rounded-xl p-1'>
+            <TouchableOpacity
+              className={`flex-1 py-3 rounded-lg ${
+                activeTab === 'ongoing' ? 'bg-white' : ''
+              }`}
+              onPress={() => handleTabChange('ongoing')}
+            >
+              <Text
+                className={`text-center font-medium ${
+                  activeTab === 'ongoing' ? 'text-gray-900' : 'text-gray-500'
+                }`}
+              >
+                모집 중
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              className={`flex-1 py-3 rounded-lg ${
+                activeTab === 'completed' ? 'bg-white' : ''
+              }`}
+              onPress={() => handleTabChange('completed')}
+            >
+              <Text
+                className={`text-center font-medium ${
+                  activeTab === 'completed' ? 'text-gray-900' : 'text-gray-500'
+                }`}
+              >
+                완료
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* 여행 목록 */}
+        <View className='flex-1 px-6 py-4'>
+          {isLoading && filteredSessions.length === 0 ? (
+            <View className='flex-1 items-center justify-center py-20'>
+              <ActivityIndicator size='large' color='#8130FF' />
+              <Text className='text-gray-500 text-lg mt-4'>로딩 중...</Text>
+            </View>
+          ) : error ? (
+            <View className='flex-1 items-center justify-center py-20'>
+              <Text className='text-red-500 text-lg'>오류가 발생했습니다.</Text>
+            </View>
+          ) : filteredSessions.length === 0 ? (
+            <View className='flex-1 items-center justify-center py-20'>
+              <Text className='text-gray-500 text-lg'>
+                {activeTab === 'ongoing'
+                  ? '모집 중인 여행이 없습니다.'
+                  : '완료된 여행이 없습니다.'}
+              </Text>
+            </View>
+          ) : (
+            <GuideSessionList
+              userRole='GUIDE'
+              sessions={filteredSessions}
+              onEndReached={() => {
+                const statuses =
+                  activeTab === 'ongoing'
+                    ? ['RECRUITING', 'RECRUITMENT_CLOSED', 'IN_PROGRESS']
+                    : ['COMPLETED', 'IN_PROGRESS'];
+                loadMore(statuses);
+              }}
+              onEndReachedThreshold={0.5}
+              ListFooterComponent={renderFooter}
+              refreshControl={
+                <RefreshControl
+                  refreshing={isLoading && filteredSessions.length > 0}
+                  onRefresh={() => {
+                    const statuses =
+                      activeTab === 'ongoing'
+                        ? ['RECRUITING', 'RECRUITMENT_CLOSED', 'IN_PROGRESS']
+                        : ['COMPLETED', 'IN_PROGRESS'];
+                    refetch(statuses);
+                  }}
+                />
+              }
+              contentContainerStyle={{ paddingBottom: bottom }}
+            />
+          )}
+        </View>
       </View>
-    </View>
+    </CustomSafeAreaView>
   );
 };
 

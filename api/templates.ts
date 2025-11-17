@@ -1,15 +1,39 @@
-import { TemplateCreateRequest, TemplateCreateResponse, TemplateDeleteRequest, TemplateDeleteResponse, TemplateGetItinerariesRequest, TemplateGetItinerariesResponse, TemplateGetListRequest, TemplateGetListResponse, TemplateGetRequest, TemplateGetResponse, TemplateItineraryWithoutId, TemplateSetContentRequest, TemplateSetContentResponse, TemplateSetImagesRequest, TemplateSetImagesResponse, TemplateSetItinerariesRequest, TemplateSetItinerariesResponse, TemplateSetRegionsRequest, TemplateSetRegionsResponse, TemplateSetTagsRequest, TemplateSetTagsResponse, TemplateSetTitleRequest, TemplateSetTitleResponse, TemplateUpdateRequest, TemplateUpdateResponse } from "@/types/templates";
-import { createFileFromImageUri } from "@/utils/files";
-import apiClient, { apiClientMultipart } from "./client";
+import {
+  TemplateCreateRequest,
+  TemplateCreateResponse,
+  TemplateDeleteRequest,
+  TemplateDeleteResponse,
+  TemplateGetItinerariesRequest,
+  TemplateGetItinerariesResponse,
+  TemplateGetListRequest,
+  TemplateGetListResponse,
+  TemplateGetRequest,
+  TemplateGetResponse,
+  TemplateItineraryWithoutId,
+  TemplateSetContentRequest,
+  TemplateSetContentResponse,
+  TemplateSetImagesRequest,
+  TemplateSetImagesResponse,
+  TemplateSetItinerariesRequest,
+  TemplateSetItinerariesResponse,
+  TemplateSetRegionsRequest,
+  TemplateSetRegionsResponse,
+  TemplateSetTagsRequest,
+  TemplateSetTagsResponse,
+  TemplateSetTitleRequest,
+  TemplateSetTitleResponse,
+  TemplateUpdateRequest,
+  TemplateUpdateResponse,
+} from '@/types/templates';
+import { createFileFromImageUri } from '@/utils/files';
+import apiClient, { apiClientMultipart } from './client';
 
 /**
  * 특정 여행 템플릿의 상세 정보를 조회합니다.
  * @param id - 조회할 템플릿의 ID
  * @returns 템플릿 상세 정보를 담은 Promise
  */
-const getTemplate = async (
-  id: string
-): Promise<TemplateGetResponse> => {
+const getTemplate = async (id: string): Promise<TemplateGetResponse> => {
   const requestData: TemplateGetRequest = {};
   const response = await apiClient.get<TemplateGetResponse>(
     `/templates/${id}`,
@@ -28,8 +52,8 @@ const getTemplateList = async (
 ): Promise<TemplateGetListResponse> => {
   const requestData: TemplateGetListRequest = {
     params: {
-      page
-    }
+      page,
+    },
   };
   const response = await apiClient.get<TemplateGetListResponse>(
     `/templates/my`,
@@ -97,7 +121,7 @@ const updateTemplate = async (
  */
 const setTitle = async (
   id: number,
-  title: string,
+  title: string
 ): Promise<TemplateSetTitleResponse> => {
   const requestData: TemplateSetTitleRequest = { title };
   const response = await apiClient.patch<TemplateSetTitleResponse>(
@@ -115,7 +139,7 @@ const setTitle = async (
  */
 const setContent = async (
   id: number,
-  content: string,
+  content: string
 ): Promise<TemplateSetContentResponse> => {
   const requestData: TemplateSetContentRequest = { content };
   const response = await apiClient.patch<TemplateSetContentResponse>(
@@ -133,11 +157,11 @@ const setContent = async (
  */
 const setImages = async (
   id: number,
-  imageUrls: string[],
+  imageUrls: string[]
 ): Promise<TemplateSetImagesResponse> => {
   const requestData: TemplateSetImagesRequest = new FormData();
-  
-  imageUrls.forEach(url => {
+
+  imageUrls.forEach((url) => {
     const file = createFileFromImageUri(url);
     requestData.append('images', file);
   });
@@ -208,16 +232,14 @@ const setItineraries = async (
  * @param id - 삭제할 템플릿의 ID
  * @returns 삭제 결과를 담은 Promise
  */
-const deleteTemplate = async (
-  id: number
-): Promise<TemplateDeleteResponse> => {
+const deleteTemplate = async (id: number): Promise<TemplateDeleteResponse> => {
   const requestData: TemplateDeleteRequest = {};
   const response = await apiClient.delete<TemplateDeleteResponse>(
     `/templates/${id}`,
     requestData
   );
   return response.data;
-}
+};
 
 /**
  * 여행 템플릿 관련 API 함수들을 모아놓은 객체입니다.
@@ -234,5 +256,5 @@ export const templatesApi = {
   setItineraries,
   getItineraries,
   getTemplateList,
-  deleteTemplate
+  deleteTemplate,
 };

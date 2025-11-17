@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { Tabs, useSegments } from 'expo-router';
 import React from 'react';
 import { Platform, Pressable, View } from 'react-native';
 
@@ -16,10 +16,14 @@ const TravelerTabLayout: React.FC = () => {
   const colorScheme = useColorScheme();
   const { bottom } = useSafeAreaInsets();
 
+  const segment = useSegments();
+  const page = segment[segment.length - 1];
+  const pagesToHide = ['edit-tags'];
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: Colors['light'].tint,
+        tabBarInactiveTintColor: Colors['light'].tabIconDefault,
         headerShown: false,
         tabBarButton: undefined,
         tabBarBackground: TabBarBackground,
@@ -27,10 +31,17 @@ const TravelerTabLayout: React.FC = () => {
           ios: {
             // Use a transparent background on iOS to show the blur effect
             position: 'absolute',
+            borderTopWidth: 0,
+            shadowOpacity: 0,
+            elevation: 0,
           },
           default: {
             height: 70 + bottom,
             paddingTop: 5,
+            display: pagesToHide.includes(page) ? 'none' : 'flex',
+            backgroundColor: Colors['light'].background,
+            borderTopWidth: 0,
+            elevation: 0,
           },
         }),
       }}

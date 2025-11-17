@@ -87,7 +87,6 @@ const AutoComplete: React.FC<AutoCompleteProps> = ({
   }, [debouncedQuery, fetchSuggestions]); // debouncedQuery가 변경될 때만 실행
 
   const handleSearch = () => {
-    if (!query.trim()) return;
     Keyboard.dismiss();
     setSuggestions([]);
     onSearch(query);
@@ -112,39 +111,38 @@ const AutoComplete: React.FC<AutoCompleteProps> = ({
     <View ref={componentRef} onLayout={handleLayout}>
       {children({ query, setQuery: onQueryChange, onSearch: handleSearch })}
 
-      {showSuggestions &&
-        layout && (
-          <View
-            style={[
-              styles.suggestionsContainer,
-              {
-                top: layout.y + layout.height + 6, // SearchBar 하단에 약간의 간격을 두고 위치
-                left: layout.x + 16, // SearchBar의 좌측 여백(16) 고려
-                width: layout.width - 32, // SearchBar의 좌우 여백(16*2) 고려
-              },
-            ]}
-          >
-            <FlatList
-              style={{ flex: 1 }}
-              data={suggestions}
-              keyExtractor={(item, index) => `${item.title}-${index}`}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.suggestionItem}
-                  onPress={() => handleSuggestionPress(item.title)}
-                >
-                  <Text style={styles.suggestionTitle}>{item.title}</Text>
-                  {item.description && (
-                    <Text style={styles.suggestionDescription}>
-                      {item.description}
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              )}
-              keyboardShouldPersistTaps="handled"
-            />
-          </View>
-        )}
+      {showSuggestions && layout && (
+        <View
+          style={[
+            styles.suggestionsContainer,
+            {
+              top: layout.y + layout.height + 6, // SearchBar 하단에 약간의 간격을 두고 위치
+              left: layout.x + 16, // SearchBar의 좌측 여백(16) 고려
+              width: layout.width - 32, // SearchBar의 좌우 여백(16*2) 고려
+            },
+          ]}
+        >
+          <FlatList
+            style={{ flex: 1 }}
+            data={suggestions}
+            keyExtractor={(item, index) => `${item.title}-${index}`}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.suggestionItem}
+                onPress={() => handleSuggestionPress(item.title)}
+              >
+                <Text style={styles.suggestionTitle}>{item.title}</Text>
+                {item.description && (
+                  <Text style={styles.suggestionDescription}>
+                    {item.description}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            )}
+            keyboardShouldPersistTaps='handled'
+          />
+        </View>
+      )}
     </View>
   );
 };

@@ -1,3 +1,5 @@
+import CustomKeyboardAvoidingView from '@/components/CustomKeyboardAvoidingView';
+import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { SessionDetailsProvider } from '@/contexts/SessionDetailsProvider';
 import { useSessionDetails } from '@/hooks/sessions/useSessionDetails';
@@ -94,7 +96,7 @@ const EditRecruitmentContent: React.FC = () => {
     if (!id) {
       Toast.show({
         type: 'error',
-        text1: '세션 ID가 없습니다.',
+        text1: '여행 ID가 없습니다.',
       });
       return;
     }
@@ -123,7 +125,7 @@ const EditRecruitmentContent: React.FC = () => {
         });
       }
     } catch (error) {
-      console.error('세션 수정 에러:', error);
+      console.error('여행 수정 에러:', error);
       Toast.show({
         type: 'error',
         text1: '모집 정보 수정에 실패했습니다.',
@@ -151,7 +153,7 @@ const EditRecruitmentContent: React.FC = () => {
     <View className='flex-1 bg-white'>
       <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
         {/* 상단 네비게이션 */}
-        <View className='pt-12 pb-3 px-5 flex-row items-center justify-between border-b border-[#E9E9E9]'>
+        <View className='pt-6 pb-3 px-5 flex-row items-center justify-between border-b border-[#E9E9E9]'>
           <TouchableOpacity
             className='w-10 h-10 rounded-full bg-white/90 items-center justify-center'
             onPress={() => router.back()}
@@ -171,8 +173,8 @@ const EditRecruitmentContent: React.FC = () => {
 
         {/* 여행 정보 섹션 */}
         <View className='px-5 mb-5'>
-          <View className='flex-row items-center bg-white rounded-lg p-0'>
-            <View className='w-20 h-20 rounded-lg mr-4'>
+          <View className='flex-row items-center bg-white rounded-lg p-4'>
+            <View className='w-20 h-20 rounded-lg mr-6'>
               {hasImageError || !imageUrls || imageUrls.length === 0 ? (
                 <View className='w-20 h-20 rounded-lg bg-gray-300 items-center justify-center'>
                   <Ionicons name='image-outline' size={24} color='#9CA3AF' />
@@ -205,7 +207,7 @@ const EditRecruitmentContent: React.FC = () => {
             <View className='flex-row items-center mb-3'>
               <Ionicons name='people-outline' size={20} color='#8130FF' />
               <Text className='text-base text-black ml-3'>
-                모집 인원: {maxParticipants}명
+                모집 인원 : {maxParticipants}명
               </Text>
             </View>
             <View className='flex-row items-center'>
@@ -221,7 +223,7 @@ const EditRecruitmentContent: React.FC = () => {
         {/* 모집 인원 수정 */}
         <View className='px-5 mb-8'>
           <Text className='text-lg font-bold text-[#8130FF] mb-4'>
-            모집 인원 수정
+            모집 인원 (가이드 제외)
           </Text>
           <View className='flex-row items-center justify-center gap-5'>
             <TouchableOpacity
@@ -249,7 +251,7 @@ const EditRecruitmentContent: React.FC = () => {
         {/* 날짜 수정 */}
         <View className='px-5 mb-[100px]'>
           <Text className='text-lg font-bold text-[#8130FF] mb-4'>
-            시작 날짜 수정하기
+            시작 날짜
           </Text>
           <TouchableOpacity
             className='bg-[#F3ECFF] rounded-2xl border border-[#D9C7FF] mt-5'
@@ -308,15 +310,19 @@ const EditRecruitmentScreen: React.FC = () => {
   if (!id) {
     return (
       <View className='flex-1 bg-white items-center justify-center'>
-        <Text className='text-gray-500 text-lg'>세션 ID가 없습니다.</Text>
+        <Text className='text-gray-500 text-lg'>여행 ID가 없습니다.</Text>
       </View>
     );
   }
 
   return (
-    <SessionDetailsProvider id={id}>
-      <EditRecruitmentContent />
-    </SessionDetailsProvider>
+    <CustomSafeAreaView>
+      <CustomKeyboardAvoidingView>
+        <SessionDetailsProvider id={id}>
+          <EditRecruitmentContent />
+        </SessionDetailsProvider>
+      </CustomKeyboardAvoidingView>
+    </CustomSafeAreaView>
   );
 };
 

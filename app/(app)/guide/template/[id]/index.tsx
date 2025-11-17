@@ -1,3 +1,4 @@
+import CustomKeyboardAvoidingView from '@/components/CustomKeyboardAvoidingView';
 import FullScreenLoader from '@/components/ui/FullScreenLoader';
 import MultipleImagePicker from '@/components/ui/MultipleImagePicker';
 import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
@@ -11,6 +12,7 @@ import {
 } from '@/services/templates';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -18,6 +20,8 @@ import {
   Alert,
   Dimensions,
   Modal,
+  Platform,
+  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -27,6 +31,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 
 /**
  * 특정 여행 템플릿의 모든 상세 정보를 보여주는 화면입니다.
@@ -44,10 +49,6 @@ const ProductDetailScreen: React.FC = () => {
     regionIds,
     tagIds,
     imageUrls,
-    isEditingContent,
-    isEditingTitle,
-    setIsEditingContent,
-    setIsEditingTitle,
     setTitle,
     setContent,
     setImageUrls,
@@ -70,24 +71,39 @@ const ProductDetailScreen: React.FC = () => {
   const [scrollViewRef, setScrollViewRef] = useState<ScrollView | null>(null);
   const screenWidth = Dimensions.get('window').width;
 
+  // Local title and description
+  const [localTitle, setLocalTitle] = useState<string>(title);
+  const [localContent, setLocalContent] = useState<string>(content);
+
   // 초기 로딩과 새로고침을 구분하기 위한 변수
   // 데이터가 전혀 없을 때의 로딩만 전체 화면 로딩으로 간주
   const isInitialLoading = isLoading && Object.keys(itineraries).length === 0;
 
   const availableDays = useMemo(
     () =>
-      Object.keys(itineraries)
-        .map(Number)
+      Object.entries(itineraries)
+        .filter(([, items]) => Array.isArray(items) && items.length > 0)
+        .map(([day]) => Number(day))
         .sort((a, b) => a - b),
     [itineraries]
   );
 
-  const [selectedDay, setSelectedDay] = useState(
-    availableDays.length > 0 ? availableDays[0] : 1
+  const [selectedDay, setSelectedDay] = useState<number | null>(
+    availableDays.length > 0 ? availableDays[0] : null
   );
 
   useEffect(() => {
-    if (availableDays.length > 0 && !availableDays.includes(selectedDay)) {
+    setLocalTitle(title);
+    setLocalContent(content);
+  }, [title, content]);
+
+  useEffect(() => {
+    if (availableDays.length === 0) {
+      setSelectedDay(null);
+      return;
+    }
+
+    if (selectedDay === null || !availableDays.includes(selectedDay)) {
       setSelectedDay(availableDays[0]);
     }
   }, [availableDays, selectedDay]);
@@ -136,6 +152,14 @@ const ProductDetailScreen: React.FC = () => {
     setIsImageViewerVisible(false);
   };
 
+  // 이미지 뷰어 스크롤 이벤트 핸들러
+  const handleImageViewerMomentumScrollEnd = (event: any) => {
+    if (imageUrls.length <= 1) return;
+    const contentOffsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(contentOffsetX / screenWidth);
+    setSelectedImageIndex(index);
+  };
+
   useFocusEffect(
     useCallback(() => {
       // The id check is still useful here before refetching
@@ -147,38 +171,58 @@ const ProductDetailScreen: React.FC = () => {
 
   const _id: number = +id;
 
+  const showErrorToast = (error: unknown) => {
+    const message =
+      error instanceof Error && typeof error.message === 'string'
+        ? error.message
+        : '오류가 발생했습니다.';
+
+    Toast.show({
+      type: 'error',
+      text1: '요청 실패',
+      text2: message,
+    });
+  };
+
   /**
    * 템플릿 제목의 편집 모드를 토글하고, 편집 완료 시 서버에 변경사항을 저장합니다.
    */
   const handleEditTitle = async () => {
-    if (isEditingTitle) {
-      setIsSavingTitle(true);
-      try {
-        await setTemplateTitle(_id, title);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsSavingTitle(false);
-      }
+    if (localTitle === title) {
+      return;
     }
-    setIsEditingTitle((prev) => !prev);
+
+    setIsSavingTitle(true);
+    try {
+      await setTemplateTitle(_id, localTitle);
+      setTitle(localTitle);
+    } catch (error) {
+      console.error(error);
+      showErrorToast(error);
+    } finally {
+      console.log(title, localTitle);
+      setIsSavingTitle(false);
+    }
   };
 
   /**
    * 템플릿 소개 내용의 편집 모드를 토글하고, 편집 완료 시 서버에 변경사항을 저장합니다.
    */
   const handleEditContent = async () => {
-    if (isEditingContent) {
-      setIsSavingContent(true);
-      try {
-        await setTemplateContent(_id, content);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsSavingContent(false);
-      }
+    if (localContent === content) {
+      return;
     }
-    setIsEditingContent((prev) => !prev);
+
+    setIsSavingContent(true);
+    try {
+      await setTemplateContent(_id, localContent);
+      setContent(localContent);
+    } catch (error) {
+      console.error(error);
+      showErrorToast(error);
+    } finally {
+      setIsSavingContent(false);
+    }
   };
 
   // Location and Tags will navigate to separate edit screens; no local edit state needed
@@ -188,8 +232,8 @@ const ProductDetailScreen: React.FC = () => {
    */
   const handleDeleteTemplate = () => {
     Alert.alert(
-      '템플릿 삭제',
-      '정말 템플릿을 삭제하시겠습니까? \n삭제 후엔 복구할 수 없습니다.',
+      '여행 계획 삭제',
+      '정말 여행 계획을 삭제하시겠습니까? \n삭제 후엔 복구할 수 없습니다.',
       [
         {
           text: '취소',
@@ -205,6 +249,7 @@ const ProductDetailScreen: React.FC = () => {
               router.back();
             } catch (error) {
               console.error(error);
+              showErrorToast(error);
             } finally {
               setIsDeleting(false);
             }
@@ -214,310 +259,378 @@ const ProductDetailScreen: React.FC = () => {
     );
   };
 
-  const handleSetImages = async (uris: string[]) => {
-    try {
-      const newImageUrls = await setTemplateImageUrls(_id, uris);
-      if (newImageUrls) {
-        setImageUrls(newImageUrls);
-        console.log(newImageUrls);
+  const handleSetImages = useCallback(
+    async (uris: string[]) => {
+      try {
+        const newImageUrls = await setTemplateImageUrls(_id, uris);
+        if (newImageUrls) {
+          setImageUrls(newImageUrls);
+          console.log(newImageUrls);
+        }
+      } catch (error) {
+        console.error(error);
+        showErrorToast(error);
       }
-    } catch (error) {
-      console.error(error);
+    },
+    [_id, setImageUrls]
+  );
+
+  const handleOpenCoverImageEditor = useCallback(async () => {
+    if (Platform.OS !== 'web') {
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        alert('Sorry, we need camera roll permissions to make this work!');
+        return;
+      }
     }
-  };
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsMultipleSelection: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const uris = result.assets.map((asset) => asset.uri);
+      await handleSetImages(uris);
+    } else {
+      await handleSetImages([]);
+    }
+  }, [handleSetImages]);
 
   if (isInitialLoading) {
     return <FullScreenLoader />;
   }
 
   return (
-    <View style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollViewContent}
-        refreshControl={
-          <RefreshControl refreshing={isLoading} onRefresh={refetch} />
-        }
-      >
-        <View style={styles.coverContainer}>
-          {/* 배경 이미지 캐러셀 */}
-          {imageUrls.length > 0 ? (
-            <>
-              <ScrollView
-                ref={setScrollViewRef}
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                onMomentumScrollEnd={handleMomentumScrollEnd}
-                style={styles.imageScrollView}
-                decelerationRate='fast'
-                bounces={false}
-              >
-                {imageUrls.map((imageUrl, index) => (
-                  <Image
-                    key={index}
-                    source={{ uri: imageUrl }}
-                    style={styles.coverImage}
-                  />
-                ))}
-              </ScrollView>
-
-              {/* 좌우 네비게이션 버튼 */}
-              {imageUrls.length > 1 && (
+    <>
+      <CustomKeyboardAvoidingView>
+        <View style={styles.container}>
+          <ScrollView
+            contentContainerStyle={styles.scrollViewContent}
+            refreshControl={
+              <RefreshControl refreshing={isLoading} onRefresh={refetch} />
+            }
+          >
+            <View style={styles.coverContainer}>
+              {/* 배경 이미지 캐러셀 */}
+              {imageUrls.length > 0 ? (
                 <>
-                  <TouchableOpacity
-                    style={styles.navButton}
-                    onPress={goToPreviousImage}
+                  <ScrollView
+                    ref={setScrollViewRef}
+                    horizontal
+                    pagingEnabled
+                    showsHorizontalScrollIndicator={false}
+                    onMomentumScrollEnd={handleMomentumScrollEnd}
+                    style={styles.imageScrollView}
+                    decelerationRate='fast'
+                    bounces={false}
                   >
-                    <Ionicons name='chevron-back' size={24} color='#fff' />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.navButton, styles.navButtonRight]}
-                    onPress={goToNextImage}
-                  >
-                    <Ionicons name='chevron-forward' size={24} color='#fff' />
-                  </TouchableOpacity>
+                    {imageUrls.map((imageUrl, index) => (
+                      <Pressable
+                        key={index}
+                        style={styles.coverImageWrapper}
+                        onPress={handleOpenCoverImageEditor}
+                      >
+                        <Image
+                          source={{ uri: imageUrl }}
+                          style={styles.coverImage}
+                        />
+                      </Pressable>
+                    ))}
+                  </ScrollView>
+
+                  {/* 좌우 네비게이션 버튼 */}
+                  {imageUrls.length > 1 && (
+                    <>
+                      <TouchableOpacity
+                        style={styles.navButton}
+                        onPress={goToPreviousImage}
+                      >
+                        <Ionicons name='chevron-back' size={24} color='#fff' />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.navButton, styles.navButtonRight]}
+                        onPress={goToNextImage}
+                      >
+                        <Ionicons
+                          name='chevron-forward'
+                          size={24}
+                          color='#fff'
+                        />
+                      </TouchableOpacity>
+                    </>
+                  )}
                 </>
-              )}
-            </>
-          ) : (
-            <View style={styles.placeholderContainer}>
-              <Ionicons name='image-outline' size={48} color='#9CA3AF' />
-              <Text style={styles.placeholderText}>대표 이미지 없음</Text>
-            </View>
-          )}
-
-          {/* 페이지 인디케이터 */}
-          {imageUrls.length > 1 && (
-            <View style={styles.paginationContainer}>
-              {imageUrls.map((_, index) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.paginationDot,
-                    currentImageIndex === index && styles.paginationDotActive,
-                  ]}
-                />
-              ))}
-            </View>
-          )}
-        </View>
-
-        <View style={styles.section}>
-          <View style={styles.rowBetween}>
-            {isEditingTitle ? (
-              <TextInput
-                value={title}
-                onChangeText={setTitle}
-                style={styles.titleInput}
-                placeholder='제목을 입력하세요'
-                editable={!isSavingTitle}
-              />
-            ) : (
-              <Text style={[styles.title, { flex: 1, marginBottom: 0 }]}>
-                {title}
-              </Text>
-            )}
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={handleEditTitle}
-              disabled={isSavingTitle}
-            >
-              {isSavingTitle ? (
-                <ActivityIndicator size='small' />
               ) : (
-                <Text style={styles.editButtonText}>
-                  {isEditingTitle ? '저장' : '편집'}
-                </Text>
-              )}
-            </TouchableOpacity>
-          </View>
-          <View style={styles.metaRow}>
-            <Ionicons name='location-outline' size={20} color='#6B7280' />
-            <Text style={styles.metaText}>
-              {regionIds
-                .map((regionId) => REGION_ID_TO_NAME_MAP[regionId])
-                .join(', ')}
-            </Text>
-          </View>
-          <View style={styles.tagsRow}>
-            {tagIds.map((tagId) => (
-              <View key={tagId} style={styles.tagChip}>
-                <Text style={styles.tagText}>
-                  # {TAG_ID_TO_NAME_MAP[tagId]}
-                </Text>
-              </View>
-            ))}
-          </View>
-          <View style={styles.editActionsRow}>
-            <TouchableOpacity
-              style={styles.editActionButton}
-              onPress={() => router.push(`/guide/template/${id}/edit-regions`)}
-            >
-              <Text style={styles.editActionText}>지역 편집</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.editActionButton}
-              onPress={() => router.push(`/guide/template/${id}/edit-tags`)}
-            >
-              <Text style={styles.editActionText}>태그 편집</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={styles.divider} />
-
-        <View style={styles.section}>
-          <View style={styles.rowBetween}>
-            <Text style={[styles.sectionTitle, { flex: 1, marginBottom: 0 }]}>
-              여행 소개
-            </Text>
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={handleEditContent}
-              disabled={isSavingContent}
-            >
-              {isSavingContent ? (
-                <ActivityIndicator size='small' />
-              ) : (
-                <Text style={styles.editButtonText}>
-                  {isEditingContent ? '완료' : '편집'}
-                </Text>
-              )}
-            </TouchableOpacity>
-          </View>
-          {isEditingContent ? (
-            <TextInput
-              value={content}
-              onChangeText={setContent}
-              style={styles.multilineInput}
-              multiline
-              textAlignVertical='top'
-              placeholder='여행 소개를 입력하세요'
-              editable={!isSavingContent}
-            />
-          ) : (
-            <Text style={styles.description}>{content}</Text>
-          )}
-        </View>
-
-        <View style={styles.divider} />
-
-        {/* 사진 섹션 */}
-        <View style={styles.section}>
-          <View style={styles.rowBetween}>
-            <Text style={[styles.sectionTitle, { flex: 1, marginBottom: 0 }]}>
-              사진
-            </Text>
-            <MultipleImagePicker onImagesSelected={handleSetImages}>
-              <View style={styles.editButton}>
-                <Text style={styles.editButtonText}>편집</Text>
-              </View>
-            </MultipleImagePicker>
-          </View>
-
-          {/* 한 줄에 3개씩 이미지 표시 */}
-          {imageUrls.length > 0 ? (
-            <View style={styles.photoGrid}>
-              {imageUrls.map((imageUrl, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.photoGridItem}
-                  onPress={() => openImageViewer(index)}
+                <Pressable
+                  style={styles.placeholderContainer}
+                  onPress={handleOpenCoverImageEditor}
                 >
-                  <Image
-                    source={{ uri: imageUrl }}
-                    style={styles.photoGridImage}
-                  />
+                  <Ionicons name='image-outline' size={48} color='#9CA3AF' />
+                  <Text style={styles.placeholderText}>대표 이미지 없음</Text>
+                </Pressable>
+              )}
+
+              {/* 페이지 인디케이터 */}
+              {imageUrls.length > 1 && (
+                <View style={styles.paginationContainer}>
+                  {imageUrls.map((_, index) => (
+                    <View
+                      key={index}
+                      style={[
+                        styles.paginationDot,
+                        currentImageIndex === index &&
+                          styles.paginationDotActive,
+                      ]}
+                    />
+                  ))}
+                </View>
+              )}
+            </View>
+
+            <View style={styles.section}>
+              <View style={styles.rowBetween}>
+                <TextInput
+                  value={localTitle}
+                  onChangeText={setLocalTitle}
+                  style={styles.titleInput}
+                  placeholder='제목을 입력하세요'
+                  editable={!isSavingTitle}
+                />
+                <TouchableOpacity
+                  style={[
+                    styles.editButton,
+                    (isSavingTitle || localTitle === title) && { opacity: 0.5 },
+                  ]}
+                  onPress={handleEditTitle}
+                  disabled={isSavingTitle || localTitle === title}
+                >
+                  {isSavingTitle ? (
+                    <ActivityIndicator size='small' />
+                  ) : (
+                    <Text style={styles.editButtonText}>저장</Text>
+                  )}
                 </TouchableOpacity>
-              ))}
-            </View>
-          ) : (
-            <View style={styles.emptyPhotoContainer}>
-              <Ionicons name='images-outline' size={48} color='#9CA3AF' />
-              <Text style={styles.emptyPhotoText}>사진을 추가해보세요</Text>
-            </View>
-          )}
-        </View>
-
-        <View style={styles.divider} />
-
-        <View style={styles.section}>
-          <View style={styles.rowBetween}>
-            <Text style={[styles.sectionTitle, { flex: 1, marginBottom: 0 }]}>
-              일정
-            </Text>
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={() =>
-                router.push(`/guide/template/${id}/edit-itineraries`)
-              }
-            >
-              <Text style={styles.editButtonText}>편집</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.daySelection}
-        >
-          {availableDays.map((dayNumber) => (
-            <TouchableOpacity
-              key={dayNumber}
-              style={[
-                styles.dayButton,
-                selectedDay === dayNumber && styles.dayButtonActive,
-              ]}
-              onPress={() => setSelectedDay(dayNumber)}
-            >
-              <Text
-                style={[
-                  styles.dayButtonText,
-                  selectedDay === dayNumber && styles.dayButtonTextActive,
-                ]}
-              >
-                {dayNumber}일차
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        <View style={[styles.section, { paddingTop: 0 }]}>
-          {(itineraries[selectedDay] || [])
-            .sort((a, b) => a.startTime.localeCompare(b.startTime))
-            .map((item) => (
-              <View key={item.id} style={styles.itineraryItem}>
-                <View style={styles.itineraryTime}>
-                  <Text style={styles.itineraryTimeText}>
-                    {item.startTime.substring(0, 5)}
-                  </Text>
-                </View>
-                <View style={styles.itineraryContent}>
-                  <Text style={styles.itineraryTitle}>{item.title}</Text>
-                  {item.content ? (
-                    <Text style={styles.itineraryDesc}>{item.content}</Text>
-                  ) : null}
-                </View>
               </View>
-            ))}
-        </View>
+              <View style={styles.metaRow}>
+                <Ionicons name='location-outline' size={20} color='#6B7280' />
+                <Text style={styles.metaText}>
+                  {regionIds
+                    .map((regionId) => REGION_ID_TO_NAME_MAP[regionId])
+                    .join(', ')}
+                </Text>
+              </View>
+              <View style={styles.tagsRow}>
+                {tagIds.map((tagId) => (
+                  <View key={tagId} style={styles.tagChip}>
+                    <Text style={styles.tagText}>
+                      # {TAG_ID_TO_NAME_MAP[tagId]}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+              <View style={styles.editActionsRow}>
+                <TouchableOpacity
+                  style={styles.editActionButton}
+                  onPress={() =>
+                    router.push(`/guide/template/${id}/edit-regions`)
+                  }
+                >
+                  <Text style={styles.editActionText}>지역 편집</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.editActionButton}
+                  onPress={() => router.push(`/guide/template/${id}/edit-tags`)}
+                >
+                  <Text style={styles.editActionText}>관심사 편집</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
 
-        <View style={{ height: 40 }} />
-      </ScrollView>
+            <View style={styles.divider} />
 
-      {/* Fixed top action bar */}
-      <View style={[styles.topBar, { top: insets.top + 10 }]}>
-        <TouchableOpacity
-          style={styles.iconButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name='arrow-back' size={24} color='#000' />
-        </TouchableOpacity>
-        {/** 공유 및 찜 버튼은 여행자 쪽에서 세션을 볼 때 있어야 하는 아이콘입니다.
-         * 여행자 쪽에서 보는 양식을 참고하기 위해 추가해 둔 것으로, 이후 여행자 쪽 화면으로 옮길 예정입니다.
-         */}
-        {/* <View style={styles.rightIcons}>
+            <View style={styles.section}>
+              <View style={styles.rowBetween}>
+                <Text
+                  style={[styles.sectionTitle, { flex: 1, marginBottom: 0 }]}
+                >
+                  여행 소개
+                </Text>
+                <TouchableOpacity
+                  style={[
+                    styles.editButton,
+                    (isSavingContent || localContent === content) && {
+                      opacity: 0.5,
+                    },
+                  ]}
+                  onPress={handleEditContent}
+                  disabled={isSavingContent || localContent === content}
+                >
+                  {isSavingContent ? (
+                    <ActivityIndicator size='small' />
+                  ) : (
+                    <Text style={styles.editButtonText}>저장</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+              <TextInput
+                value={localContent}
+                onChangeText={setLocalContent}
+                style={styles.multilineInput}
+                multiline
+                textAlignVertical='top'
+                placeholder='여행 소개를 입력하세요'
+                editable={!isSavingContent}
+              />
+            </View>
+
+            <View style={styles.divider} />
+
+            {/* 사진 섹션 */}
+            <View style={styles.section}>
+              <View style={styles.rowBetween}>
+                <Text
+                  style={[styles.sectionTitle, { flex: 1, marginBottom: 0 }]}
+                >
+                  사진
+                </Text>
+                <MultipleImagePicker onImagesSelected={handleSetImages}>
+                  <View style={styles.editButton}>
+                    <Text style={styles.editButtonText}>편집</Text>
+                  </View>
+                </MultipleImagePicker>
+              </View>
+
+              {/* 한 줄에 3개씩 이미지 표시 */}
+              {imageUrls.length > 0 ? (
+                <View style={styles.photoGrid}>
+                  {imageUrls.map((imageUrl, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={styles.photoGridItem}
+                      onPress={() => openImageViewer(index)}
+                    >
+                      <Image
+                        source={{ uri: imageUrl }}
+                        style={styles.photoGridImage}
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ) : (
+                <View style={styles.emptyPhotoContainer}>
+                  <Ionicons name='images-outline' size={48} color='#9CA3AF' />
+                  <Text style={styles.emptyPhotoText}>사진을 추가해보세요</Text>
+                </View>
+              )}
+            </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.section}>
+              <View style={styles.rowBetween}>
+                <Text
+                  style={[styles.sectionTitle, { flex: 1, marginBottom: 0 }]}
+                >
+                  일정
+                </Text>
+                <TouchableOpacity
+                  style={styles.editButton}
+                  onPress={() =>
+                    router.push(`/guide/template/${id}/edit-itineraries`)
+                  }
+                >
+                  <Text style={styles.editButtonText}>편집</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {availableDays.length === 0 ? (
+              <View style={styles.emptyItineraryContainer}>
+                <Ionicons
+                  name='calendar-clear-outline'
+                  size={40}
+                  color='#9CA3AF'
+                />
+                <Text style={styles.emptyItineraryTitle}>
+                  등록된 일정이 없어요
+                </Text>
+                <Text style={styles.emptyItinerarySubtitle}>
+                  편집 버튼을 눌러 일정을 추가해보세요.
+                </Text>
+              </View>
+            ) : (
+              <>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.daySelection}
+                >
+                  {availableDays.map((dayNumber) => (
+                    <TouchableOpacity
+                      key={dayNumber}
+                      style={[
+                        styles.dayButton,
+                        selectedDay === dayNumber && styles.dayButtonActive,
+                      ]}
+                      onPress={() => setSelectedDay(dayNumber)}
+                    >
+                      <Text
+                        style={[
+                          styles.dayButtonText,
+                          selectedDay === dayNumber &&
+                            styles.dayButtonTextActive,
+                        ]}
+                      >
+                        {dayNumber}일차
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+
+                <View style={[styles.section, { paddingTop: 0 }]}>
+                  {(selectedDay !== null ? itineraries[selectedDay] || [] : [])
+                    .sort((a, b) => a.startTime.localeCompare(b.startTime))
+                    .map((item) => (
+                      <View key={item.id} style={styles.itineraryItem}>
+                        <View style={styles.itineraryTime}>
+                          <Text style={styles.itineraryTimeText}>
+                            {item.startTime.substring(0, 5)}
+                          </Text>
+                        </View>
+                        <View style={styles.itineraryContent}>
+                          <Text style={styles.itineraryTitle}>
+                            {item.location}
+                          </Text>
+                          {item.content ? (
+                            <Text style={styles.itineraryDesc}>
+                              {item.content}
+                            </Text>
+                          ) : null}
+                        </View>
+                      </View>
+                    ))}
+                </View>
+              </>
+            )}
+
+            <View style={{ height: 40 }} />
+          </ScrollView>
+
+          {/* Fixed top action bar */}
+          <View style={[styles.topBar, { top: insets.top + 10 }]}>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => router.back()}
+            >
+              <Ionicons name='arrow-back' size={24} color='#000' />
+            </TouchableOpacity>
+            {/** 공유 및 찜 버튼은 여행자 쪽에서 세션을 볼 때 있어야 하는 아이콘입니다.
+             * 여행자 쪽에서 보는 양식을 참고하기 위해 추가해 둔 것으로, 이후 여행자 쪽 화면으로 옮길 예정입니다.
+             */}
+            {/* <View style={styles.rightIcons>
           <TouchableOpacity style={styles.iconCircle}>
             <Ionicons name='share-outline' size={20} color='#000' />
           </TouchableOpacity>
@@ -526,88 +639,88 @@ const ProductDetailScreen: React.FC = () => {
           </TouchableOpacity>
         </View> */}
 
-        {/* 삭제 버튼 */}
-        <View style={styles.rightIcons}>
-          <TouchableOpacity
-            style={styles.deleteButton}
-            onPress={handleDeleteTemplate}
-            disabled={isDeleting}
+            {/* 삭제 버튼 */}
+            <View style={styles.rightIcons}>
+              <TouchableOpacity
+                style={[styles.deleteButton, isDeleting && { opacity: 0.5 }]}
+                onPress={handleDeleteTemplate}
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <ActivityIndicator size='small' color='#FF3B30' />
+                ) : (
+                  <Ionicons name='trash-outline' size={20} color='#FF3B30' />
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* 이미지 뷰어 모달 */}
+          <Modal
+            visible={isImageViewerVisible}
+            transparent={true}
+            animationType='fade'
+            onRequestClose={closeImageViewer}
           >
-            {isDeleting ? (
-              <ActivityIndicator size='small' color='#FF3B30' />
-            ) : (
-              <Ionicons name='trash-outline' size={20} color='#FF3B30' />
-            )}
-          </TouchableOpacity>
+            <View style={styles.imageViewerContainer}>
+              <TouchableOpacity
+                style={styles.imageViewerCloseButton}
+                onPress={closeImageViewer}
+              >
+                <Ionicons name='close' size={30} color='#fff' />
+              </TouchableOpacity>
+
+              <ScrollView
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                contentOffset={{ x: selectedImageIndex * screenWidth, y: 0 }}
+                style={styles.imageViewerScrollView}
+                onMomentumScrollEnd={handleImageViewerMomentumScrollEnd}
+              >
+                {imageUrls.map((imageUrl, index) => (
+                  <View key={index} style={styles.imageViewerItem}>
+                    <Image
+                      source={{ uri: imageUrl }}
+                      style={styles.imageViewerImage}
+                      contentFit='contain'
+                    />
+                  </View>
+                ))}
+              </ScrollView>
+
+              {/* 이미지 인덱스 표시 */}
+              {imageUrls.length > 1 && (
+                <View style={styles.imageViewerIndicator}>
+                  <Text style={styles.imageViewerIndicatorText}>
+                    {selectedImageIndex + 1} / {imageUrls.length}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </Modal>
         </View>
-      </View>
+      </CustomKeyboardAvoidingView>
 
-      <View style={styles.bottomActionContainer}>
-        {/* <TouchableOpacity style={[styles.ctaButton, styles.secondaryButton]}>
-          <Ionicons
-            name='chatbubble-ellipses-outline'
-            size={20}
-            color='#8130FF'
-          />
-          <Text style={styles.secondaryButtonText}>가이드에게 문의</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.ctaButton, styles.primaryButton]}>
-          <Text style={styles.primaryButtonText}>예약하기</Text> */}
-
+      {/* 하단 버튼 - KeyboardAvoidingView 밖에 배치하여 키보드가 올라와도 고정 */}
+      <View
+        style={[
+          styles.bottomActionContainer,
+          {
+            paddingBottom: insets.bottom > 0 ? Math.min(insets.bottom, 24) : 24,
+          },
+        ]}
+      >
         <TouchableOpacity
           style={[styles.ctaButton, styles.primaryButton]}
           onPress={() => router.push(`/guide/template/${id}/start-recruitment`)}
         >
           <Text style={styles.primaryButtonText}>
-            이 템플릿으로 모집 시작하기
+            이 여행 계획으로 모집 시작하기
           </Text>
         </TouchableOpacity>
       </View>
-
-      {/* 이미지 뷰어 모달 */}
-      <Modal
-        visible={isImageViewerVisible}
-        transparent={true}
-        animationType='fade'
-        onRequestClose={closeImageViewer}
-      >
-        <View style={styles.imageViewerContainer}>
-          <TouchableOpacity
-            style={styles.imageViewerCloseButton}
-            onPress={closeImageViewer}
-          >
-            <Ionicons name='close' size={30} color='#fff' />
-          </TouchableOpacity>
-
-          <ScrollView
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            contentOffset={{ x: selectedImageIndex * screenWidth, y: 0 }}
-            style={styles.imageViewerScrollView}
-          >
-            {imageUrls.map((imageUrl, index) => (
-              <View key={index} style={styles.imageViewerItem}>
-                <Image
-                  source={{ uri: imageUrl }}
-                  style={styles.imageViewerImage}
-                  contentFit='contain'
-                />
-              </View>
-            ))}
-          </ScrollView>
-
-          {/* 이미지 인덱스 표시 */}
-          {imageUrls.length > 1 && (
-            <View style={styles.imageViewerIndicator}>
-              <Text style={styles.imageViewerIndicatorText}>
-                {selectedImageIndex + 1} / {imageUrls.length}
-              </Text>
-            </View>
-          )}
-        </View>
-      </Modal>
-    </View>
+    </>
   );
 };
 
@@ -632,6 +745,10 @@ const styles = StyleSheet.create({
     width: Dimensions.get('window').width,
     height: '100%',
     resizeMode: 'cover',
+  },
+  coverImageWrapper: {
+    width: Dimensions.get('window').width,
+    height: '100%',
   },
   coverPlaceholder: {
     position: 'absolute',
@@ -998,14 +1115,30 @@ const styles = StyleSheet.create({
     color: '#444',
     lineHeight: 20,
   },
+  emptyItineraryContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 48,
+    paddingHorizontal: 24,
+    gap: 8,
+  },
+  emptyItineraryTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4B5563',
+  },
+  emptyItinerarySubtitle: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    textAlign: 'center',
+  },
   bottomActionContainer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
     paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 20,
+    paddingTop: 8,
     backgroundColor: '#fff',
     borderTopWidth: 1,
     borderTopColor: '#E9E9E9',

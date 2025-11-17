@@ -18,11 +18,17 @@ const GuideTabLayout: React.FC = () => {
 
   const segment = useSegments();
   const page = segment[segment.length - 1];
-  const pagesToHide = ['edit-itinerary', 'edit-itineraries', 'edit-regions', 'edit-tags'];
+  const pagesToHide = [
+    'edit-itinerary',
+    'edit-itineraries',
+    'edit-regions',
+    'edit-tags',
+  ];
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: Colors['light'].tint,
+        tabBarInactiveTintColor: Colors['light'].tabIconDefault,
         headerShown: false,
         tabBarButton: undefined,
         tabBarBackground: TabBarBackground,
@@ -30,11 +36,17 @@ const GuideTabLayout: React.FC = () => {
           ios: {
             // Use a transparent background on iOS to show the blur effect
             position: 'absolute',
+            borderTopWidth: 0,
+            shadowOpacity: 0,
+            elevation: 0,
           },
           default: {
             height: 70 + bottom,
             paddingTop: 5,
             display: pagesToHide.includes(page) ? 'none' : 'flex',
+            backgroundColor: Colors['light'].background,
+            borderTopWidth: 0,
+            elevation: 0,
           },
         }),
       }}
@@ -54,7 +66,7 @@ const GuideTabLayout: React.FC = () => {
       <Tabs.Screen
         name='template'
         options={{
-          title: '내 템플릿',
+          title: '여행 계획',
           tabBarIcon: ({ focused, color }) =>
             focused ? (
               <AntDesign name='product' size={26} color={color} />

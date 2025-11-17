@@ -1,78 +1,48 @@
-import { getSessionList } from '@/services/sessions';
+/**
+ * @file useSessionList.ts
+ * @description 가이드가 생성한 세션 목록을 페이지네이션으로 불러오는 커스텀 훅입니다.
+ */
+import { getSessionList as apiGetSessionList } from '@/services/sessions';
 import { SessionInfo } from '@/types/sessions';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
+import { usePaginatedList } from '../usePaginatedList';
 
-export const useSessionList = () => {
-  const [sessions, setSessions] = useState<SessionInfo[]>([]);
-  const [page, setPage] = useState(0);
-  const [hasNextPage, setHasNextPage] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+/**
+ * 세션 목록을 가져오는 fetcher 함수.
+ * @param {number} page - 페이지 번호.
+ * @param {string[]} [statuses] - 조회할 세션 상태 목록.
+ * @returns {Promise<{data: SessionInfo[], hasNext: boolean} | null>} 세션 목록과 다음 페이지 존재 여부를 반환합니다.
+ */
+const fetcher = async (page: number, statuses?: string[]): Promise<{ data: SessionInfo[]; hasNext: boolean; } | null> => {
+  const finalStatuses =
+    statuses || ['RECRUITING', 'RECRUITMENT_CLOSED', 'IN_PROGRESS'];
+  const response = await apiGetSessionList(finalStatuses, page);
 
-  // useRef를 사용하여 의존성 배열로 인한 무한 루프를 방지합니다.
-  const stateRef = useRef({ isLoading, hasNextPage, page });
-  stateRef.current = { isLoading, hasNextPage, page };
+  if (response) {
+    return { data: response.sessions, hasNext: response.hasNext };
+  }
+  return null;
+};
 
-  const fetchSessions = useCallback(
-    async (isRefresh: boolean, statuses?: string[]) => {
-      const pageToLoad = isRefresh ? 0 : stateRef.current.page;
-      // ref를 통해 최신 상태를 확인합니다.
-      if (
-        stateRef.current.isLoading ||
-        (!isRefresh && !stateRef.current.hasNextPage)
-      ) {
-        return;
-      }
-
-      setIsLoading(true);
-      setError(null);
-      console.log('Calling page ', pageToLoad);
-
-      // statuses가 비었을 때 기본 statuses를 설정합니다.
-      if (!statuses) statuses = ['RECRUITING', 'RECRUITMENT_CLOSED', 'IN_PROGRESS'];
-
-      try {
-        const response = await getSessionList(statuses, pageToLoad);
-
-        if (response) {
-          setSessions((prev) =>
-            isRefresh ? response.sessions : [...prev, ...response.sessions]
-          );
-          setPage(pageToLoad + 1);
-          setHasNextPage(response.hasNext);
-        } else {
-          setHasNextPage(false);
-        }
-      } catch (e) {
-        setError(e as Error);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [] // 의존성 배열을 비워서 함수가 재생성되지 않도록 합니다.
-  );
-
-  const loadMore = useCallback(
-    (statuses?: string[]) => {
-      // loadMore는 항상 false로 fetchSessions를 호출합니다.
-      if (stateRef.current.hasNextPage && !stateRef.current.isLoading) {
-        fetchSessions(false, statuses);
-      }
-    },
-    [fetchSessions]
-  );
-
-  const refetch = useCallback(
-    (statuses?: string[]) => {
-      fetchSessions(true, statuses);
-    },
-    [fetchSessions]
-  );
+/**
+ * 가이드가 생성한 세션 목록을 페이지네이션으로 불러오는 커스텀 훅.
+ * `usePaginatedList`를 사용하여 세션 목록을 관리합니다.
+ * @returns {{sessions: SessionInfo[], loadMore: Function, refetch: Function, isLoading: boolean, error: Error | null, hasNextPage: boolean}}
+ */
+export const useSessionList = (): { sessions: SessionInfo[]; loadMore: Function; refetch: Function; isLoading: boolean; error: Error | null; hasNextPage: boolean; } => {
+  const { items, loadMore, refetch, isLoading, error, hasNextPage } =
+    usePaginatedList(fetcher);
 
   useEffect(() => {
-    // 컴포넌트 마운트 시 첫 페이지 로드
-    fetchSessions(true);
-  }, [fetchSessions]);
+    refetch();
+  }, [refetch]);
 
-  return { sessions, isLoading, error, hasNextPage, loadMore, refetch };
+  return {
+    sessions: items,
+    loadMore,
+    refetch,
+    isLoading,
+    error,
+    hasNextPage,
+  };
 };

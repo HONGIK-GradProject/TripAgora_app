@@ -1,9 +1,9 @@
-import { Ionicons } from '@expo/vector-icons';
-import { Link } from 'expo-router';
+import ProductList from '@/components/common/ProductList';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import React from 'react';
-import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatListProps, RefreshControlProps, Text, View } from 'react-native';
 
-// Define the type for a single product
 export interface Product {
   id: string;
   title: string;
@@ -11,83 +11,103 @@ export interface Product {
   participants: string;
   location: string;
   guide: string;
-  rating: string;
+  rating: string | '-';
   imageUrl: string;
 }
 
-interface ProductListProps {
+/**
+ * @interface SessionListProps
+ * @extends Omit<FlatListProps<SessionInfo>, 'data' | 'renderItem' | 'keyExtractor'> `FlatList`의 props를 상속받지만, 내부적으로 처리되는 props는 제외합니다.
+ *
+ * SessionList 컴포넌트에 전달되는 props입니다.
+ */
+interface ProductListProps
+  extends Omit<FlatListProps<Product>, 'data' | 'renderItem' | 'keyExtractor'> {
+  /**
+   * 리스트에 표시될 세션 데이터 배열입니다.
+   */
   products: Product[];
 }
 
-const TravelerProductList: React.FC<ProductListProps> = ({ products }) => {
-  const renderItem = ({ item }: { item: Product }) => (
-    <Link href={{
-      pathname: "/traveler/explore/[id]",
-      params: {
-        id: item.id
-      }
-    }} asChild>
-      <TouchableOpacity
-      style={styles.productItem}
-      >
-        <Image source={{ uri: item.imageUrl }} style={styles.productImage} />
-        <View style={styles.productInfo}>
-          <Text style={styles.productTitle}>{item.title}</Text>
-          <Text style={styles.productDetails}>{item.date}</Text>
-          <Text style={styles.productDetails}>{item.participants}      {item.location}</Text>
-          <Text style={styles.productDetails}>{item.guide}        {item.rating}</Text>
-        </View>
-        <Ionicons name="heart-outline" size={24} color="#999" style={styles.wishIcon} />
-      </TouchableOpacity>
-    </Link>
-    
-  );
+interface TravelerProductListProps {
+  products: Product[];
+  onEndReached?: () => void;
+  refreshControl?: React.ReactElement<RefreshControlProps>;
+  ListFooterComponent?: React.ReactElement | null;
+  detailPath?: string; // 세션 상세 페이지 경로 (기본값: '/traveler/explore/[id]')
+  contentContainerStyle?: any;
+}
+
+const renderTravelerProductItemContent = (item: Product) => {
+  const title = item.title?.trim() || '제목 없음';
+  const location = item.location?.trim() || '지역 정보 없음';
 
   return (
-    <FlatList
-      data={products}
-      renderItem={renderItem}
-      keyExtractor={item => item.id}
-      contentContainerStyle={styles.productList}
-    />
+    <>
+      <Image
+        source={{ uri: item.imageUrl }}
+        style={{ width: 80, height: 80, borderRadius: 12, marginRight: 16 }}
+        contentFit='cover'
+      />
+      <View className='flex-1'>
+        <Text className='text-lg font-semibold text-gray-900 mb-1'>
+          {title}
+        </Text>
+        <Text className='text-gray-600 mb-2'>{item.date}</Text>
+        <View className='flex-row items-start'>
+          <MaterialIcons
+            name='person-outline'
+            size={16}
+            color='#6B7280'
+            style={{ marginTop: 2 }}
+          />
+          <Text className='text-gray-600 ml-1 mr-4'>{item.participants}</Text>
+          <Ionicons
+            name='location-outline'
+            size={16}
+            color='#6B7280'
+            style={{ marginTop: 2 }}
+          />
+          <Text
+            className='text-gray-600 ml-1 mr-4'
+            numberOfLines={1}
+            ellipsizeMode='tail'
+          >
+            {location}
+          </Text>
+        </View>
+        {item.rating !== '-' && (
+          <View className='flex-row items-center mt-1'>
+            <Ionicons name='star' size={14} color='#FBBF24' />
+            <Text className='text-gray-600 text-sm ml-1'>{item.rating}</Text>
+          </View>
+        )}
+      </View>
+    </>
   );
 };
 
-const styles = StyleSheet.create({
-  productList: {
-    // 상품 리스트 스타일
-  },
-  productItem: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderColor: '#949494',
-    borderWidth: 1,
-    borderRadius: 25,
-    padding: 15,
-    marginBottom: 15,
-    alignItems: 'center',
-  },
-  productImage: {
-    width: 90,
-    height: 90,
-    borderRadius: 15,
-    marginRight: 15,
-  },
-  productInfo: {
-    flex: 1,
-  },
-  productTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  productDetails: {
-    fontSize: 20,
-    color: '#000',
-  },
-  wishIcon: {
-    marginLeft: 10,
-  },
-});
+const TravelerProductList: React.FC<TravelerProductListProps> = ({
+  products,
+  detailPath = '/traveler/explore/[id]',
+  ...rest
+}) => {
+  const getTravelerProductHref = (item: Product) => ({
+    pathname: detailPath as any,
+    params: {
+      id: item.id,
+    },
+  });
+
+  return (
+    <ProductList<Product>
+      data={products}
+      renderItemContent={renderTravelerProductItemContent}
+      getHref={getTravelerProductHref}
+      keyExtractor={(item) => item.id}
+      {...rest}
+    />
+  );
+};
 
 export default TravelerProductList;
