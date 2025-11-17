@@ -45,7 +45,7 @@ const ChatContent: React.FC<{ roomId: number }> = ({ roomId }) => {
   );
 };
 
-const GuideChatScreen: React.FC = () => {
+const TravelerChatScreen: React.FC = () => {
   const { id, roomId } = useLocalSearchParams<{
     id: string;
     roomId?: string;
@@ -106,4 +106,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default GuideChatScreen;
+export default TravelerChatScreen;

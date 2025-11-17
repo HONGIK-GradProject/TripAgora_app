@@ -10,7 +10,7 @@ import type {
   ClusterMarkerProp,
   MarkerSymbol,
 } from '@mj-studio/react-native-naver-map';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, useSegments } from 'expo-router';
 import React, {
   useCallback,
   useEffect,
@@ -43,6 +43,7 @@ const SessionRoomContent: React.FC<SessionRoomContentProps> = ({
   userType,
 }) => {
   const router = useRouter();
+  const segments = useSegments();
   const { id, roomId: roomIdParam } = useLocalSearchParams<{
     id: string;
     roomId?: string;
@@ -295,7 +296,25 @@ const SessionRoomContent: React.FC<SessionRoomContentProps> = ({
   };
 
   const handleCheckLocations = () => {
-    console.log('일행 확인하기');
+    if (!roomId || !id) {
+      Alert.alert('오류', '위치 정보를 불러올 수 없습니다.');
+      return;
+    }
+
+    if (isGuide) {
+      router.push(
+        `/guide/session/${id}/view-location?roomId=${roomId.toString()}` as any
+      );
+    } else {
+      // 여행자의 경우 현재 경로에 따라 trip 또는 explore 결정
+      const pathSegments = segments.join('/');
+      const isTripPath = pathSegments.includes('/trip/');
+      const basePath = isTripPath ? 'trip' : 'explore';
+
+      router.push(
+        `/traveler/${basePath}/${id}/view-location?roomId=${roomId.toString()}` as any
+      );
+    }
   };
 
   const handleAnnounce = () => {
@@ -315,6 +334,28 @@ const SessionRoomContent: React.FC<SessionRoomContentProps> = ({
     router.push(
       `/traveler/trip/${id}/notice?roomId=${roomId.toString()}` as any
     );
+  };
+
+  const handleChat = () => {
+    if (!roomId || !id) {
+      Alert.alert('오류', '채팅방 정보를 불러올 수 없습니다.');
+      return;
+    }
+
+    if (isGuide) {
+      router.push(
+        `/guide/session/${id}/chat?roomId=${roomId.toString()}` as any
+      );
+    } else {
+      // 여행자의 경우 현재 경로에 따라 trip 또는 explore 결정
+      const pathSegments = segments.join('/');
+      const isTripPath = pathSegments.includes('/trip/');
+      const basePath = isTripPath ? 'trip' : 'explore';
+
+      router.push(
+        `/traveler/${basePath}/${id}/chat?roomId=${roomId.toString()}` as any
+      );
+    }
   };
 
   const handleSendSOS = () => {
@@ -369,6 +410,14 @@ const SessionRoomContent: React.FC<SessionRoomContentProps> = ({
           variant: 'primary' as const,
         },
         {
+          title: '채팅하기',
+          subtitle: '일행과 채팅을 나눠보세요',
+          icon: 'chatbubbles' as const,
+          disabled: !roomId,
+          onPress: handleChat,
+          variant: 'primary' as const,
+        },
+        {
           title: '공지하기',
           subtitle: '일행에게 공지를 발송할 수 있어요',
           icon: 'notifications' as const,
@@ -384,6 +433,14 @@ const SessionRoomContent: React.FC<SessionRoomContentProps> = ({
           icon: 'location' as const,
           disabled: false,
           onPress: handleCheckLocations,
+          variant: 'primary' as const,
+        },
+        {
+          title: '채팅하기',
+          subtitle: '일행과 채팅을 나눠보세요',
+          icon: 'chatbubbles' as const,
+          disabled: !roomId,
+          onPress: handleChat,
           variant: 'primary' as const,
         },
         {
