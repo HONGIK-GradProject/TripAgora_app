@@ -1,4 +1,6 @@
 import { sessionsApi } from '@/api/sessions';
+import { TemplateItineraryWithoutId } from '@/types/templates';
+import { isAxiosError } from 'axios';
 
 /**
  * 새로운 여행 세션을 생성하고 생성된 세션의 ID를 반환합니다.
@@ -221,6 +223,40 @@ export const getSessionItineraries = async (sessionId: number) => {
     throw new Error('여행 일정 조회 에러');
   } catch (error) {
     console.error(error);
+  }
+};
+
+/**
+ * 특정 세션의 상세 일정 전체를 설정(덮어쓰기)합니다.
+ * @param sessionId - 일정을 수정할 세션의 ID
+ * @param itineraries - 새로운 상세 일정 배열
+ * @returns 성공 시 { success: true }, 실패 시 { success: false, error: string }
+ */
+export const setSessionItineraries = async (
+  sessionId: number,
+  itineraries: TemplateItineraryWithoutId[]
+) => {
+  try {
+    const response = await sessionsApi.setSessionItineraries(
+      sessionId,
+      itineraries
+    );
+
+    if (response && response.code === 200) {
+      return { success: true };
+    }
+
+    throw new Error('세션 일정 수정 에러');
+  } catch (error) {
+    if (isAxiosError(error)) {
+      console.error(error.response?.data);
+      const errorMessage =
+        error.response?.data?.message || '일정 저장 중 오류가 발생했습니다.';
+      return { success: false, error: errorMessage };
+    } else {
+      console.error(error);
+      return { success: false, error: '일정 저장 중 오류가 발생했습니다.' };
+    }
   }
 };
 

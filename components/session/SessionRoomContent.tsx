@@ -326,7 +326,8 @@ const SessionRoomContent: React.FC<SessionRoomContentProps> = ({
   };
 
   const handleEditItinerary = () => {
-    console.log('일정 편집');
+    if (!id) return;
+    router.push(`/guide/session/${id}/edit-itineraries` as any);
   };
 
   const handleNoticeList = () => {
