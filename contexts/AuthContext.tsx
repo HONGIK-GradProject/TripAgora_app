@@ -261,6 +261,9 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     loadInitialAuth();
   }, [processAndSetAuth, signOutHandler]);
 
+  /**
+   * TODO: ExpoPushToken을 동기화하는 API가 완성되면 해당 로직을 다시 작성해야 합니다.
+   */
   useEffect(() => {
     console.log('ExpoPushToken:', expoPushToken);
     if (expoPushError) {
