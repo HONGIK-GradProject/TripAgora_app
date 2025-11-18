@@ -1,10 +1,7 @@
 import { isSameDay, parseISO } from 'date-fns';
 import React from 'react';
-import {
-  FlatList, Text, View
-} from 'react-native';
+import { FlatList, Text, View } from 'react-native';
 import { ChatMessage } from '../../types/chat';
-import CustomKeyboardAvoidingView from '../CustomKeyboardAvoidingView';
 import MessageInputBar from './MessageInputBar';
 import MessageItem from './MessageItem';
 
@@ -35,9 +32,10 @@ const ChatView: React.FC<ChatViewProps> = ({
   onLoadEarlier,
 }) => {
   const [inputText, setInputText] = React.useState('');
-  
+
   const currentUser = propUser || { _id: 'my_user_id' };
-  const displayMessages = propMessages && propMessages.length > 0 ? propMessages : [];
+  const displayMessages =
+    propMessages && propMessages.length > 0 ? propMessages : [];
 
   const handleSend = () => {
     if (inputText.trim().length > 0) {
@@ -52,7 +50,10 @@ const ChatView: React.FC<ChatViewProps> = ({
       const nextMessage = displayMessages[index + 1];
       processedMessages.push(message);
 
-      if (!nextMessage || !isSameDay(parseISO(message.sentAt), parseISO(nextMessage.sentAt))) {
+      if (
+        !nextMessage ||
+        !isSameDay(parseISO(message.sentAt), parseISO(nextMessage.sentAt))
+      ) {
         processedMessages.push({
           type: 'date',
           date: new Date(message.sentAt).toLocaleDateString('ko-KR', {
@@ -66,7 +67,7 @@ const ChatView: React.FC<ChatViewProps> = ({
   }
 
   return (
-    <CustomKeyboardAvoidingView>
+    <View style={{ flex: 1 }}>
       <FlatList
         data={processedMessages}
         renderItem={({ item }) => {
@@ -74,7 +75,12 @@ const ChatView: React.FC<ChatViewProps> = ({
             return <DateSeparator date={item.date} />;
           } else {
             const messageItem = item as ChatMessage;
-            return <MessageItem item={messageItem} isMyMessage={messageItem.senderId === currentUser._id} />;
+            return (
+              <MessageItem
+                item={messageItem}
+                isMyMessage={messageItem.senderId === currentUser._id}
+              />
+            );
           }
         }}
         keyExtractor={(item) => ('type' in item ? item.date : item.sentAt)}
@@ -89,7 +95,7 @@ const ChatView: React.FC<ChatViewProps> = ({
         onChangeText={setInputText}
         onSend={handleSend}
       />
-    </CustomKeyboardAvoidingView>
+    </View>
   );
 };
 
