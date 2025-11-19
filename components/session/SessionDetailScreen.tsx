@@ -1208,7 +1208,10 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
               <TouchableOpacity
                 style={[styles.ctaButton, styles.primaryButton]}
                 onPress={() => {
-                  router.push('/ReviewWriteScreen' as any);
+                  router.push({
+                    pathname: '/ReviewWriteScreen',
+                    params: { sessionId: id },
+                  } as any);
                 }}
               >
                 <Text style={styles.primaryButtonText}>리뷰 작성</Text>
