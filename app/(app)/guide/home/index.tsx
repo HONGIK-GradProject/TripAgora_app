@@ -1,15 +1,59 @@
 import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import { useAuth } from '@/hooks/useAuth';
+import { useSessionList } from '@/hooks/sessions/useSessionList';
+import { SessionInfo } from '@/types/sessions';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import React from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import React, { useMemo } from 'react';
+import {
+  ActivityIndicator,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const GuideHomeScreen: React.FC = () => {
   const { user } = useAuth();
   const { bottom } = useSafeAreaInsets();
+  const { sessions, isLoading } = useSessionList();
+
+  // 날짜를 표시용 형식으로 변환 (예: 2024.01.15)
+  const formatDateForDisplay = (dateString: string): string => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}.${month}.${day}`;
+  };
+
+  // 모집 중인 세션만 필터링하고, 모집 인원이 가득 찬 순서대로 정렬한 후 최대 4개만 선택
+  const displayedSessions = useMemo(() => {
+    // 모집 중인 세션만 필터링 (RECRUITING, RECRUITMENT_CLOSED 상태)
+    const recruitingSessions = sessions.filter((session) =>
+      ['RECRUITING', 'RECRUITMENT_CLOSED'].includes(session.status)
+    );
+
+    // 모집 인원이 가득 찬 순서대로 정렬
+    const sortedSessions = [...recruitingSessions].sort((a, b) => {
+      const aIsFull = a.currentParticipants === a.maxParticipants;
+      const bIsFull = b.currentParticipants === b.maxParticipants;
+
+      // 가득 찬 세션이 먼저 오도록
+      if (aIsFull && !bIsFull) return -1;
+      if (!aIsFull && bIsFull) return 1;
+
+      // 둘 다 가득 찬 경우 또는 둘 다 가득 차지 않은 경우, 참여율이 높은 순서대로
+      const aRatio = a.currentParticipants / a.maxParticipants;
+      const bRatio = b.currentParticipants / b.maxParticipants;
+      return bRatio - aRatio;
+    });
+
+    // 최대 4개만 반환
+    return sortedSessions.slice(0, 4);
+  }, [sessions]);
   return (
     <CustomSafeAreaView>
       <View className='bg-gray-50'>
@@ -67,49 +111,85 @@ const GuideHomeScreen: React.FC = () => {
               <Text className='text-3xl font-bold text-gray-900'>
                 내 여행 모집
               </Text>
-              <TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => router.push('/guide/session')}
+              >
                 <Text className='text-purple-600 font-semibold'>더보기</Text>
               </TouchableOpacity>
             </View>
 
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerClassName='pr-2'
-            >
-              {/* 가이드 상품 리스트 */}
-              {[1, 2, 3, 4].map((item) => (
-                <TouchableOpacity
-                  key={item}
-                  className='bg-white rounded-2xl mr-3 overflow-hidden shadow-sm border border-gray-100'
-                  style={{ width: 180 }}
-                >
-                  <Image
-                    source={{ uri: 'https://via.placeholder.com/200' }}
-                    style={{ width: '100%', height: 120 }}
-                    contentFit='cover'
-                  />
-                  <View className='p-4'>
-                    <Text
-                      className='text-lg font-semibold text-gray-900 mb-2'
-                      numberOfLines={2}
-                    >
-                      홍대 1박2일 모임
-                    </Text>
-                    <View className='flex-row items-center'>
-                      <Ionicons
-                        name='calendar-outline'
-                        size={14}
-                        color='#6B7280'
-                      />
-                      <Text className='text-sm text-gray-600 ml-1'>
-                        2025.11.15
-                      </Text>
+            {isLoading ? (
+              <View className='py-8 items-center'>
+                <ActivityIndicator size='large' color='#8130FF' />
+              </View>
+            ) : displayedSessions.length > 0 ? (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerClassName='pr-2'
+              >
+                {/* 가이드 상품 리스트 */}
+                {displayedSessions.map((session) => (
+                  <TouchableOpacity
+                    key={session.sessionId}
+                    className='bg-white rounded-2xl mr-3 overflow-hidden shadow-sm border border-gray-100'
+                    style={{ width: 180 }}
+                    onPress={() =>
+                      router.push(
+                        `/guide/session/${session.sessionId}` as any
+                      )
+                    }
+                  >
+                    <View className='bg-gray-200' style={{ width: '100%', height: 120 }}>
+                      {session.firstImageUrl ? (
+                        <Image
+                          source={{ uri: session.firstImageUrl }}
+                          style={{ width: '100%', height: 120 }}
+                          contentFit='cover'
+                        />
+                      ) : (
+                        <View className='w-full h-full items-center justify-center'>
+                          <Ionicons name='image-outline' size={40} color='#9CA3AF' />
+                        </View>
+                      )}
                     </View>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+                    <View className='p-4'>
+                      <Text
+                        className='text-lg font-semibold text-gray-900 mb-2'
+                        numberOfLines={2}
+                      >
+                        {session.title || '제목 없음'}
+                      </Text>
+                      <View className='flex-row items-center justify-between'>
+                        <View className='flex-row items-center'>
+                          <Ionicons
+                            name='calendar-outline'
+                            size={14}
+                            color='#6B7280'
+                          />
+                          <Text className='text-sm text-gray-600 ml-1'>
+                            {formatDateForDisplay(session.startDate)}
+                          </Text>
+                        </View>
+                        {session.currentParticipants === session.maxParticipants && (
+                          <View className='px-2 py-0.5 rounded-full bg-purple-100'>
+                            <Text className='text-xs font-semibold text-purple-600'>
+                              모집완료
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            ) : (
+              <View className='py-8 items-center'>
+                <Text className='text-gray-500 text-base'>
+                  모집 중인 여행이 없습니다
+                </Text>
+              </View>
+            )}
           </View>
 
           {/* 이달의 가이드 순위 섹션 */}
