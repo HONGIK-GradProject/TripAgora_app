@@ -1,12 +1,15 @@
 import APIResponse from "./apiResponse";
+import { UserRole } from "./users";
 
 interface ChatMessage {
+  chatMessageId: number;
   roomId: number;
   senderId: number;
   senderNickname: string;
   senderImageUrl: string;
   content: string;
   sentAt: string;
+  senderRole: UserRole;
 }
 
 interface ChatRequest {

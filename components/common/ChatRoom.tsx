@@ -60,7 +60,13 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId }) => {
     }
   };
 
-  const allMessages = [...newMessages, ...paginatedMessages];
+  const paginatedMessageIds = new Set(
+    paginatedMessages.map((msg) => msg.chatMessageId)
+  );
+  const uniqueNewMessages = newMessages.filter(
+    (msg) => !paginatedMessageIds.has(msg.chatMessageId)
+  );
+  const allMessages = [...uniqueNewMessages, ...paginatedMessages];
 
   return (
     <ChatView

@@ -83,7 +83,7 @@ const ChatView: React.FC<ChatViewProps> = ({
             );
           }
         }}
-        keyExtractor={(item) => ('type' in item ? item.date : item.sentAt)}
+        keyExtractor={(item) => ('type' in item ? item.date : item.chatMessageId.toString())}
         className='flex-1 px-4 pt-4'
         inverted
         contentContainerStyle={{ paddingBottom: 10 }}
