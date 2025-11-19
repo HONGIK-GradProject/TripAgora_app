@@ -338,7 +338,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
             Toast.show({
               type: 'error',
               text1: '참여 신청 실패',
-              text2: '본인의 여행 또는 이미 신청한 여행입니다',
+              text2: '다른 날짜에 참여 중인 여행이 있는지 확인해 주세요.',
             });
           } finally {
             setIsSubmitting(false);
