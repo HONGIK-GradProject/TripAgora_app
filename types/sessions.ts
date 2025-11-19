@@ -1,5 +1,5 @@
 import APIResponse from './apiResponse';
-import { TemplateItinerary } from './templates';
+import { TemplateItinerary, TemplateItineraryWithoutId } from './templates';
 
 /**
  * 세션 생성 요청 데이터
@@ -221,6 +221,18 @@ interface SessionGetItinerariesResponse
 }
 
 /**
+ * 세션 일정 전체를 덮어쓰기 방식으로 수정할 때 사용하는 요청 데이터
+ */
+interface SessionSetItinerariesRequest {
+  itineraries: TemplateItineraryWithoutId[];
+}
+
+interface SessionSetItinerariesData {}
+
+interface SessionSetItinerariesResponse
+  extends APIResponse<SessionSetItinerariesData> {}
+
+/**
  * 세션 모집 마감 요청 데이터 (빈 데이터)
  */
 interface SessionCloseRequest {
@@ -292,6 +304,9 @@ export {
   SessionGetItinerariesData,
   SessionGetItinerariesRequest,
   SessionGetItinerariesResponse,
+  SessionSetItinerariesData,
+  SessionSetItinerariesRequest,
+  SessionSetItinerariesResponse,
   SessionGetListData,
   SessionGetListRequest,
   SessionGetListResponse,

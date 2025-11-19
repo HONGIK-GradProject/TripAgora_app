@@ -19,6 +19,8 @@ import {
   SessionParticipationResponse,
   SessionSearchRequest,
   SessionSearchResponse,
+  SessionSetItinerariesRequest,
+  SessionSetItinerariesResponse,
   SessionStatus,
   SessionUpdateRequest,
   SessionUpdateResponse,
@@ -225,6 +227,26 @@ const getSessionItineraries = async (
 };
 
 /**
+ * 특정 세션의 상세 일정 전체를 덮어쓰기 방식으로 수정합니다.
+ * @param sessionId - 수정할 세션의 ID
+ * @param itineraries - 새로운 상세 일정 목록
+ * @returns 수정 결과를 담은 Promise
+ */
+const setSessionItineraries = async (
+  sessionId: number,
+  itineraries: SessionSetItinerariesRequest['itineraries']
+): Promise<SessionSetItinerariesResponse> => {
+  const requestData: SessionSetItinerariesRequest = {
+    itineraries,
+  };
+  const response = await apiClient.put<SessionSetItinerariesResponse>(
+    `/sessions/${sessionId}/itineraries`,
+    requestData
+  );
+  return response.data;
+};
+
+/**
  * 특정 세션의 모집을 마감합니다.
  * @param sessionId - 모집을 마감할 세션의 ID
  * @returns 모집 마감 결과를 담은 Promise
@@ -287,6 +309,7 @@ export const sessionsApi = {
   searchSessions,
   getSession,
   getSessionItineraries,
+  setSessionItineraries,
   closeSession,
   createParticipation,
   cancelParticipation,

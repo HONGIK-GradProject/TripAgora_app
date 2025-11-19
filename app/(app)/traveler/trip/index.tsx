@@ -289,7 +289,8 @@ const TravelerTripListScreen: React.FC = () => {
             </Text>
 
             <TouchableOpacity
-              className='bg-blue-500 rounded-2xl p-5'
+              className='rounded-2xl p-5 border-2'
+              style={{ borderColor: '#3B82F6', backgroundColor: '#FFFFFF' }}
               onPress={() => {
                 // 진행 중인 여행은 세션 룸으로 이동
                 const roomIdParam = currentSession.roomId
@@ -312,37 +313,54 @@ const TravelerTripListScreen: React.FC = () => {
                   contentFit='cover'
                 />
                 <View className='flex-1'>
-                  <View className='flex-row items-center mb-2'>
-                    <View className='bg-white/20 px-3 py-1 rounded-full mr-2'>
-                      <Text className='text-sm font-semibold text-white'>
+                  <View className='flex-row items-center mb-2 gap-2'>
+                    <View
+                      className='px-3 py-1 rounded-full'
+                      style={{ backgroundColor: '#DBEAFE' }}
+                    >
+                      <Text
+                        className='text-sm font-semibold'
+                        style={{ color: '#3B82F6' }}
+                      >
                         진행중
                       </Text>
                     </View>
+                    <View
+                      className='px-3 py-1 rounded-full'
+                      style={{ backgroundColor: '#EFF6FF' }}
+                    >
+                      <Text
+                        className='text-xs font-medium'
+                        style={{ color: '#2563EB' }}
+                      >
+                        여행자
+                      </Text>
+                    </View>
                   </View>
-                  <Text className='text-xl font-bold text-white mb-1'>
+                  <Text className='text-xl font-bold text-gray-900 mb-1'>
                     {currentSession.title?.trim() || '제목 없음'}
                   </Text>
-                  <Text className='text-white/90 mb-2'>
+                  <Text className='text-gray-600 mb-2'>
                     {currentSession.startDate} ~ {currentSession.endDate}
                   </Text>
                   <View className='flex-row items-start'>
                     <MaterialIcons
                       name='person-outline'
                       size={16}
-                      color='white'
+                      color='#3B82F6'
                       style={{ marginTop: 2 }}
                     />
-                    <Text className='text-white/90 ml-1 mr-4'>
+                    <Text className='text-gray-700 ml-1 mr-4'>
                       {currentSession.currentParticipants}명
                     </Text>
                     <Ionicons
                       name='location-outline'
                       size={16}
-                      color='white'
+                      color='#3B82F6'
                       style={{ marginTop: 2 }}
                     />
                     <Text
-                      className='text-white/90 ml-1 flex-1'
+                      className='text-gray-700 ml-1 flex-1'
                       numberOfLines={2}
                       ellipsizeMode='tail'
                     >

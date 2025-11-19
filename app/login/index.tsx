@@ -1,4 +1,5 @@
 import CustomSafeAreaView from '@/components/CustomSafeAreaView';
+import TripAgoraLogo from '@/components/common/TripAgoraLogo';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'expo-router';
 import React from 'react';
@@ -22,10 +23,10 @@ const LoginScreen: React.FC = () => {
 
   return (
     <CustomSafeAreaView>
-      <View className='flex-1 items-center justify-center bg-white'>
+      <View className='flex-1 items-center justify-center bg-[#F0FAFF]'>
         {/* 로고 */}
-        <View className='w-[133px] h-[133px] rounded-full bg-[#D9D9D9] items-center justify-center mb-16'>
-          <Text className='text-2xl text-black font-bold'>(로고)</Text>
+        <View className='items-center mb-16'>
+          <TripAgoraLogo size={350} />
         </View>
 
         {/* 로그인 버튼 */}
@@ -33,7 +34,9 @@ const LoginScreen: React.FC = () => {
           className='w-4/5 h-12 bg-[#FFDE03] rounded-md items-center justify-center mt-6'
           onPress={handleSignIn}
         >
-          <Text className='text-xl text-white font-bold'>로그인</Text>
+          <Text className='text-xl text-[#000000] font-bold'>
+            카카오로 시작하기
+          </Text>
         </TouchableOpacity>
       </View>
     </CustomSafeAreaView>

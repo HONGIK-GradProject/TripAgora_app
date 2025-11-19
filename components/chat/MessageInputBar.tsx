@@ -14,7 +14,7 @@ const MessageInputBar: React.FC<MessageInputBarProps> = ({
   onSend,
 }) => {
   return (
-    <View className='flex-row items-center px-2 pt-2 bg-white border-t border-gray-200'>
+    <View className='flex-row items-center px-2 pt-2 pb-2 bg-white border-t border-gray-200'>
       <TextInput
         value={value}
         onChangeText={onChangeText}

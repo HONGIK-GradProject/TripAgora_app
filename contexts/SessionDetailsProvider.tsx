@@ -14,6 +14,17 @@ import React, {
  * @param id - 상세 정보를 조회할 세션의 ID
  * @returns 세션 상세 정보 상태와 관리 함수들을 담은 객체
  */
+const groupSessionItineraries = (items: SessionItinerary[]) => {
+  const grouped: { [key: number]: SessionItinerary[] } = {};
+  items.forEach((itinerary) => {
+    if (!grouped[itinerary.day]) {
+      grouped[itinerary.day] = [];
+    }
+    grouped[itinerary.day].push(itinerary);
+  });
+  return grouped;
+};
+
 const useSessionDetailsLogic = (id: string) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [templateId, setTemplateId] = useState<number>(0);
@@ -47,9 +58,14 @@ const useSessionDetailsLogic = (id: string) => {
     if (!id) return;
     setIsLoading(true);
     try {
+      const numericId = Number(id);
+      if (Number.isNaN(numericId)) {
+        throw new Error('세션 ID가 올바르지 않습니다.');
+      }
+
       const [sessionResponse, itinerariesResponse] = await Promise.all([
-        getSession(+id),
-        getSessionItineraries(+id),
+        getSession(numericId),
+        getSessionItineraries(numericId),
       ]);
 
       if (sessionResponse) {
@@ -74,15 +90,9 @@ const useSessionDetailsLogic = (id: string) => {
       }
 
       if (itinerariesResponse) {
-        // 일정을 날짜별로 그룹화
-        const groupedItineraries: { [key: number]: SessionItinerary[] } = {};
-        itinerariesResponse.itineraries.forEach((itinerary) => {
-          if (!groupedItineraries[itinerary.day]) {
-            groupedItineraries[itinerary.day] = [];
-          }
-          groupedItineraries[itinerary.day].push(itinerary);
-        });
-        setItineraries(groupedItineraries);
+        setItineraries(
+          groupSessionItineraries(itinerariesResponse.itineraries)
+        );
       }
     } catch (error) {
       console.log(error);
