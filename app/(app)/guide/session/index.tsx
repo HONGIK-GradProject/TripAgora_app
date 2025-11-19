@@ -2,12 +2,16 @@ import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import GuideSessionList from '@/components/guide/session/GuideSessionList';
 import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { useSessionList } from '@/hooks/sessions/useSessionList';
+import { cancelParticipation } from '@/services/sessions';
+import { SessionInfo } from '@/types/sessions';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
+  FlatList,
   RefreshControl,
   Text,
   TouchableOpacity,
@@ -78,6 +82,146 @@ const GuideTripListScreen: React.FC = () => {
           : ['COMPLETED', 'IN_PROGRESS'];
       refetch(statuses);
     }, [activeTab, refetch])
+  );
+
+  /**
+   * 세션 삭제 핸들러
+   */
+  const handleDeleteSession = useCallback(
+    async (sessionId: number) => {
+      Alert.alert('세션 삭제', '이 세션을 목록에서 삭제하시겠습니까?', [
+        {
+          text: '취소',
+          style: 'cancel',
+        },
+        {
+          text: '삭제',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await cancelParticipation(sessionId);
+              // 삭제 성공 시 목록 새로고침
+              refetch(['COMPLETED']);
+            } catch (error) {
+              Alert.alert('오류', '세션 삭제에 실패했습니다.');
+            }
+          },
+        },
+      ]);
+    },
+    [refetch]
+  );
+
+  /**
+   * 완료된 세션 아이템을 렌더링하는 함수
+   */
+  const renderCompletedSessionItem = useCallback(
+    ({ item: session }: { item: SessionInfo }) => {
+      const badgeStyle =
+        session.status === 'COMPLETED'
+          ? {
+              backgroundColor: '#DCFCE7',
+              textColor: '#15803D',
+              label: '완료',
+            }
+          : {
+              backgroundColor: '#F3F4F6',
+              textColor: '#4B5563',
+              label: '상태 미정',
+            };
+
+      const regionText =
+        (Array.isArray(session.regionIds) && session.regionIds.length > 0
+          ? session.regionIds.map((id: number) => REGION_ID_TO_NAME_MAP[id])
+          : (session as any).regionNames || []
+        )
+          .filter(Boolean)
+          .join(', ') || '지역 정보 없음';
+
+      return (
+        <View className='bg-white rounded-2xl mb-2 shadow-sm border border-gray-100 overflow-hidden'>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => {
+              router.push(`/guide/session/${session.sessionId}` as any);
+            }}
+          >
+            <View className='p-5'>
+              <View className='flex-row items-center'>
+                <Image
+                  source={{ uri: session.firstImageUrl }}
+                  style={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: 12,
+                    marginRight: 16,
+                  }}
+                  contentFit='cover'
+                />
+                <View className='flex-1'>
+                  <Text className='text-lg font-semibold text-gray-900 mb-1'>
+                    {session.title?.trim() || '제목 없음'}
+                  </Text>
+                  <Text className='text-gray-600 mb-2'>
+                    {session.startDate} ~ {session.endDate}
+                  </Text>
+                  <View className='flex-row items-start'>
+                    <MaterialIcons
+                      name='person-outline'
+                      size={16}
+                      color='#6B7280'
+                      style={{ marginTop: 2 }}
+                    />
+                    <Text className='text-gray-600 ml-1 mr-4'>
+                      {session.currentParticipants}/{session.maxParticipants}명
+                    </Text>
+                    <Ionicons
+                      name='location-outline'
+                      size={16}
+                      color='#6B7280'
+                      style={{ marginTop: 2 }}
+                    />
+                    <Text
+                      className='text-gray-600 ml-1 flex-1'
+                      numberOfLines={2}
+                      ellipsizeMode='tail'
+                    >
+                      {regionText}
+                    </Text>
+                  </View>
+                </View>
+                <View
+                  className='px-3 py-1 rounded-full'
+                  style={{ backgroundColor: badgeStyle.backgroundColor }}
+                >
+                  <Text
+                    className='text-sm font-medium'
+                    style={{ color: badgeStyle.textColor }}
+                  >
+                    {badgeStyle.label}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </TouchableOpacity>
+
+          {/* 완료된 세션 하단 삭제 버튼 */}
+          <View className='px-5 pb-5 border-t border-gray-100'>
+            <TouchableOpacity
+              className='bg-red-500 rounded-xl py-3 flex-row items-center justify-center'
+              onPress={() => handleDeleteSession(session.sessionId)}
+              activeOpacity={0.8}
+            >
+              <Ionicons name='trash-outline' size={20} color='#fff' />
+              <Text className='text-white font-semibold text-base ml-2'>
+                세션 삭제
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    },
+    [handleDeleteSession, router]
   );
 
   /**
@@ -253,16 +397,15 @@ const GuideTripListScreen: React.FC = () => {
                   : '완료된 여행이 없습니다.'}
               </Text>
             </View>
-          ) : (
-            <GuideSessionList
-              userRole='GUIDE'
-              sessions={filteredSessions}
+          ) : activeTab === 'completed' ? (
+            // 완료 탭일 때는 삭제 버튼이 있는 직접 렌더링
+            <FlatList
+              data={filteredSessions}
+              renderItem={renderCompletedSessionItem}
+              keyExtractor={(item) => item.sessionId.toString()}
+              showsVerticalScrollIndicator={false}
               onEndReached={() => {
-                const statuses =
-                  activeTab === 'ongoing'
-                    ? ['RECRUITING', 'RECRUITMENT_CLOSED', 'IN_PROGRESS']
-                    : ['COMPLETED', 'IN_PROGRESS'];
-                loadMore(statuses);
+                loadMore(['COMPLETED']);
               }}
               onEndReachedThreshold={0.5}
               ListFooterComponent={renderFooter}
@@ -270,11 +413,31 @@ const GuideTripListScreen: React.FC = () => {
                 <RefreshControl
                   refreshing={isLoading && filteredSessions.length > 0}
                   onRefresh={() => {
-                    const statuses =
-                      activeTab === 'ongoing'
-                        ? ['RECRUITING', 'RECRUITMENT_CLOSED', 'IN_PROGRESS']
-                        : ['COMPLETED', 'IN_PROGRESS'];
-                    refetch(statuses);
+                    refetch(['COMPLETED']);
+                  }}
+                />
+              }
+              contentContainerStyle={{ paddingBottom: bottom }}
+            />
+          ) : (
+            // 모집 중 탭일 때는 기존 GuideSessionList 사용
+            <GuideSessionList
+              userRole='GUIDE'
+              sessions={filteredSessions}
+              onEndReached={() => {
+                loadMore(['RECRUITING', 'RECRUITMENT_CLOSED', 'IN_PROGRESS']);
+              }}
+              onEndReachedThreshold={0.5}
+              ListFooterComponent={renderFooter}
+              refreshControl={
+                <RefreshControl
+                  refreshing={isLoading && filteredSessions.length > 0}
+                  onRefresh={() => {
+                    refetch([
+                      'RECRUITING',
+                      'RECRUITMENT_CLOSED',
+                      'IN_PROGRESS',
+                    ]);
                   }}
                 />
               }

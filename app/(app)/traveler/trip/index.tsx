@@ -2,6 +2,7 @@ import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { useCompletedSessionList } from '@/hooks/sessions/useCompletedSessionList';
 import { useParticipatingSessionList } from '@/hooks/sessions/useParticipatingSessionList';
+import { cancelParticipation } from '@/services/sessions';
 import { SessionCompletedInfo, SessionInfo } from '@/types/sessions';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
@@ -9,6 +10,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   RefreshControl,
   Text,
@@ -154,6 +156,34 @@ const TravelerTripListScreen: React.FC = () => {
   };
 
   /**
+   * 세션 삭제 핸들러
+   */
+  const handleDeleteSession = useCallback(
+    async (sessionId: number) => {
+      Alert.alert('세션 삭제', '이 세션을 목록에서 삭제하시겠습니까?', [
+        {
+          text: '취소',
+          style: 'cancel',
+        },
+        {
+          text: '삭제',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await cancelParticipation(sessionId);
+              // 삭제 성공 시 목록 새로고침
+              refetchCompleted();
+            } catch (error) {
+              Alert.alert('오류', '세션 삭제에 실패했습니다.');
+            }
+          },
+        },
+      ]);
+    },
+    [refetchCompleted]
+  );
+
+  /**
    * 세션 아이템을 렌더링하는 함수
    */
   const renderSessionItem = ({
@@ -247,22 +277,36 @@ const TravelerTripListScreen: React.FC = () => {
           </View>
         </TouchableOpacity>
 
-        {/* 완료된 세션 중 리뷰를 작성한 적이 없는 경우에만 리뷰 버튼 표시 */}
-        {isCompleted && !hasWrittenReview && (
+        {/* 완료된 세션 하단 버튼들 */}
+        {isCompleted && (
           <View className='px-5 pb-5 border-t border-gray-100'>
+            {/* 리뷰를 작성한 적이 없는 경우 리뷰 버튼 표시 */}
+            {!hasWrittenReview && (
+              <TouchableOpacity
+                className='bg-purple-500 rounded-xl py-3 flex-row items-center justify-center mb-2'
+                onPress={() =>
+                  router.push({
+                    pathname: '/ReviewWriteScreen',
+                    params: { sessionId: session.sessionId.toString() },
+                  } as any)
+                }
+                activeOpacity={0.8}
+              >
+                <Ionicons name='star' size={20} color='#fff' />
+                <Text className='text-white font-semibold text-base ml-2'>
+                  리뷰 작성하기
+                </Text>
+              </TouchableOpacity>
+            )}
+            {/* 세션 삭제 버튼 */}
             <TouchableOpacity
-              className='bg-purple-500 rounded-xl py-3 flex-row items-center justify-center'
-              onPress={() =>
-                router.push({
-                  pathname: '/ReviewWriteScreen',
-                  params: { sessionId: session.sessionId.toString() },
-                } as any)
-              }
+              className='bg-red-500 rounded-xl py-3 flex-row items-center justify-center'
+              onPress={() => handleDeleteSession(session.sessionId)}
               activeOpacity={0.8}
             >
-              <Ionicons name='star' size={20} color='#fff' />
+              <Ionicons name='trash-outline' size={20} color='#fff' />
               <Text className='text-white font-semibold text-base ml-2'>
-                리뷰 작성하기
+                세션 삭제
               </Text>
             </TouchableOpacity>
           </View>
