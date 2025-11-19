@@ -77,7 +77,7 @@ const ChatView: React.FC<ChatViewProps> = ({
             return <MessageItem item={messageItem} isMyMessage={messageItem.senderId === currentUser._id} />;
           }
         }}
-        keyExtractor={(item) => ('type' in item ? item.date : item.sentAt)}
+        keyExtractor={(item) => ('type' in item ? item.date : item.chatMessageId.toString())}
         className='flex-1 px-4 pt-4'
         inverted
         contentContainerStyle={{ paddingBottom: 10 }}

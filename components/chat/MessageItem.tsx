@@ -38,13 +38,19 @@ const MessageItem: React.FC<MessageItemProps> = ({ item, isMyMessage }) => {
     <View className='flex-row items-start my-2'>
       <Image
         source={{ uri: item.senderImageUrl }}
-        style={{ width: 32, height: 32, borderRadius: 16 }}
-        className='mr-3'
+        style={{ width: 32, height: 32, borderRadius: 16, marginRight: 8 }}
       />
       <View className='flex-1'>
-        <Text className='text-s text-gray-500 mb-1'>
-          {'  ' + item.senderNickname}
-        </Text>
+        <View className='flex-row items-center mb-1'>
+          <Text className='text-s text-gray-500'>
+            {item.senderNickname}
+          </Text>
+          {item.senderRole === 'GUIDE' && (
+            <View className='ml-2 px-2 py-1 bg-blue-500 rounded-full'>
+              <Text className='text-white text-xs font-bold'>가이드</Text>
+            </View>
+          )}
+        </View>
         <View className='flex-row items-end'>
           <View className='max-w-[80%] rounded-2xl px-4 py-3 bg-white rounded-bl-none shadow-sm'>
             <Text className='text-gray-900'>{item.content}</Text>
