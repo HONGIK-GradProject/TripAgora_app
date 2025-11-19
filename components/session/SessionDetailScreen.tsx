@@ -1143,7 +1143,6 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
                   ))}
                 </View>
               </View>
-              <View style={styles.divider} />
             </>
           ) : participants.length > 0 ? (
             <>

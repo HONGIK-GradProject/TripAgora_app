@@ -11,6 +11,12 @@ export default function SessionLayout() {
       <Stack.Screen name='chat' options={{ headerShown: false }} />
       <Stack.Screen name='view-location' options={{ headerShown: false }} />
       <Stack.Screen
+        name='(itinerary-edit)'
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
         name='[guideId]'
         options={{
           presentation: 'modal',

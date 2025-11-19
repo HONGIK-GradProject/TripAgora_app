@@ -110,7 +110,7 @@ const GuideTripListScreen: React.FC = () => {
 
             <TouchableOpacity
               className='rounded-2xl p-5 border-2'
-              style={{ borderColor: '#5B67F5', backgroundColor: '#FFFFFF' }}
+              style={{ borderColor: '#5B67F5', backgroundColor: '#F0F2FF' }}
               onPress={() => {
                 const roomIdParam = currentSession.roomId
                   ? `?roomId=${currentSession.roomId}`
@@ -132,9 +132,9 @@ const GuideTripListScreen: React.FC = () => {
                   contentFit='cover'
                 />
                 <View className='flex-1'>
-                  <View className='flex-row items-center mb-2'>
+                  <View className='flex-row items-center mb-2 gap-2'>
                     <View
-                      className='px-3 py-1 rounded-full mr-2'
+                      className='px-3 py-1 rounded-full'
                       style={{ backgroundColor: '#E6E9FF' }}
                     >
                       <Text
@@ -142,6 +142,17 @@ const GuideTripListScreen: React.FC = () => {
                         style={{ color: '#5B67F5' }}
                       >
                         진행중
+                      </Text>
+                    </View>
+                    <View
+                      className='px-3 py-1 rounded-full'
+                      style={{ backgroundColor: '#E6E9FF' }}
+                    >
+                      <Text
+                        className='text-xs font-medium'
+                        style={{ color: '#5B67F5' }}
+                      >
+                        가이드
                       </Text>
                     </View>
                   </View>
