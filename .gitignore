@@ -61,3 +61,5 @@ app-example
 
 # --- Others ---
 .git-crypt-key
+firebase.json
+google-services.json
