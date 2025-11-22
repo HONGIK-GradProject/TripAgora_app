@@ -1,11 +1,11 @@
 export default {
   expo: {
     owner: 'tripagora',
-    name: 'tripagora',
+    name: 'Trip Agora',
     slug: 'tripagora',
     version: '1.0.0',
     orientation: 'portrait',
-    icon: './assets/images/icon.png',
+    icon: './assets/images/tripagora-logo-icon.png',
     scheme: 'tripagora',
     userInterfaceStyle: 'automatic',
     newArchEnabled: true,
@@ -14,7 +14,7 @@ export default {
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: './assets/images/adaptive-icon.png',
+        foregroundImage: './assets/images/tripagora-logo-adaptive-icon.png',
         backgroundColor: '#ffffff',
       },
       edgeToEdgeEnabled: true,
@@ -39,10 +39,9 @@ export default {
       [
         'expo-splash-screen',
         {
-          image: './assets/images/splash-icon.png',
-          imageWidth: 200,
-          contentFit: 'contain',
+          image: './assets/images/tripagora-logo-large.png',
           backgroundColor: '#ffffff',
+          imageWidth: 200
         },
       ],
       [
