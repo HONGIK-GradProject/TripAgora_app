@@ -31,7 +31,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId }) => {
 
   useEffect(() => {
     if (isConnected && roomId) {
-      const destination = `/topic/room/${roomId}`;
+      const destination = `/topic/room/${roomId}/chat`;
 
       const subscription = client.subscribe(destination, (message: Message) => {
         const receivedMessage: ChatMessage = JSON.parse(message.body);
@@ -48,7 +48,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId }) => {
   const handleSendMessage = (text: string) => {
     if (isConnected && user) {
       client.publish({
-        destination: `/publish/room/${roomId}`,
+        destination: `/publish/room/${roomId}/chat`,
         body: JSON.stringify({ content: text }),
       });
     }
