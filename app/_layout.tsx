@@ -1,3 +1,4 @@
+import { useColorScheme } from '@/hooks/useColorScheme';
 import {
   DarkTheme,
   DefaultTheme,
@@ -5,16 +6,20 @@ import {
 } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/useColorScheme';
 import '../global.css';
 
 import { AuthProvider } from '@/contexts/AuthContext';
 import { StompProvider } from '@/contexts/StompContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
+
+SplashScreen.setOptions({
+  duration: 1000,
+  fade: true,
+});
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -23,7 +28,6 @@ export default function RootLayout() {
   });
 
   if (!loaded) {
-    // Async font loading only occurs in development.
     return null;
   }
 
