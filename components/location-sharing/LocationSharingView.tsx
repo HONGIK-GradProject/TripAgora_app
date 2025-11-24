@@ -7,21 +7,17 @@ import { getHaversineDistance } from '@/utils/coords';
 import { Ionicons } from '@expo/vector-icons';
 import { ClusterMarkerProp } from '@mj-studio/react-native-naver-map';
 import { Image } from 'expo-image';
-import React, {
-  useCallback,
-  useMemo,
-  useRef
-} from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import {
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 
 interface LocationSharingProps {
-  myLocation?: UserLocation; 
+  myLocation?: UserLocation;
   locations?: UserLocation[];
   user?: {
     _id: string | number;
@@ -60,7 +56,6 @@ const LocationSharingView: React.FC<LocationSharingProps> = ({
           longitude: loc.longitude,
           image: {
             httpUri: loc.profileImageUrl,
-
           },
           width: 40,
           height: 40,
@@ -72,11 +67,12 @@ const LocationSharingView: React.FC<LocationSharingProps> = ({
     if (!locations) return [];
 
     // 1. Pre-calculate distance for each location
-    const locationsWithDistance = locations.map(loc => ({
+    const locationsWithDistance = locations.map((loc) => ({
       ...loc,
-      distance: (myLocation && (loc.latitude !== 0 || loc.longitude !== 0))
-        ? getHaversineDistance(myLocation, loc.latitude, loc.longitude)
-        : null
+      distance:
+        myLocation && (loc.latitude !== 0 || loc.longitude !== 0)
+          ? getHaversineDistance(myLocation, loc.latitude, loc.longitude)
+          : null,
     }));
 
     // 2. Sort the new array
@@ -88,7 +84,7 @@ const LocationSharingView: React.FC<LocationSharingProps> = ({
       // Group users with valid distance before those without
       if (a.distance !== null && b.distance === null) return -1;
       if (a.distance === null && b.distance !== null) return 1;
-      
+
       // For users without valid distance, keep relative order
       if (a.distance === null && b.distance === null) return 0;
 
@@ -118,9 +114,7 @@ const LocationSharingView: React.FC<LocationSharingProps> = ({
     <View style={styles.container}>
       {/* 상단 바 */}
       <View style={[styles.header]}>
-        <TouchableOpacity
-          style={styles.backButton}
-        >
+        <TouchableOpacity style={styles.backButton}>
           <Ionicons name='arrow-back' size={24} color='#000' />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>일행 위치 확인</Text>
@@ -181,9 +175,13 @@ const LocationSharingView: React.FC<LocationSharingProps> = ({
                 <Text style={styles.memberName}>{loc.nickname}</Text>
                 <Text style={styles.memberDistance}>
                   {loc.userId === user?._id
-                    ? myLocation ? '나' : '내 위치 확인 중...'
+                    ? myLocation
+                      ? '나'
+                      : '내 위치 확인 중...'
                     : loc.distance !== null
-                    ? `${loc.distance.toFixed(1)} km`
+                    ? loc.distance < 1
+                      ? `${Math.round(loc.distance * 1000)} m`
+                      : `${loc.distance.toFixed(1)} km`
                     : '측정 불가'}
                 </Text>
               </TouchableOpacity>
@@ -193,9 +191,7 @@ const LocationSharingView: React.FC<LocationSharingProps> = ({
       </ScrollView>
 
       <View style={styles.bottomActionContainer}>
-        <TouchableOpacity
-          style={styles.callButton}
-        >
+        <TouchableOpacity style={styles.callButton}>
           <Text style={styles.callButtonText}>일행 호출하기</Text>
         </TouchableOpacity>
       </View>
