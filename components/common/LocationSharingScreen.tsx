@@ -7,6 +7,7 @@ import { Coord } from "@mj-studio/react-native-naver-map";
 import { Message } from "@stomp/stompjs";
 import * as Location from 'expo-location';
 import { useEffect, useRef, useState } from "react";
+import CustomSafeAreaView from "../CustomSafeAreaView";
 import LocationSharingView from "../location-sharing/LocationSharingView";
 
 interface LocationSharingScreenProps {
@@ -45,6 +46,7 @@ const LocationSharingScreen: React.FC<LocationSharingScreenProps> = ({ roomId })
           if (receivedLocation.updatedAt.slice(-1) !== 'Z') {
             receivedLocation.updatedAt += 'Z';
           }
+          
           setLocations(prevLocations => {
             const newLocations = new Map(prevLocations);
             newLocations.set(receivedLocation.userId, receivedLocation);
@@ -85,6 +87,8 @@ const LocationSharingScreen: React.FC<LocationSharingScreenProps> = ({ roomId })
               longitude: location.coords.longitude,
             };
 
+            console.log(locationData);
+
             client.publish({
               destination: `/publish/room/${roomId}/location`,
               body: JSON.stringify(locationData),
@@ -94,9 +98,12 @@ const LocationSharingScreen: React.FC<LocationSharingScreenProps> = ({ roomId })
       }
     };
 
-    startLocationTracking();
+    if (roomId) {
+      startLocationTracking();
+    }
 
     return () => {
+
       if (locationSubscription.current) {
         locationSubscription.current.remove();
       }
@@ -105,13 +112,15 @@ const LocationSharingScreen: React.FC<LocationSharingScreenProps> = ({ roomId })
 
 
   return (
-    <LocationSharingView
-      locations={Array.from(locations.values())}
-      myLocation={user && user.id ? locations.get(user.id) : undefined}
-      user={{
-        _id: (user && user.id) ? user.id : ''
-      }}
-    />
+    <CustomSafeAreaView edges={['top', 'left', 'right']}>
+      <LocationSharingView
+        locations={Array.from(locations.values())}
+        myLocation={user && user.id ? locations.get(user.id) : undefined}
+        user={{
+          _id: (user && user.id) ? user.id : ''
+        }}
+      />
+    </CustomSafeAreaView>
   )
 }
 
