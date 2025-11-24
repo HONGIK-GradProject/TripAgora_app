@@ -51,7 +51,7 @@ const LocationSharingView: React.FC<LocationSharingProps> = ({
       .filter((loc) => loc.latitude !== 0 && loc.longitude !== 0)
       .map((loc, index) => {
         return {
-          identifier: `${loc.userId}-${Date.now()}`,
+          identifier: String(loc.userId),
           latitude: loc.latitude,
           longitude: loc.longitude,
           image: {
