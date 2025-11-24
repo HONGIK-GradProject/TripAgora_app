@@ -1,16 +1,27 @@
 import React from 'react';
-import { KeyboardAvoidingView, KeyboardAvoidingViewProps, Platform, StyleSheet } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  KeyboardAvoidingViewProps,
+  Platform,
+  StyleSheet,
+} from 'react-native';
 
 interface CustomKeyboardAvoidingViewProps extends KeyboardAvoidingViewProps {
   children: React.ReactNode;
 }
 
-const CustomKeyboardAvoidingView: React.FC<CustomKeyboardAvoidingViewProps> = ({ children, ...rest }) => {
+const CustomKeyboardAvoidingView: React.FC<CustomKeyboardAvoidingViewProps> = ({
+  children,
+  keyboardVerticalOffset,
+  ...rest
+}) => {
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      keyboardVerticalOffset={
+        keyboardVerticalOffset ?? (Platform.OS === 'ios' ? 0 : 0)
+      }
       {...rest}
     >
       {children}

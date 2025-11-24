@@ -52,8 +52,14 @@ const TravelerTripListScreen: React.FC = () => {
     (tab: 'upcoming' | 'completed') => {
       setActiveTab(tab);
       if (tab === 'upcoming') {
-        refetchParticipating(['RECRUITING', 'RECRUITMENT_CLOSED']);
+        refetchParticipating([
+          'RECRUITING',
+          'RECRUITMENT_CLOSED',
+          'IN_PROGRESS',
+        ]);
       } else {
+        // 완료 탭일 때도 진행 중인 여행을 조회하기 위해 participatingSessions도 새로고침
+        refetchParticipating(['IN_PROGRESS']);
         refetchCompleted();
       }
     },
@@ -94,15 +100,13 @@ const TravelerTripListScreen: React.FC = () => {
     return filtered;
   }, [sessions, activeTab]);
 
-  // 현재 진행 중인 세션 (IN_PROGRESS 상태) - 예정 탭에서만 사용
+  // 현재 진행 중인 세션 (IN_PROGRESS 상태) - 탭과 관계없이 항상 표시
   const currentSession = useMemo(() => {
-    if (activeTab === 'upcoming') {
-      return participatingSessions.find(
-        (session) => session.status === 'IN_PROGRESS'
-      );
-    }
-    return undefined;
-  }, [participatingSessions, activeTab]);
+    // 탭과 관계없이 항상 participatingSessions에서 진행 중인 세션 찾기
+    return participatingSessions.find(
+      (session) => session.status === 'IN_PROGRESS'
+    );
+  }, [participatingSessions]);
 
   // 화면 포커스 시 데이터 새로고침
   useFocusEffect(
@@ -114,6 +118,8 @@ const TravelerTripListScreen: React.FC = () => {
           'IN_PROGRESS',
         ]);
       } else {
+        // 완료 탭일 때도 진행 중인 여행을 조회하기 위해 participatingSessions도 새로고침
+        refetchParticipating(['IN_PROGRESS']);
         refetchCompleted();
       }
     }, [activeTab, refetchParticipating, refetchCompleted])
@@ -501,7 +507,11 @@ const TravelerTripListScreen: React.FC = () => {
                 showsVerticalScrollIndicator={false}
                 onEndReached={() => {
                   if (activeTab === 'upcoming') {
-                    loadMoreParticipating(['RECRUITING', 'RECRUITMENT_CLOSED']);
+                    loadMoreParticipating([
+                      'RECRUITING',
+                      'RECRUITMENT_CLOSED',
+                      'IN_PROGRESS',
+                    ]);
                   } else {
                     loadMoreCompleted();
                   }
