@@ -7,6 +7,7 @@ import { getHaversineDistance } from '@/utils/coords';
 import { Ionicons } from '@expo/vector-icons';
 import { ClusterMarkerProp } from '@mj-studio/react-native-naver-map';
 import { Image } from 'expo-image';
+import { useRouter } from 'expo-router';
 import React, {
   forwardRef,
   useCallback,
@@ -21,6 +22,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface LocationSharingProps {
   myLocation?: UserLocation;
@@ -28,6 +30,7 @@ interface LocationSharingProps {
   user?: {
     _id: string | number;
   };
+  onPressBack?: () => void;
 }
 
 export type LocationSharingViewRef = InteractiveMapViewRef;
@@ -45,8 +48,10 @@ const COLOR_CODES = [
 const LocationSharingView = forwardRef<
   LocationSharingViewRef,
   LocationSharingProps
->(({ myLocation, locations, user }, ref) => {
+>(({ myLocation, locations, user, onPressBack }, ref) => {
   const interactiveMapViewRef = useRef<InteractiveMapViewRef>(null);
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   useImperativeHandle(ref, () => ({
     animateCameraTo: (camera) => {
@@ -56,6 +61,11 @@ const LocationSharingView = forwardRef<
       interactiveMapViewRef.current?.animateRegionTo(camera);
     },
   }));
+
+  const handlePressBack = () => {
+    onPressBack?.();
+    router.back();
+  };
 
   const clusterMarkers = useMemo(() => {
     if (!locations || locations.length < 1) {
@@ -129,8 +139,8 @@ const LocationSharingView = forwardRef<
   return (
     <View style={styles.container}>
       {/* 상단 바 */}
-      <View style={[styles.header]}>
-        <TouchableOpacity style={styles.backButton}>
+      <View style={[styles.header, { paddingTop: insets.top - 8 }]}>
+        <TouchableOpacity style={styles.backButton} onPress={handlePressBack}>
           <Ionicons name='arrow-back' size={24} color='#000' />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>일행 위치 확인</Text>
