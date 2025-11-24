@@ -470,44 +470,48 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
   const handleDeleteSession = useCallback(async () => {
     if (!id) return;
 
-    Alert.alert('여행 삭제', '정말로 이 여행을 삭제하시겠습니까?', [
-      {
-        text: '취소',
-        style: 'cancel',
-      },
-      {
-        text: '삭제',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            const success = await deleteSession(parseInt(id));
-            if (success) {
-              Toast.show({
-                type: 'success',
-                text1: '여행이 삭제되었습니다.',
-              });
-              // 공통 네비게이션 핸들러 사용
-              const handled = handleNavigateBack();
-              if (!handled) {
-                router.back();
+    Alert.alert(
+      '여행 기록 삭제',
+      '이 여행을 목록에서 삭제하시겠습니까?\n삭제 후 복구가 불가능합니다.',
+      [
+        {
+          text: '취소',
+          style: 'cancel',
+        },
+        {
+          text: '삭제',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const success = await deleteSession(parseInt(id));
+              if (success) {
+                Toast.show({
+                  type: 'success',
+                  text1: '여행이 삭제되었습니다.',
+                });
+                // 공통 네비게이션 핸들러 사용
+                const handled = handleNavigateBack();
+                if (!handled) {
+                  router.back();
+                }
+              } else {
+                Toast.show({
+                  type: 'error',
+                  text1: '여행 삭제에 실패했습니다.',
+                });
               }
-            } else {
+            } catch (error) {
+              console.error('여행 삭제 에러:', error);
               Toast.show({
                 type: 'error',
-                text1: '여행 삭제에 실패했습니다.',
+                text1: '여행 삭제 중 오류가 발생했습니다.',
+                text2: '잠시 후 다시 시도해주세요.',
               });
             }
-          } catch (error) {
-            console.error('여행 삭제 에러:', error);
-            Toast.show({
-              type: 'error',
-              text1: '여행 삭제 중 오류가 발생했습니다.',
-              text2: '잠시 후 다시 시도해주세요.',
-            });
-          }
+          },
         },
-      },
-    ]);
+      ]
+    );
   }, [id, router, handleNavigateBack]);
 
   // 섹션으로 스크롤

@@ -166,25 +166,29 @@ const TravelerTripListScreen: React.FC = () => {
    */
   const handleDeleteSession = useCallback(
     async (sessionId: number) => {
-      Alert.alert('세션 삭제', '이 세션을 목록에서 삭제하시겠습니까?', [
-        {
-          text: '취소',
-          style: 'cancel',
-        },
-        {
-          text: '삭제',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await cancelParticipation(sessionId);
-              // 삭제 성공 시 목록 새로고침
-              refetchCompleted();
-            } catch (error) {
-              Alert.alert('오류', '세션 삭제에 실패했습니다.');
-            }
+      Alert.alert(
+        '여행 기록 삭제',
+        '이 여행을 목록에서 삭제하시겠습니까?\n삭제 후 복구가 불가능합니다.',
+        [
+          {
+            text: '취소',
+            style: 'cancel',
           },
-        },
-      ]);
+          {
+            text: '삭제',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await cancelParticipation(sessionId);
+                // 삭제 성공 시 목록 새로고침
+                refetchCompleted();
+              } catch (error) {
+                Alert.alert('오류', '세션 삭제에 실패했습니다.');
+              }
+            },
+          },
+        ]
+      );
     },
     [refetchCompleted]
   );
@@ -312,7 +316,7 @@ const TravelerTripListScreen: React.FC = () => {
             >
               <Ionicons name='trash-outline' size={20} color='#fff' />
               <Text className='text-white font-semibold text-base ml-2'>
-                세션 삭제
+                여행 기록 삭제
               </Text>
             </TouchableOpacity>
           </View>
