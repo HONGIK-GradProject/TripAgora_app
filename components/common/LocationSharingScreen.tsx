@@ -6,9 +6,9 @@ import { UserLocation } from "@/types/location-sharing";
 import { Coord } from "@mj-studio/react-native-naver-map";
 import { Message } from "@stomp/stompjs";
 import * as Location from 'expo-location';
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import CustomSafeAreaView from "../CustomSafeAreaView";
-import LocationSharingView from "../location-sharing/LocationSharingView";
+import LocationSharingView, { LocationSharingViewRef } from "../location-sharing/LocationSharingView";
 
 interface LocationSharingScreenProps {
   roomId: number;
@@ -19,6 +19,8 @@ const LocationSharingScreen: React.FC<LocationSharingScreenProps> = ({ roomId })
   const { client, isConnected } = useStomp();
   const { status: locationPermissionStatus, requestPermission } = useLocationPermission();
   const locationSubscription = useRef<Location.LocationSubscription | null>(null);
+  const locationSharingViewRef = useRef<LocationSharingViewRef>(null);
+  const hasInitiallyMovedCamera = useRef(false);
 
   const [locations, setLocations] = useState<Map<number, UserLocation>>(new Map());
 
@@ -106,19 +108,42 @@ const LocationSharingScreen: React.FC<LocationSharingScreenProps> = ({ roomId })
 
       if (locationSubscription.current) {
         locationSubscription.current.remove();
+        console.log('Location tracking stopped.');
       }
     };
   }, [isConnected, client, roomId, user, locationPermissionStatus]);
 
+  const locationsArray = useMemo(() => Array.from(locations.values()), [locations]);
+  const myLocation = useMemo(
+    () => (user && user.id ? locations.get(user.id) : undefined),
+    [user, locations]
+  );
+  const locationSharingUser = useMemo(
+    () => ({
+      _id: (user && user.id) ? user.id : ''
+    }),
+    [user]
+  );
+
+  useEffect(() => {
+    if (myLocation && locationSharingViewRef.current && !hasInitiallyMovedCamera.current) {
+      locationSharingViewRef.current.animateCameraTo({
+        latitude: myLocation.latitude,
+        longitude: myLocation.longitude,
+        zoom: 12,
+        duration: 1000,
+      });
+      hasInitiallyMovedCamera.current = true;
+    }
+  }, [myLocation]);
 
   return (
     <CustomSafeAreaView edges={['top', 'left', 'right']}>
       <LocationSharingView
-        locations={Array.from(locations.values())}
-        myLocation={user && user.id ? locations.get(user.id) : undefined}
-        user={{
-          _id: (user && user.id) ? user.id : ''
-        }}
+        ref={locationSharingViewRef}
+        locations={locationsArray}
+        myLocation={myLocation}
+        user={locationSharingUser}
       />
     </CustomSafeAreaView>
   )

@@ -7,7 +7,13 @@ import { getHaversineDistance } from '@/utils/coords';
 import { Ionicons } from '@expo/vector-icons';
 import { ClusterMarkerProp } from '@mj-studio/react-native-naver-map';
 import { Image } from 'expo-image';
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -24,6 +30,8 @@ interface LocationSharingProps {
   };
 }
 
+export type LocationSharingViewRef = InteractiveMapViewRef;
+
 const COLORS = ['blue', 'green', 'pink', 'lightblue', 'yellow', 'red'];
 const COLOR_CODES = [
   '#4DB1FF',
@@ -34,12 +42,20 @@ const COLOR_CODES = [
   '#FF4D60',
 ];
 
-const LocationSharingView: React.FC<LocationSharingProps> = ({
-  myLocation,
-  locations,
-  user,
-}) => {
-  const mapViewRef = useRef<InteractiveMapViewRef>(null);
+const LocationSharingView = forwardRef<
+  LocationSharingViewRef,
+  LocationSharingProps
+>(({ myLocation, locations, user }, ref) => {
+  const interactiveMapViewRef = useRef<InteractiveMapViewRef>(null);
+
+  useImperativeHandle(ref, () => ({
+    animateCameraTo: (camera) => {
+      interactiveMapViewRef.current?.animateCameraTo(camera);
+    },
+    animateRegionTo: (camera) => {
+      interactiveMapViewRef.current?.animateRegionTo(camera);
+    },
+  }));
 
   const clusterMarkers = useMemo(() => {
     if (!locations || locations.length < 1) {
@@ -101,7 +117,7 @@ const LocationSharingView: React.FC<LocationSharingProps> = ({
       return;
     }
 
-    mapViewRef.current?.animateCameraTo({
+    interactiveMapViewRef.current?.animateCameraTo({
       latitude: location.latitude,
       longitude: location.longitude,
       zoom: 16,
@@ -127,7 +143,7 @@ const LocationSharingView: React.FC<LocationSharingProps> = ({
       >
         <View style={styles.mapContainer}>
           <InteractiveMapView
-            ref={mapViewRef}
+            ref={interactiveMapViewRef}
             cameraPosition={{
               latitude: 37.5665,
               longitude: 126.978,
@@ -197,7 +213,7 @@ const LocationSharingView: React.FC<LocationSharingProps> = ({
       </View>
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {
