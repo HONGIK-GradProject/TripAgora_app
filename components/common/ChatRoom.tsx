@@ -30,23 +30,26 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId }) => {
   }, [roomId, refetch]);
 
   useEffect(() => {
-    if (isConnected && roomId) {
+    if (isConnected && client.connected && roomId) {
       const destination = `/topic/room/${roomId}/chat`;
 
       const subscription = client.subscribe(destination, (message: Message) => {
         const receivedMessage: ChatMessage = JSON.parse(message.body);
+        console.log('Received Message', receivedMessage.content);
         receivedMessage.sentAt += 'Z';
         setNewMessages(prevMessages => [receivedMessage, ...prevMessages]);
       });
 
       return () => {
-        subscription.unsubscribe();
+        if (client.connected) {
+          subscription.unsubscribe();
+        }
       };
     }
   }, [isConnected, client, roomId]);
 
   const handleSendMessage = (text: string) => {
-    if (isConnected && user) {
+    if (isConnected && client.connected && user) {
       client.publish({
         destination: `/publish/room/${roomId}/chat`,
         body: JSON.stringify({ content: text }),
@@ -73,7 +76,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId }) => {
       messages={allMessages}
       onSend={handleSendMessage}
       user={{
-        _id: user ? (user.id || '') : ''
+        _id: (user && user.id) ? user.id : ''
       }}
       onLoadEarlier={handleLoadEarlier}
     />
