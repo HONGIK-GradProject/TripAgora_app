@@ -6,6 +6,8 @@
 import {
   UserDeleteMeResponse,
   UserGetMeResponse,
+  UserSetFCMTokenRequest,
+  UserSetFCMTokenResponse,
   UserSetNicknameRequest,
   UserSetNicknameResponse,
   UserSetProfileImageResponse,
@@ -91,6 +93,17 @@ const deleteMe = async (): Promise<UserDeleteMeResponse> => {
   return response.data;
 };
 
+const setFCMToken = async (
+  token: string
+): Promise<UserSetFCMTokenResponse> => {
+  const requestData: UserSetFCMTokenRequest = { token }
+  const response = await apiClient.post<UserSetFCMTokenResponse>(
+    '/users/me/fcm-token',
+    requestData
+  );
+  return response.data;
+}
+
 export const usersApi = {
   getMe,
   setNickname,
@@ -99,4 +112,5 @@ export const usersApi = {
   switchToTraveler,
   setProfileImage,
   deleteMe,
+  setFCMToken
 };

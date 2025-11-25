@@ -126,3 +126,24 @@ export const deleteUserAccount = async () => {
   }
   return undefined;
 };
+
+export const setUserFCMToken = async (
+  token: string
+) => {
+  try {
+    const response = await usersApi.setFCMToken(token);
+    if (response.code === 200) {
+      console.log('FCM 토큰 업데이트 성공');
+      return true;
+    }
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error(
+        'FCM 토큰 업데이트 실패 (Axios Error):',
+        error.response?.data?.message || error.message
+      );
+    } else {
+      console.error('FCM 토큰 업데이트 실패 (Unknown Error):', error);
+    }
+  }
+}
