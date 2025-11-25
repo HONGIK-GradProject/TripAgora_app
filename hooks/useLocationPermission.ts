@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import * as Location from 'expo-location';
 
 /**
@@ -14,11 +14,11 @@ export const useLocationPermission = () => {
    * 사용자에게 위치 정보 접근 권한을 요청합니다.
    * @returns {Promise<Location.PermissionStatus>} 요청 후의 권한 상태.
    */
-  const requestPermission = async () => {
+  const requestPermission = useCallback(async () => {
     const { status: foregroundStatus } = await Location.requestForegroundPermissionsAsync();
     setStatus(foregroundStatus);
     return foregroundStatus;
-  };
+  }, []);
 
   // 훅이 처음 마운트될 때 현재 권한 상태를 가져옵니다.
   useEffect(() => {

@@ -4,9 +4,10 @@ import { useStomp } from "@/hooks/useStomp";
 import { fetchPreviousLocations } from "@/services/location-sharing";
 import { UserLocation } from "@/types/location-sharing";
 import { Coord } from "@mj-studio/react-native-naver-map";
+import { useFocusEffect } from "@react-navigation/native";
 import { Message } from "@stomp/stompjs";
 import * as Location from 'expo-location';
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import CustomSafeAreaView from "../CustomSafeAreaView";
 import LocationSharingView, { LocationSharingViewRef } from "../location-sharing/LocationSharingView";
 
@@ -23,6 +24,14 @@ const LocationSharingScreen: React.FC<LocationSharingScreenProps> = ({ roomId })
   const hasInitiallyMovedCamera = useRef(false);
 
   const [locations, setLocations] = useState<Map<number, UserLocation>>(new Map());
+  const [isFocused, setIsFocused] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      setIsFocused(true);
+      return () => setIsFocused(false);
+    }, [])
+  );
 
   useEffect(() => {
     const fetch = async () => {
@@ -66,52 +75,58 @@ const LocationSharingScreen: React.FC<LocationSharingScreenProps> = ({ roomId })
   }, [isConnected, client, roomId]);
 
   useEffect(() => {
+    let isActive = true;
+
     const startLocationTracking = async () => {
       if (locationPermissionStatus !== 'granted') {
         const status = await requestPermission();
         if (status !== 'granted') {
-          console.log('Location permission not granted');
           return;
         }
       }
-
-      if (isConnected && user && client.connected) {
-        locationSubscription.current = await Location.watchPositionAsync(
-          {
-            accuracy: Location.LocationAccuracy.BestForNavigation,
-            timeInterval: 5000,
-          },
-          (location) => {
-            if (!user.id) return;
-
-            const locationData: Coord = {
-              latitude: location.coords.latitude,
-              longitude: location.coords.longitude,
-            };
-
-            console.log(locationData);
-
-            client.publish({
-              destination: `/publish/room/${roomId}/location`,
-              body: JSON.stringify(locationData),
-            });
+      
+      const subscription = await Location.watchPositionAsync(
+        {
+          accuracy: Location.LocationAccuracy.BestForNavigation,
+          timeInterval: 5000,
+        },
+        (location) => {
+          if (!isActive || !user?.id) {
+            return;
           }
-        );
+
+          const locationData: Coord = {
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+          };
+
+          client.publish({
+            destination: `/publish/room/${roomId}/location`,
+            body: JSON.stringify(locationData),
+          });
+        }
+      );
+
+      if (isActive) {
+        locationSubscription.current = subscription;
+      } else {
+        subscription.remove();
       }
     };
 
-    if (roomId) {
+    if (isFocused && isConnected && user) {
       startLocationTracking();
     }
 
     return () => {
-
+      isActive = false;
       if (locationSubscription.current) {
         locationSubscription.current.remove();
-        console.log('Location tracking stopped.');
+        locationSubscription.current = null;
       }
     };
-  }, [isConnected, client, roomId, user, locationPermissionStatus]);
+  }, [isFocused, isConnected, client, user, roomId, locationPermissionStatus, requestPermission]);
+
 
   const locationsArray = useMemo(() => Array.from(locations.values()), [locations]);
   const myLocation = useMemo(
@@ -125,12 +140,19 @@ const LocationSharingScreen: React.FC<LocationSharingScreenProps> = ({ roomId })
     [user]
   );
 
+  const stopLocationTracking = useCallback(() => {
+    if (locationSubscription.current) {
+      locationSubscription.current.remove();
+      locationSubscription.current = null;
+    }
+  }, []);
+
   useEffect(() => {
     if (myLocation && locationSharingViewRef.current && !hasInitiallyMovedCamera.current) {
       locationSharingViewRef.current.animateCameraTo({
         latitude: myLocation.latitude,
         longitude: myLocation.longitude,
-        zoom: 12,
+        zoom: 16,
         duration: 1000,
       });
       hasInitiallyMovedCamera.current = true;
@@ -144,6 +166,7 @@ const LocationSharingScreen: React.FC<LocationSharingScreenProps> = ({ roomId })
         locations={locationsArray}
         myLocation={myLocation}
         user={locationSharingUser}
+        onPressBack={stopLocationTracking}
       />
     </CustomSafeAreaView>
   )
