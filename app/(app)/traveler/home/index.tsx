@@ -1,12 +1,69 @@
 import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import { useAuth } from '@/hooks/useAuth';
+import { searchSessions } from '@/services/sessions';
+import { SessionInfo } from '@/types/sessions';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import React from 'react';
-import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Image as RNImage,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 const TravelerHomeScreen: React.FC = () => {
   const { user } = useAuth();
+  const [recommendedSessions, setRecommendedSessions] = useState<
+    SessionInfo[]
+  >([]);
+  const [isLoadingRecommended, setIsLoadingRecommended] = useState(false);
+
+  // 날짜를 표시용 형식으로 변환 (예: 2024.01.15)
+  const formatDateForDisplay = (dateString: string): string => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}.${month}.${day}`;
+  };
+
+  // 사용자의 관심사 기반으로 맞춤 여행 조회
+  useEffect(() => {
+    const fetchRecommendedSessions = async () => {
+      if (!user?.tagIds || user.tagIds.length === 0) {
+        return;
+      }
+
+      setIsLoadingRecommended(true);
+      try {
+        const response = await searchSessions(
+          undefined, // keyword
+          undefined, // searchStartDate
+          undefined, // searchEndDate
+          undefined, // regionIds
+          user.tagIds, // tagIds - 사용자의 관심사 태그
+          0, // page
+          4 // size - 최대 4개까지
+        );
+
+        if (response && response.sessions) {
+          // 최대 4개까지만 표시
+          setRecommendedSessions(response.sessions.slice(0, 4));
+        }
+      } catch (error) {
+        console.error('맞춤 여행 조회 에러:', error);
+      } finally {
+        setIsLoadingRecommended(false);
+      }
+    };
+
+    fetchRecommendedSessions();
+  }, [user?.tagIds]);
+
   return (
     <CustomSafeAreaView>
       <View className='flex-1 bg-gray-50'>
@@ -19,7 +76,7 @@ const TravelerHomeScreen: React.FC = () => {
           >
             <View className='w-10 h-10 rounded-full bg-gray-200 justify-center items-center'>
               {user?.profileImageUrl ? (
-                <Image
+                <RNImage
                   source={{ uri: user.profileImageUrl }}
                   style={{ width: 40, height: 40, borderRadius: 20 }}
                 />
@@ -63,48 +120,76 @@ const TravelerHomeScreen: React.FC = () => {
               <Text className='text-3xl font-bold text-gray-900'>
                 맞춤 여행 추천
               </Text>
-              <TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => router.push('/traveler/explore')}
+              >
                 <Text className='text-blue-600 font-semibold'>더보기</Text>
               </TouchableOpacity>
             </View>
 
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerClassName='pr-2'
-            >
-              {/* 추천 상품 리스트 */}
-              {[1, 2, 3, 4].map((item) => (
-                <TouchableOpacity
-                  key={item}
-                  className='bg-white rounded-2xl mr-3 overflow-hidden shadow-sm border border-gray-100'
-                  style={{ width: 180 }}
-                >
-                  <Image
-                    source={{ uri: 'https://via.placeholder.com/200' }}
-                    style={{ width: '100%', height: 120 }}
-                  />
-                  <View className='p-4'>
-                    <Text
-                      className='text-lg font-semibold text-gray-900 mb-2'
-                      numberOfLines={2}
-                    >
-                      서울 도심 탐방 패키지
-                    </Text>
-                    <View className='flex-row items-center'>
-                      <Ionicons
-                        name='calendar-outline'
-                        size={14}
-                        color='#6B7280'
-                      />
-                      <Text className='text-sm text-gray-600 ml-1'>
-                        2024.01.15
-                      </Text>
+            {isLoadingRecommended ? (
+              <View className='py-8 items-center'>
+                <ActivityIndicator size='large' color='#3B82F6' />
+              </View>
+            ) : recommendedSessions.length > 0 ? (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerClassName='pr-2'
+              >
+                {/* 추천 상품 리스트 */}
+                {recommendedSessions.map((session) => (
+                  <TouchableOpacity
+                    key={session.sessionId}
+                    className='bg-white rounded-2xl mr-3 overflow-hidden shadow-sm border border-gray-100'
+                    style={{ width: 180 }}
+                    onPress={() =>
+                      router.push(
+                        `/traveler/trip/${session.sessionId}` as any
+                      )
+                    }
+                  >
+                    <View className='bg-gray-200' style={{ width: '100%', height: 120 }}>
+                      {session.firstImageUrl ? (
+                        <Image
+                          source={{ uri: session.firstImageUrl }}
+                          style={{ width: '100%', height: 120 }}
+                          contentFit='cover'
+                        />
+                      ) : (
+                        <View className='w-full h-full items-center justify-center'>
+                          <Ionicons name='image-outline' size={40} color='#9CA3AF' />
+                        </View>
+                      )}
                     </View>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+                    <View className='p-4'>
+                      <Text
+                        className='text-lg font-semibold text-gray-900 mb-2'
+                        numberOfLines={2}
+                      >
+                        {session.title}
+                      </Text>
+                      <View className='flex-row items-center'>
+                        <Ionicons
+                          name='calendar-outline'
+                          size={14}
+                          color='#6B7280'
+                        />
+                        <Text className='text-sm text-gray-600 ml-1'>
+                          {formatDateForDisplay(session.startDate)}
+                        </Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            ) : (
+              <View className='py-8 items-center'>
+                <Text className='text-gray-500 text-base'>
+                  관심사에 맞는 여행을 찾을 수 없습니다
+                </Text>
+              </View>
+            )}
           </View>
 
           {/* 이달의 가이드 순위 섹션 */}

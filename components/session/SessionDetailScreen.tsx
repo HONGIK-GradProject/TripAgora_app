@@ -338,7 +338,7 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
             Toast.show({
               type: 'error',
               text1: '참여 신청 실패',
-              text2: '본인의 여행 또는 이미 신청한 여행입니다',
+              text2: '다른 날짜에 참여 중인 여행이 있는지 확인해 주세요.',
             });
           } finally {
             setIsSubmitting(false);
@@ -470,44 +470,48 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
   const handleDeleteSession = useCallback(async () => {
     if (!id) return;
 
-    Alert.alert('여행 삭제', '정말로 이 여행을 삭제하시겠습니까?', [
-      {
-        text: '취소',
-        style: 'cancel',
-      },
-      {
-        text: '삭제',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            const success = await deleteSession(parseInt(id));
-            if (success) {
-              Toast.show({
-                type: 'success',
-                text1: '여행이 삭제되었습니다.',
-              });
-              // 공통 네비게이션 핸들러 사용
-              const handled = handleNavigateBack();
-              if (!handled) {
-                router.back();
+    Alert.alert(
+      '여행 기록 삭제',
+      '이 여행을 목록에서 삭제하시겠습니까?\n삭제 후 복구가 불가능합니다.',
+      [
+        {
+          text: '취소',
+          style: 'cancel',
+        },
+        {
+          text: '삭제',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const success = await deleteSession(parseInt(id));
+              if (success) {
+                Toast.show({
+                  type: 'success',
+                  text1: '여행이 삭제되었습니다.',
+                });
+                // 공통 네비게이션 핸들러 사용
+                const handled = handleNavigateBack();
+                if (!handled) {
+                  router.back();
+                }
+              } else {
+                Toast.show({
+                  type: 'error',
+                  text1: '여행 삭제에 실패했습니다.',
+                });
               }
-            } else {
+            } catch (error) {
+              console.error('여행 삭제 에러:', error);
               Toast.show({
                 type: 'error',
-                text1: '여행 삭제에 실패했습니다.',
+                text1: '여행 삭제 중 오류가 발생했습니다.',
+                text2: '잠시 후 다시 시도해주세요.',
               });
             }
-          } catch (error) {
-            console.error('여행 삭제 에러:', error);
-            Toast.show({
-              type: 'error',
-              text1: '여행 삭제 중 오류가 발생했습니다.',
-              text2: '잠시 후 다시 시도해주세요.',
-            });
-          }
+          },
         },
-      },
-    ]);
+      ]
+    );
   }, [id, router, handleNavigateBack]);
 
   // 섹션으로 스크롤
@@ -1208,7 +1212,10 @@ const SessionDetailContent: React.FC<SessionDetailScreenProps> = ({
               <TouchableOpacity
                 style={[styles.ctaButton, styles.primaryButton]}
                 onPress={() => {
-                  router.push('/ReviewWriteScreen' as any);
+                  router.push({
+                    pathname: '/ReviewWriteScreen',
+                    params: { sessionId: id },
+                  } as any);
                 }}
               >
                 <Text style={styles.primaryButtonText}>리뷰 작성</Text>

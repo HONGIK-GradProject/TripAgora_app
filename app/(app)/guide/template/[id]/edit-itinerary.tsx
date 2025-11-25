@@ -20,6 +20,7 @@ import {
   UIManager,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
 // Enable LayoutAnimation for Android
@@ -46,6 +47,7 @@ const EditTemplateItineraryScreen: React.FC = () => {
   const router = useRouter();
   const params = useLocalSearchParams<ItineraryParamProps>();
   const { updateItinerary, setDay } = useTemplateDetails();
+  const insets = useSafeAreaInsets();
 
   const parseDay = (dayParam?: string) => {
     const parsed = parseInt(dayParam ?? '', 10);
@@ -166,9 +168,16 @@ const EditTemplateItineraryScreen: React.FC = () => {
     toggleMapExpansion(false);
   };
 
+  // 헤더 높이를 고려한 keyboardVerticalOffset 계산 (헤더: paddingTop 12 + paddingBottom 10 + 아이콘/텍스트 높이 약 30)
+  const headerHeight = 52;
+  const keyboardVerticalOffset =
+    Platform.OS === 'ios' ? insets.top + headerHeight : headerHeight;
+
   return (
     <CustomSafeAreaView>
-      <CustomKeyboardAvoidingView>
+      <CustomKeyboardAvoidingView
+        keyboardVerticalOffset={keyboardVerticalOffset}
+      >
         <View style={styles.container}>
           {!isMapExpanded && (
             <View style={styles.header}>
@@ -231,7 +240,11 @@ const EditTemplateItineraryScreen: React.FC = () => {
           </View>
 
           {!isMapExpanded && (
-            <ScrollView contentContainerStyle={styles.scrollViewContent}>
+            <ScrollView
+              contentContainerStyle={styles.scrollViewContent}
+              keyboardShouldPersistTaps='handled'
+              keyboardDismissMode='interactive'
+            >
               <View style={styles.infoRow}>
                 <View style={styles.dayInfoWrapper}>
                   <View style={styles.dayInfoContainer}>
