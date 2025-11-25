@@ -10,9 +10,6 @@ const getPreviousLocations = async (
   return response.data;
 };
 
-/**
- * 공지 관련 API 함수들을 모아놓은 객체입니다.
- */
 export const LocationSharingApi = {
   getPreviousLocations
 };

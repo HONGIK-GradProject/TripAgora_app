@@ -92,7 +92,7 @@ const LocationSharingView = forwardRef<
   const sortedLocations = useMemo(() => {
     if (!locations) return [];
 
-    // 1. Pre-calculate distance for each location
+    // 1. 거리 계산
     const locationsWithDistance = locations.map((loc) => ({
       ...loc,
       distance:
@@ -101,17 +101,15 @@ const LocationSharingView = forwardRef<
           : null,
     }));
 
-    // 2. Sort the new array
+    // 2. 정렬
     locationsWithDistance.sort((a, b) => {
-      // "Me" always comes first
+      // '나' 이면 맨 처음에 오게 설정
       if (a.userId === user?._id) return -1;
       if (b.userId === user?._id) return 1;
 
-      // Group users with valid distance before those without
       if (a.distance !== null && b.distance === null) return -1;
       if (a.distance === null && b.distance !== null) return 1;
 
-      // For users without valid distance, keep relative order
       if (a.distance === null && b.distance === null) return 0;
 
       // Sort by distance (will not be null here)
