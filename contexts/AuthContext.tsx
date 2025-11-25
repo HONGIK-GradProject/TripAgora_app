@@ -10,7 +10,7 @@ import { usePushToken } from '@/hooks/usePushToken';
 import { clearTokens, getTokens, saveTokens } from '@/lib/tokenStorage';
 import { reissueToken } from '@/services/auth';
 import { kakaoSignIn, kakaoSignOut } from '@/services/kakaoAuth';
-import { getUser } from '@/services/users';
+import { getUser, setUserFCMToken } from '@/services/users';
 import { AuthDecodedToken } from '@/types/auth';
 import { UserData, UserRole } from '@/types/users';
 import { isAxiosError } from 'axios';
@@ -261,15 +261,20 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     loadInitialAuth();
   }, [processAndSetAuth, signOutHandler]);
 
-  /**
-   * TODO: FCM PushToken을 동기화하는 API가 완성되면 해당 로직을 다시 작성해야 합니다.
-   */
   useEffect(() => {
-    console.log('PushToken:', pushToken);
+    const syncPushToken = async () => {
+      if (pushToken && user?.id) {
+        console.log('Syncing PushToken:', pushToken);
+        await setUserFCMToken(pushToken);
+      }
+    };
+
+    syncPushToken();
+
     if (pushError) {
       console.error('PushToken error', pushError);
     }
-  }, [pushToken, pushError]);
+  }, [pushToken, pushError, user?.id]);
 
   return (
     <AuthContext.Provider
