@@ -183,7 +183,7 @@ const TravelerTripListScreen: React.FC = () => {
                 // 삭제 성공 시 목록 새로고침
                 refetchCompleted();
               } catch (error) {
-                Alert.alert('오류', '세션 삭제에 실패했습니다.');
+                Alert.alert('오류', '여행 기록 삭제에 실패했습니다.');
               }
             },
           },
