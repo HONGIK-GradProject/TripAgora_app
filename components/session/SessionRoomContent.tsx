@@ -4,6 +4,7 @@ import {
 } from '@/components/map/InteractiveMapView';
 import FullScreenLoader from '@/components/ui/FullScreenLoader';
 import { useSessionDetails } from '@/hooks/sessions/useSessionDetails';
+import { sendSOS } from '@/services/sos';
 import { SessionItinerary } from '@/types/sessions';
 import { Ionicons } from '@expo/vector-icons';
 import type {
@@ -365,7 +366,11 @@ const SessionRoomContent: React.FC<SessionRoomContentProps> = ({
       {
         text: '보내기',
         style: 'destructive',
-        onPress: () => console.log('SOS 보내기'),
+        onPress: async () => {
+          if (roomId) {
+            await sendSOS(roomId);
+          }
+        },
       },
     ]);
   };
