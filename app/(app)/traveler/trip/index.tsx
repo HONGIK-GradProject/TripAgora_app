@@ -2,6 +2,7 @@ import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { useCompletedSessionList } from '@/hooks/sessions/useCompletedSessionList';
 import { useParticipatingSessionList } from '@/hooks/sessions/useParticipatingSessionList';
+import { cancelParticipation } from '@/services/sessions';
 import { SessionCompletedInfo, SessionInfo } from '@/types/sessions';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
@@ -9,6 +10,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   RefreshControl,
   Text,
@@ -50,8 +52,14 @@ const TravelerTripListScreen: React.FC = () => {
     (tab: 'upcoming' | 'completed') => {
       setActiveTab(tab);
       if (tab === 'upcoming') {
-        refetchParticipating(['RECRUITING', 'RECRUITMENT_CLOSED']);
+        refetchParticipating([
+          'RECRUITING',
+          'RECRUITMENT_CLOSED',
+          'IN_PROGRESS',
+        ]);
       } else {
+        // 완료 탭일 때도 진행 중인 여행을 조회하기 위해 participatingSessions도 새로고침
+        refetchParticipating(['IN_PROGRESS']);
         refetchCompleted();
       }
     },
@@ -92,15 +100,13 @@ const TravelerTripListScreen: React.FC = () => {
     return filtered;
   }, [sessions, activeTab]);
 
-  // 현재 진행 중인 세션 (IN_PROGRESS 상태) - 예정 탭에서만 사용
+  // 현재 진행 중인 세션 (IN_PROGRESS 상태) - 탭과 관계없이 항상 표시
   const currentSession = useMemo(() => {
-    if (activeTab === 'upcoming') {
-      return participatingSessions.find(
-        (session) => session.status === 'IN_PROGRESS'
-      );
-    }
-    return undefined;
-  }, [participatingSessions, activeTab]);
+    // 탭과 관계없이 항상 participatingSessions에서 진행 중인 세션 찾기
+    return participatingSessions.find(
+      (session) => session.status === 'IN_PROGRESS'
+    );
+  }, [participatingSessions]);
 
   // 화면 포커스 시 데이터 새로고침
   useFocusEffect(
@@ -112,6 +118,8 @@ const TravelerTripListScreen: React.FC = () => {
           'IN_PROGRESS',
         ]);
       } else {
+        // 완료 탭일 때도 진행 중인 여행을 조회하기 위해 participatingSessions도 새로고침
+        refetchParticipating(['IN_PROGRESS']);
         refetchCompleted();
       }
     }, [activeTab, refetchParticipating, refetchCompleted])
@@ -152,6 +160,38 @@ const TravelerTripListScreen: React.FC = () => {
     }
     return null;
   };
+
+  /**
+   * 세션 삭제 핸들러
+   */
+  const handleDeleteSession = useCallback(
+    async (sessionId: number) => {
+      Alert.alert(
+        '여행 기록 삭제',
+        '이 여행을 목록에서 삭제하시겠습니까?\n삭제 후 복구가 불가능합니다.',
+        [
+          {
+            text: '취소',
+            style: 'cancel',
+          },
+          {
+            text: '삭제',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await cancelParticipation(sessionId);
+                // 삭제 성공 시 목록 새로고침
+                refetchCompleted();
+              } catch (error) {
+                Alert.alert('오류', '여행 기록 삭제에 실패했습니다.');
+              }
+            },
+          },
+        ]
+      );
+    },
+    [refetchCompleted]
+  );
 
   /**
    * 세션 아이템을 렌더링하는 함수
@@ -247,22 +287,36 @@ const TravelerTripListScreen: React.FC = () => {
           </View>
         </TouchableOpacity>
 
-        {/* 완료된 세션 중 리뷰를 작성한 적이 없는 경우에만 리뷰 버튼 표시 */}
-        {isCompleted && !hasWrittenReview && (
+        {/* 완료된 세션 하단 버튼들 */}
+        {isCompleted && (
           <View className='px-5 pb-5 border-t border-gray-100'>
+            {/* 리뷰를 작성한 적이 없는 경우 리뷰 버튼 표시 */}
+            {!hasWrittenReview && (
+              <TouchableOpacity
+                className='bg-purple-500 rounded-xl py-3 flex-row items-center justify-center mb-2'
+                onPress={() =>
+                  router.push({
+                    pathname: '/ReviewWriteScreen',
+                    params: { sessionId: session.sessionId.toString() },
+                  } as any)
+                }
+                activeOpacity={0.8}
+              >
+                <Ionicons name='star' size={20} color='#fff' />
+                <Text className='text-white font-semibold text-base ml-2'>
+                  리뷰 작성하기
+                </Text>
+              </TouchableOpacity>
+            )}
+            {/* 세션 삭제 버튼 */}
             <TouchableOpacity
-              className='bg-purple-500 rounded-xl py-3 flex-row items-center justify-center'
-              onPress={() =>
-                router.push({
-                  pathname: '/ReviewWriteScreen',
-                  params: { sessionId: session.sessionId.toString() },
-                } as any)
-              }
+              className='bg-red-500 rounded-xl py-3 flex-row items-center justify-center'
+              onPress={() => handleDeleteSession(session.sessionId)}
               activeOpacity={0.8}
             >
-              <Ionicons name='star' size={20} color='#fff' />
+              <Ionicons name='trash-outline' size={20} color='#fff' />
               <Text className='text-white font-semibold text-base ml-2'>
-                리뷰 작성하기
+                여행 기록 삭제
               </Text>
             </TouchableOpacity>
           </View>
@@ -457,7 +511,11 @@ const TravelerTripListScreen: React.FC = () => {
                 showsVerticalScrollIndicator={false}
                 onEndReached={() => {
                   if (activeTab === 'upcoming') {
-                    loadMoreParticipating(['RECRUITING', 'RECRUITMENT_CLOSED']);
+                    loadMoreParticipating([
+                      'RECRUITING',
+                      'RECRUITMENT_CLOSED',
+                      'IN_PROGRESS',
+                    ]);
                   } else {
                     loadMoreCompleted();
                   }

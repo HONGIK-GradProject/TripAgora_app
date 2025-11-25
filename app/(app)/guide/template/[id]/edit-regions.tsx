@@ -31,10 +31,11 @@ const EditTemplateRegionsScreen: React.FC = () => {
     useState<number[]>(regionIds);
   const [isSaving, setIsSaving] = useState(false);
 
-  const showToast = () => {
+  const showToast = (errorMessage?: string) => {
     Toast.show({
       type: 'error',
       text1: '지역 수정 중 오류가 발생했습니다.',
+      text2: errorMessage || undefined,
     });
   };
 
@@ -75,7 +76,9 @@ const EditTemplateRegionsScreen: React.FC = () => {
       router.back();
     } catch (error) {
       console.error(error);
-      showToast();
+      const errorMessage =
+        error instanceof Error ? error.message : undefined;
+      showToast(errorMessage);
     } finally {
       setIsSaving(false);
     }
