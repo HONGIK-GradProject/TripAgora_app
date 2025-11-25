@@ -17,9 +17,9 @@ import {
 
 const TravelerHomeScreen: React.FC = () => {
   const { user } = useAuth();
-  const [recommendedSessions, setRecommendedSessions] = useState<
-    SessionInfo[]
-  >([]);
+  const [recommendedSessions, setRecommendedSessions] = useState<SessionInfo[]>(
+    []
+  );
   const [isLoadingRecommended, setIsLoadingRecommended] = useState(false);
 
   // 날짜를 표시용 형식으로 변환 (예: 2024.01.15)
@@ -145,11 +145,14 @@ const TravelerHomeScreen: React.FC = () => {
                     style={{ width: 180 }}
                     onPress={() =>
                       router.push(
-                        `/traveler/trip/${session.sessionId}` as any
+                        `/traveler/explore/${session.sessionId}` as any
                       )
                     }
                   >
-                    <View className='bg-gray-200' style={{ width: '100%', height: 120 }}>
+                    <View
+                      className='bg-gray-200'
+                      style={{ width: '100%', height: 120 }}
+                    >
                       {session.firstImageUrl ? (
                         <Image
                           source={{ uri: session.firstImageUrl }}
@@ -158,7 +161,11 @@ const TravelerHomeScreen: React.FC = () => {
                         />
                       ) : (
                         <View className='w-full h-full items-center justify-center'>
-                          <Ionicons name='image-outline' size={40} color='#9CA3AF' />
+                          <Ionicons
+                            name='image-outline'
+                            size={40}
+                            color='#9CA3AF'
+                          />
                         </View>
                       )}
                     </View>
