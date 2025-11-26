@@ -383,7 +383,7 @@ const GuideTripListScreen: React.FC = () => {
         </View>
 
         {/* 여행 목록 */}
-        <View className='flex-1 px-6 py-4'>
+        <View className='flex-1 px-6 pt-4'>
           {isLoading && filteredSessions.length === 0 ? (
             <View className='flex-1 items-center justify-center py-20'>
               <ActivityIndicator size='large' color='#5B67F5' />

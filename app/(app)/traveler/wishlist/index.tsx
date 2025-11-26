@@ -4,7 +4,8 @@ import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
 import { getWishlist } from '@/services/wishlist';
 import { SessionInfo } from '@/types/sessions';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   RefreshControl,
@@ -51,10 +52,12 @@ const WishListScreen: React.FC = () => {
     }
   }, []);
 
-  // 컴포넌트 마운트 시 위시리스트 목록 가져오기
-  useEffect(() => {
-    fetchWishlist();
-  }, [fetchWishlist]);
+  // 화면 포커스 시 위시리스트 목록 자동 업데이트
+  useFocusEffect(
+    useCallback(() => {
+      fetchWishlist();
+    }, [fetchWishlist])
+  );
 
   // 날짜 포맷팅 함수
   const formatDate = useCallback((dateString: string) => {
@@ -91,7 +94,7 @@ const WishListScreen: React.FC = () => {
           <Text className='text-3xl font-bold text-gray-900'>나의 찜 목록</Text>
         </View>
 
-        <View className='flex-1 bg-gray-50 p-4'>
+        <View className='flex-1 bg-gray-50 p-4 pb-0'>
           {activeTab === 'product' ? (
             <>
               {error ? (

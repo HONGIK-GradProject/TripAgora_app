@@ -19,6 +19,7 @@ interface ReviewData {
   content: string;
   rating: number;
   createdAt: string; // LocalDateTime을 string으로 변환
+  templateTitle: string; // 가이드별 리뷰 조회 시 템플릿 제목
 }
 
 type ReviewCreateResponse = APIResponse<ReviewData>;

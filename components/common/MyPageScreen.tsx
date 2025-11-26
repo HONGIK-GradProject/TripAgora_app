@@ -17,14 +17,13 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
-import { authApi } from '@/api/auth';
 import CustomImagePicker from '@/components/ui/ImagePicker';
 import { useAuth } from '@/hooks/useAuth';
 import { deleteUserAccount, setProfileImage } from '@/services/users';
 import { UserRole } from '@/types/users';
 
 const MyPageScreen: React.FC = () => {
-  const { user, setUser, switchUserRole } = useAuth();
+  const { user, setUser, switchUserRole, signOut } = useAuth();
   const insets = useSafeAreaInsets();
   const [imageLoadError, setImageLoadError] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -53,7 +52,7 @@ const MyPageScreen: React.FC = () => {
   };
 
   const handleSignOut = async () => {
-    await authApi.signOut();
+    await signOut();
     router.replace('/login');
   };
 
@@ -309,7 +308,7 @@ const MyPageScreen: React.FC = () => {
       {/* 메뉴 섹션 */}
       <ScrollView
         className='flex-1 mt-5'
-        contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
+        contentContainerStyle={{ paddingBottom: insets.bottom }}
       >
         <View className='mx-5'>
           <View className='bg-white rounded-2xl shadow-sm overflow-hidden'>

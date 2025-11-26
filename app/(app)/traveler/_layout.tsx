@@ -1,4 +1,4 @@
-import { Tabs, useSegments } from 'expo-router';
+import { Tabs, useRouter, useSegments } from 'expo-router';
 import React from 'react';
 import { Platform, Pressable, View } from 'react-native';
 
@@ -15,10 +15,39 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const TravelerTabLayout: React.FC = () => {
   const colorScheme = useColorScheme();
   const { bottom } = useSafeAreaInsets();
+  const router = useRouter();
 
-  const segment = useSegments();
-  const page = segment[segment.length - 1];
+  const segments = useSegments();
+  const page = segments[segments.length - 1];
   const pagesToHide = ['edit-tags'];
+
+  // 현재 활성화된 탭이 해당 탭인지 확인하는 함수
+  // segments 구조: ['(app)', 'traveler', 'home'] 또는 ['(app)', 'traveler', 'explore', '123']
+  const isTabActive = (tabName: string) => {
+    // segments[2]가 탭 이름과 일치하는지 확인
+    return segments[2] === tabName;
+  };
+
+  // 현재 경로가 해당 탭의 index인지 확인하는 함수
+  // segments.length === 3이면 index에 있음 (예: ['(app)', 'traveler', 'home'])
+  const isTabIndex = (tabName: string) => {
+    return segments[2] === tabName && segments.length === 3;
+  };
+
+  // 탭을 눌렀을 때 스택을 초기화하는 핸들러
+  const handleTabPress = (tabName: string, e: any) => {
+    // 이미 활성화된 탭을 다시 누른 경우
+    if (isTabActive(tabName)) {
+      // 이미 index에 있으면 아무것도 하지 않음
+      if (isTabIndex(tabName)) {
+        e.preventDefault();
+        return;
+      }
+      // 하위 경로에 있으면 스택을 초기화하고 루트로 이동
+      e.preventDefault();
+      router.replace(`/traveler/${tabName}` as any);
+    }
+  };
   return (
     <Tabs
       screenOptions={{
@@ -57,6 +86,9 @@ const TravelerTabLayout: React.FC = () => {
               <Ionicons name='home-outline' size={26} color={color} />
             ),
         }}
+        listeners={{
+          tabPress: (e) => handleTabPress('home', e),
+        }}
       />
       <Tabs.Screen
         name='explore'
@@ -68,6 +100,9 @@ const TravelerTabLayout: React.FC = () => {
             ) : (
               <Ionicons name='search-outline' size={26} color={color} />
             ),
+        }}
+        listeners={{
+          tabPress: (e) => handleTabPress('explore', e),
         }}
       />
       <Tabs.Screen
@@ -103,6 +138,9 @@ const TravelerTabLayout: React.FC = () => {
           },
           tabBarLabel: () => null, // 중앙 버튼은 라벨 숨김
         }}
+        listeners={{
+          tabPress: (e) => handleTabPress('trip', e),
+        }}
       />
       <Tabs.Screen
         name='wishlist'
@@ -115,6 +153,9 @@ const TravelerTabLayout: React.FC = () => {
               <MaterialIcons name='favorite-border' size={26} color={color} />
             ),
         }}
+        listeners={{
+          tabPress: (e) => handleTabPress('wishlist', e),
+        }}
       />
       <Tabs.Screen
         name='my-page'
@@ -126,6 +167,9 @@ const TravelerTabLayout: React.FC = () => {
             ) : (
               <MaterialIcons name='person-outline' size={26} color={color} />
             ),
+        }}
+        listeners={{
+          tabPress: (e) => handleTabPress('my-page', e),
         }}
       />
     </Tabs>

@@ -163,7 +163,7 @@ const ReviewWriteScreen: React.FC = () => {
               );
             }
 
-            if (response.code === 200 || response.code === 0) {
+            if (response.code === 201 || response.code === 0) {
               Toast.show({
                 type: 'success',
                 text1: hasWrittenReview
