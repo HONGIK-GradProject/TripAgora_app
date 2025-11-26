@@ -48,16 +48,16 @@ export default function RootLayout() {
   useEffect(() => {
     if (lastNotificationResponse && lastNotificationResponse.actionIdentifier === Notifications.DEFAULT_ACTION_IDENTIFIER) {
       // TODO: url을 실제 deep link property로 변경
-      const { url, type } = lastNotificationResponse.notification.request.content.data;
-      if (url) {
-        router.push(url as any);
+      const { type, sessionId } = lastNotificationResponse.notification.request.content.data;
+      if (sessionId) {
+        router.push(`/traveler/trip/${sessionId}/session-room` as any);
       }
     }
   }, [lastNotificationResponse]);
 
   useEffect(() => {
     const subscription = Notifications.addNotificationReceivedListener(notification => {
-      // TODO: Add new foreground task
+      console.log(notification);
     });
 
     return () => subscription.remove();
