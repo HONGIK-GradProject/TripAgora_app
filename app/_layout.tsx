@@ -22,7 +22,6 @@ import * as Notifications from 'expo-notifications';
 // 앱이 포어그라운드에서 실행 중일 때 알림을 어떻게 처리할지 설정합니다.
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
     shouldShowBanner: true,
@@ -47,7 +46,6 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (lastNotificationResponse && lastNotificationResponse.actionIdentifier === Notifications.DEFAULT_ACTION_IDENTIFIER) {
-      // TODO: url을 실제 deep link property로 변경
       const { type, sessionId } = lastNotificationResponse.notification.request.content.data;
       if (sessionId) {
         router.push(`/traveler/trip/${sessionId}/session-room` as any);
@@ -60,7 +58,9 @@ export default function RootLayout() {
       console.log(notification);
     });
 
-    return () => subscription.remove();
+    return () => {
+      subscription.remove();
+    }
   }, []);
 
   if (!loaded) {
