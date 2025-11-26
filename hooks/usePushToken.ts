@@ -1,11 +1,10 @@
-import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 
-export const useExpoPushToken = () => {
-  const [expoPushToken, setExpoPushToken] = useState<string | undefined>();
+export const usePushToken = () => {
+  const [pushToken, setPushToken] = useState<string | undefined>();
   const [error, setError] = useState<any>();
 
   useEffect(() => {
@@ -23,17 +22,11 @@ export const useExpoPushToken = () => {
           throw new Error('Failed to get push token for push notification!');
         }
 
-        const projectId =
-        Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
+        // Use getDevicePushTokenAsync for FCM/APNS tokens
+        const token = (await Notifications.getDevicePushTokenAsync()).data;
+        setPushToken(token);
 
-        if (!projectId) {
-          throw new Error('Project ID not found');
-        }
-
-        const token = (await Notifications.getExpoPushTokenAsync({projectId})).data;
-        setExpoPushToken(token);
-
-        console.log('New ExpoPushToken:', token);
+        console.log('New FCM/APNS PushToken:', token);
 
         if (Platform.OS === 'android') {
           Notifications.setNotificationChannelAsync('default', {
@@ -53,5 +46,5 @@ export const useExpoPushToken = () => {
     }
   }, []);
 
-  return { expoPushToken, error };
+  return { pushToken, error };
 };

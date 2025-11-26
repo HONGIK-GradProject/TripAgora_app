@@ -35,13 +35,18 @@ export default {
     plugins: [
       'expo-router',
       'expo-localization',
-      'expo-notifications',
+      [
+        'expo-notifications',
+        {
+          defaultChannel: 'default',
+        }
+      ],
       [
         'expo-splash-screen',
         {
           image: './assets/images/tripagora-logo-large.png',
           backgroundColor: '#ffffff',
-          imageWidth: 200
+          imageWidth: 400
         },
       ],
       [

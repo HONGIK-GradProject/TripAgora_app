@@ -103,6 +103,7 @@ export const setupInterceptors = (
     }
     if (axios.isAxiosError(error)) {
       console.error('API 오류:', error.toJSON());
+      console.error('Error response:', error.response);
     } else {
       console.error('예상치 못한 오류:', error);
     }
