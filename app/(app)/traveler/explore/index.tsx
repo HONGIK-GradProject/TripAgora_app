@@ -8,6 +8,7 @@ import { searchSessions } from '@/services/sessions';
 import { SessionInfo } from '@/types/sessions';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useFocusEffect, useRouter, useSegments } from 'expo-router';
 import React, {
   useCallback,
   useEffect,
@@ -32,6 +33,8 @@ import {
 
 const TravelerExploreScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const segments = useSegments();
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [submittedQuery, setSubmittedQuery] = useState<string>('');
   const [sessions, setSessions] = useState<SessionInfo[]>([]);
@@ -39,6 +42,20 @@ const TravelerExploreScreen: React.FC = () => {
   const [hasNextPage, setHasNextPage] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+
+  // explore 탭이 포커스될 때 스택을 초기화
+  useFocusEffect(
+    useCallback(() => {
+      // 현재 경로가 explore 탭의 루트(index)가 아닌 경우
+      // 즉, explore/[id] 같은 하위 경로에 있는 경우 스택을 초기화
+      const exploreIndex = (segments as string[]).indexOf('explore');
+      if (exploreIndex !== -1 && segments.length > exploreIndex + 2) {
+        // explore 탭 내부에 있지만 루트가 아닌 경우 (예: explore/[id])
+        // explore 탭의 루트로 리셋
+        router.replace('/traveler/explore');
+      }
+    }, [segments, router])
+  );
 
   // 필터 상태
   const [searchStartDate, setSearchStartDate] = useState<Date | undefined>(
