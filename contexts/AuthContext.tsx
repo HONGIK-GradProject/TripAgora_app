@@ -157,7 +157,11 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const response = await authApi.signIn(socialAccessToken);
 
       if (response.data) {
-        const { accessToken: newAccessToken, refreshToken, isNewUser: newUserStatus } = response.data;
+        const {
+          accessToken: newAccessToken,
+          refreshToken,
+          isNewUser: newUserStatus,
+        } = response.data;
         await processAndSetAuth(newAccessToken, refreshToken);
         setIsNewUser(newUserStatus);
         console.log('로그인 성공, 토큰 저장 및 역할 설정 완료');
@@ -291,4 +295,3 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 };
 
 export { AuthContext, AuthProvider };
-
