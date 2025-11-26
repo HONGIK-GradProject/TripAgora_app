@@ -2,23 +2,20 @@ import {
   InteractiveMapView,
   InteractiveMapViewRef,
 } from '@/components/map/InteractiveMapView';
-import { useAuth } from '@/hooks/useAuth';
-import { useLocationPermission } from '@/hooks/useLocationPermission';
+import { UserLocation } from '@/types/location-sharing';
+import { getHaversineDistance } from '@/utils/coords';
 import { Ionicons } from '@expo/vector-icons';
 import { ClusterMarkerProp } from '@mj-studio/react-native-naver-map';
 import { Image } from 'expo-image';
-import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
-import haversine from 'haversine-distance';
 import React, {
+  forwardRef,
   useCallback,
-  useEffect,
+  useImperativeHandle,
   useMemo,
   useRef,
-  useState,
 } from 'react';
 import {
-  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -27,17 +24,16 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-interface LocationData {
-  userId: number;
-  nickname: string;
-  latitude: number;
-  longitude: number;
-  profileImageUrl?: string;
+interface LocationSharingProps {
+  myLocation?: UserLocation;
+  locations?: UserLocation[];
+  user?: {
+    _id: string | number;
+  };
+  onPressBack?: () => void;
 }
 
-export interface LocationSharingProps {
-  roomId: number;
-}
+export type LocationSharingViewRef = InteractiveMapViewRef;
 
 const COLORS = ['blue', 'green', 'pink', 'lightblue', 'yellow', 'red'];
 const COLOR_CODES = [
@@ -49,146 +45,87 @@ const COLOR_CODES = [
   '#FF4D60',
 ];
 
-const MOCK_DATA = [
-  {
-    userId: 123,
-    nickname: 'User1',
-    latitude: 37.5665,
-    longitude: 126.978,
-    profileImageUrl: undefined,
-  },
-  {
-    userId: 321,
-    nickname: 'User2',
-    latitude: 37.57,
-    longitude: 126.98,
-    profileImageUrl: undefined,
-  },
-];
-
-const LocationSharingView: React.FC<LocationSharingProps> = ({ roomId }) => {
-  const [locations, setLocations] = useState<LocationData[]>(MOCK_DATA);
-  const [myLocation, setMyLocation] = useState<LocationData | null>(null);
-
-  const { user } = useAuth();
-  const router = useRouter();
+const LocationSharingView = forwardRef<
+  LocationSharingViewRef,
+  LocationSharingProps
+>(({ myLocation, locations, user, onPressBack }, ref) => {
+  const interactiveMapViewRef = useRef<InteractiveMapViewRef>(null);
   const insets = useSafeAreaInsets();
-  const mapViewRef = useRef<InteractiveMapViewRef>(null);
-  // Location 권한
-  const { status, requestPermission } = useLocationPermission();
+  const router = useRouter();
 
-  const handleUpdateLocation = useCallback(async () => {
-    if (status !== Location.PermissionStatus.GRANTED) {
-      return;
-    }
+  useImperativeHandle(ref, () => ({
+    animateCameraTo: (camera) => {
+      interactiveMapViewRef.current?.animateCameraTo(camera);
+    },
+    animateRegionTo: (camera) => {
+      interactiveMapViewRef.current?.animateRegionTo(camera);
+    },
+  }));
 
-    const location = await Location.getCurrentPositionAsync({});
-
-    const { latitude, longitude } = location.coords;
-    setMyLocation({
-      latitude,
-      longitude,
-      userId: user?.id || 0,
-      nickname: user?.nickname || '',
-      profileImageUrl: user?.profileImageUrl,
-    });
-  }, [status, user]);
-
-  useEffect(() => {
-    const handleInit = async () => {
-      await handleGetPermission();
-      await handleUpdateLocation();
-    };
-
-    handleInit();
-  }, [roomId]);
-
-  useEffect(() => {
-    if (status === Location.PermissionStatus.GRANTED) {
-      const intervalId = setInterval(handleUpdateLocation, 5000);
-      return () => clearInterval(intervalId);
-    }
-  }, [status, handleUpdateLocation]);
-
-  const handleGetPermission = async () => {
-    let currentStatus = status;
-
-    if (currentStatus !== Location.PermissionStatus.GRANTED) {
-      currentStatus = await requestPermission();
-    }
-
-    if (currentStatus !== Location.PermissionStatus.GRANTED) {
-      Alert.alert(
-        '권한 필요',
-        '현재 위치 기능을 사용하려면 위치 정보 접근 권한이 필요합니다.'
-      );
-      return;
-    }
+  const handlePressBack = () => {
+    onPressBack?.();
+    router.back();
   };
 
-  const finalLocations = useMemo(() => {
-    const result: LocationData[] = [];
-
-    // 내 위치를 항상 맨 위에 추가 (위치가 없어도)
-    if (user) {
-      if (myLocation) {
-        result.push(myLocation);
-      } else {
-        // 위치가 아직 확인되지 않은 경우 임시 데이터 추가
-        result.push({
-          userId: user.id || 0,
-          nickname: user.nickname || '나',
-          latitude: 0,
-          longitude: 0,
-          profileImageUrl: user.profileImageUrl,
-        });
-      }
-    }
-
-    // 다른 일행들의 위치 추가
-    result.push(...locations);
-
-    return result;
-  }, [locations, myLocation, user]);
-
   const clusterMarkers = useMemo(() => {
-    if (!finalLocations || finalLocations.length < 1) {
+    if (!locations || locations.length < 1) {
       return [];
     }
 
     // 실제 위치가 있는 것만 마커로 표시
-    return finalLocations
+    return locations
       .filter((loc) => loc.latitude !== 0 && loc.longitude !== 0)
       .map((loc, index) => {
         return {
-          identifier: `${loc.userId}-${Date.now()}`,
+          identifier: String(loc.userId),
           latitude: loc.latitude,
           longitude: loc.longitude,
           image: {
-            symbol: COLORS[index % COLORS.length],
+            httpUri: loc.profileImageUrl,
           },
-          width: 30,
+          width: 40,
           height: 40,
         } as ClusterMarkerProp;
       });
-  }, [finalLocations]);
+  }, [locations]);
 
-  const getDistance = (latitude: number, longitude: number) => {
-    if (!myLocation) return 0;
+  const sortedLocations = useMemo(() => {
+    if (!locations) return [];
 
-    const dist = haversine(myLocation, { latitude, longitude });
-    const kmDist = dist / 1000;
+    // 1. 거리 계산
+    const locationsWithDistance = locations.map((loc) => ({
+      ...loc,
+      distance:
+        myLocation && (loc.latitude !== 0 || loc.longitude !== 0)
+          ? getHaversineDistance(myLocation, loc.latitude, loc.longitude)
+          : null,
+    }));
 
-    return kmDist.toFixed(1);
-  };
+    // 2. 정렬
+    locationsWithDistance.sort((a, b) => {
+      // '나' 이면 맨 처음에 오게 설정
+      if (a.userId === user?._id) return -1;
+      if (b.userId === user?._id) return 1;
 
-  const handleMemberItemPress = useCallback((location: LocationData) => {
+      if (a.distance !== null && b.distance === null) return -1;
+      if (a.distance === null && b.distance !== null) return 1;
+
+      if (a.distance === null && b.distance === null) return 0;
+
+      // Sort by distance (will not be null here)
+      return a.distance! - b.distance!;
+    });
+
+    return locationsWithDistance;
+  }, [locations, user, myLocation]);
+
+  const handleMemberItemPress = useCallback((location: UserLocation) => {
     // 위치가 확인되지 않은 경우 포커스하지 않음
     if (location.latitude === 0 && location.longitude === 0) {
       return;
     }
 
-    mapViewRef.current?.animateCameraTo({
+    interactiveMapViewRef.current?.animateCameraTo({
       latitude: location.latitude,
       longitude: location.longitude,
       zoom: 16,
@@ -200,11 +137,8 @@ const LocationSharingView: React.FC<LocationSharingProps> = ({ roomId }) => {
   return (
     <View style={styles.container}>
       {/* 상단 바 */}
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
+      <View style={[styles.header, { paddingTop: insets.top - 8 }]}>
+        <TouchableOpacity style={styles.backButton} onPress={handlePressBack}>
           <Ionicons name='arrow-back' size={24} color='#000' />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>일행 위치 확인</Text>
@@ -217,7 +151,7 @@ const LocationSharingView: React.FC<LocationSharingProps> = ({ roomId }) => {
       >
         <View style={styles.mapContainer}>
           <InteractiveMapView
-            ref={mapViewRef}
+            ref={interactiveMapViewRef}
             cameraPosition={{
               latitude: 37.5665,
               longitude: 126.978,
@@ -227,8 +161,19 @@ const LocationSharingView: React.FC<LocationSharingProps> = ({ roomId }) => {
           />
         </View>
 
+        <View style={styles.infoContainer}>
+          <Ionicons
+            name='information-circle-outline'
+            size={16}
+            color='#6B7280'
+          />
+          <Text style={styles.infoText}>
+            위치 정보는 사용자가 이 화면을 열 때만 갱신됩니다.
+          </Text>
+        </View>
+
         <View style={styles.memberList}>
-          {finalLocations.map((loc, index) => {
+          {sortedLocations.map((loc, index) => {
             const colorCode = COLOR_CODES[index % COLOR_CODES.length];
             const hasValidLocation = loc.latitude !== 0 || loc.longitude !== 0;
             return (
@@ -264,31 +209,24 @@ const LocationSharingView: React.FC<LocationSharingProps> = ({ roomId }) => {
                 </View>
                 <Text style={styles.memberName}>{loc.nickname}</Text>
                 <Text style={styles.memberDistance}>
-                  {loc.userId === user?.id
+                  {loc.userId === user?._id
                     ? myLocation
                       ? '나'
                       : '내 위치 확인 중...'
-                    : myLocation
-                    ? `${getDistance(loc.latitude, loc.longitude)} km`
-                    : '?'}
+                    : loc.distance !== null
+                    ? loc.distance < 1
+                      ? `${Math.round(loc.distance * 1000)} m`
+                      : `${loc.distance.toFixed(1)} km`
+                    : '측정 불가'}
                 </Text>
               </TouchableOpacity>
             );
           })}
         </View>
       </ScrollView>
-
-      <View style={styles.bottomActionContainer}>
-        <TouchableOpacity
-          style={styles.callButton}
-          onPress={handleUpdateLocation}
-        >
-          <Text style={styles.callButtonText}>일행 호출하기</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -325,13 +263,30 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     paddingTop: 0,
-    paddingBottom: 120, // 하단 액션 버튼 공간 확보
+    paddingBottom: 20,
   },
   mapContainer: {
     width: '100%',
     height: 317,
     backgroundColor: '#F3F4F6',
-    marginBottom: 20,
+    marginBottom: 12,
+  },
+  infoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    marginBottom: 8,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
+    marginHorizontal: 20,
+  },
+  infoText: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginLeft: 6,
+    flex: 1,
+    lineHeight: 18,
   },
   mapImage: {
     width: '100%',
@@ -407,39 +362,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#6B7280',
-  },
-  bottomActionContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  callButton: {
-    backgroundColor: '#5B67F5',
-    borderRadius: 12,
-    height: 52,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#5B67F5',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  callButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
   },
 });
 

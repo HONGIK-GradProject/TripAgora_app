@@ -15,7 +15,7 @@ import { AuthDecodedToken } from '@/types/auth';
 import { UserData, UserRole } from '@/types/users';
 import { isAxiosError } from 'axios';
 import { jwtDecode } from 'jwt-decode';
-import { createContext, useCallback, useEffect, useState } from 'react';
+import { createContext, useCallback, useEffect, useMemo, useState } from 'react';
 
 type UserState = UserData & { id: number | null };
 
@@ -276,22 +276,33 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [pushToken, pushError, user?.id]);
 
+  const contextValue = useMemo(
+    () => ({
+      accessToken,
+      isLoading,
+      isNewUser,
+      user,
+      signIn: signInHandler,
+      signOut: signOutHandler,
+      switchUserRole: switchUserRoleHandler,
+      setUser,
+      refreshUser: refreshUserHandler,
+    }),
+    [
+      accessToken,
+      isLoading,
+      isNewUser,
+      user,
+      signInHandler,
+      signOutHandler,
+      switchUserRoleHandler,
+      setUser,
+      refreshUserHandler,
+    ]
+  );
+
   return (
-    <AuthContext.Provider
-      value={{
-        accessToken,
-        isLoading,
-        isNewUser,
-        user,
-        signIn: signInHandler,
-        signOut: signOutHandler,
-        switchUserRole: switchUserRoleHandler,
-        setUser,
-        refreshUser: refreshUserHandler,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 };
 
