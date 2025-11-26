@@ -161,6 +161,17 @@ const LocationSharingView = forwardRef<
           />
         </View>
 
+        <View style={styles.infoContainer}>
+          <Ionicons
+            name='information-circle-outline'
+            size={16}
+            color='#6B7280'
+          />
+          <Text style={styles.infoText}>
+            위치 정보는 사용자가 이 화면을 열 때만 갱신됩니다.
+          </Text>
+        </View>
+
         <View style={styles.memberList}>
           {sortedLocations.map((loc, index) => {
             const colorCode = COLOR_CODES[index % COLOR_CODES.length];
@@ -213,12 +224,6 @@ const LocationSharingView = forwardRef<
           })}
         </View>
       </ScrollView>
-
-      <View style={styles.bottomActionContainer}>
-        <TouchableOpacity style={styles.callButton}>
-          <Text style={styles.callButtonText}>일행 호출하기</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 });
@@ -258,13 +263,30 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     paddingTop: 0,
-    paddingBottom: 120, // 하단 액션 버튼 공간 확보
+    paddingBottom: 20,
   },
   mapContainer: {
     width: '100%',
     height: 317,
     backgroundColor: '#F3F4F6',
-    marginBottom: 20,
+    marginBottom: 12,
+  },
+  infoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    marginBottom: 8,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
+    marginHorizontal: 20,
+  },
+  infoText: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginLeft: 6,
+    flex: 1,
+    lineHeight: 18,
   },
   mapImage: {
     width: '100%',
@@ -340,39 +362,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#6B7280',
-  },
-  bottomActionContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  callButton: {
-    backgroundColor: '#5B67F5',
-    borderRadius: 12,
-    height: 52,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#5B67F5',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  callButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
   },
 });
 
