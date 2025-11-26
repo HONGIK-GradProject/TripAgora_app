@@ -49,14 +49,20 @@ interface UserGetMeResponse extends APIResponse<UserGetMeData> {}
 interface UserDeleteMeData {}
 interface UserDeleteMeResponse extends APIResponse<UserDeleteMeData> {}
 
+interface UserSetFCMTokenRequest {
+  token: string;
+}
+interface UserSetFCMTokenData {}
+interface UserSetFCMTokenResponse extends APIResponse<UserSetFCMTokenData> {}
+
 export {
   UserData,
   UserDeleteMeData,
   UserDeleteMeResponse,
   UserGetMeData,
   UserGetMeResponse,
-  UserRole,
-  UserSetNicknameData,
+  UserRole, UserSetFCMTokenRequest,
+  UserSetFCMTokenResponse, UserSetNicknameData,
   UserSetNicknameRequest,
   UserSetNicknameResponse,
   UserSetProfileImageData,

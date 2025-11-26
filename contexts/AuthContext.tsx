@@ -6,11 +6,11 @@
 import { authApi } from '@/api/auth';
 import { setupInterceptors } from '@/api/client';
 import { usersApi } from '@/api/users';
-import { useExpoPushToken } from '@/hooks/useExpoPushToken';
+import { usePushToken } from '@/hooks/usePushToken';
 import { clearTokens, getTokens, saveTokens } from '@/lib/tokenStorage';
 import { reissueToken } from '@/services/auth';
 import { kakaoSignIn, kakaoSignOut } from '@/services/kakaoAuth';
-import { getUser } from '@/services/users';
+import { getUser, setUserFCMToken } from '@/services/users';
 import { AuthDecodedToken } from '@/types/auth';
 import { UserData, UserRole } from '@/types/users';
 import { isAxiosError } from 'axios';
@@ -78,7 +78,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
    * @state
    */
   const [user, setUser] = useState<UserState | null>(null);
-  const { expoPushToken, error: expoPushError } = useExpoPushToken();
+  const { pushToken, error: pushError } = usePushToken();
 
   /**
    * @description 사용자를 로그아웃 처리합니다.
@@ -261,15 +261,20 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     loadInitialAuth();
   }, [processAndSetAuth, signOutHandler]);
 
-  /**
-   * TODO: ExpoPushToken을 동기화하는 API가 완성되면 해당 로직을 다시 작성해야 합니다.
-   */
   useEffect(() => {
-    console.log('ExpoPushToken:', expoPushToken);
-    if (expoPushError) {
-      console.error('ExpoPushToken error', expoPushError);
+    const syncPushToken = async () => {
+      if (pushToken && user?.id) {
+        console.log('Syncing PushToken:', pushToken);
+        await setUserFCMToken(pushToken);
+      }
+    };
+
+    syncPushToken();
+
+    if (pushError) {
+      console.error('PushToken error', pushError);
     }
-  }, [expoPushToken, expoPushError]);
+  }, [pushToken, pushError, user?.id]);
 
   const contextValue = useMemo(
     () => ({
