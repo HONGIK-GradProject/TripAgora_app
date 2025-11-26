@@ -220,32 +220,33 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
     try {
       const result = await updateGuideProfileImage(uri);
       if (result) {
-        setGuideProfile((prev) => {
-          if (prev) {
+        // guideImageUrl 또는 imageUrl 중 하나라도 있으면 사용
+        const newImageUrl = result.guideImageUrl || result.imageUrl;
+
+        if (newImageUrl) {
+          setGuideProfile((prev) => {
+            if (prev) {
+              return {
+                ...prev,
+                guideImageUrl: newImageUrl,
+              };
+            }
+            // 자신의 프로필인 경우 초기 데이터 생성
             return {
-              ...prev,
-              ...(result.guideImageUrl && {
-                guideImageUrl: result.guideImageUrl,
-              }),
+              nickname: user?.nickname || '닉네임 없음',
+              guideImageUrl: newImageUrl,
+              bio: '',
+              tags: [],
+              portfolios: [],
+              SessionList: { sessions: [], hasNext: false },
             };
-          }
-          // 자신의 프로필인 경우 초기 데이터 생성
-          return {
-            nickname: user?.nickname || '닉네임 없음',
-            ...(result.guideImageUrl && {
-              guideImageUrl: result.guideImageUrl,
-            }),
-            bio: '',
-            tags: [],
-            portfolios: [],
-            SessionList: { sessions: [], hasNext: false },
-          };
-        });
-        setIsEditingImage(false);
-        Toast.show({
-          type: 'success',
-          text1: '이미지가 변경되었습니다.',
-        });
+          });
+          setIsEditingImage(false);
+          Toast.show({
+            type: 'success',
+            text1: '이미지가 변경되었습니다.',
+          });
+        }
       }
     } catch (error) {
       console.error('이미지 변경 실패:', error);
@@ -557,9 +558,11 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
             {guideInfo.bannerImageUrl ? (
               <>
                 <Image
+                  key={guideInfo.bannerImageUrl}
                   source={{ uri: guideInfo.bannerImageUrl }}
                   style={{ width: '100%', height: 200, borderRadius: 16 }}
                   contentFit='cover'
+                  cachePolicy='memory-disk'
                 />
                 {isOwnProfile && (
                   <TouchableOpacity
