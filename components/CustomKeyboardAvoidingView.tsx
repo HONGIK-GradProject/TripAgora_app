@@ -17,7 +17,7 @@ const CustomKeyboardAvoidingView: React.FC<CustomKeyboardAvoidingViewProps> = ({
 }) => {
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={styles.container}
       keyboardVerticalOffset={
         keyboardVerticalOffset ?? (Platform.OS === 'ios' ? 0 : 0)
