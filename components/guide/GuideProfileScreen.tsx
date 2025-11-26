@@ -1,3 +1,4 @@
+import { reviewsApi } from '@/api/reviews';
 import CustomKeyboardAvoidingView from '@/components/CustomKeyboardAvoidingView';
 import CustomImagePicker from '@/components/ui/ImagePicker';
 import { REGION_ID_TO_NAME_MAP } from '@/constants/Regions';
@@ -11,6 +12,7 @@ import {
   updateGuideProfilePortfolios,
 } from '@/services/guideProfiles';
 import { GuideProfileGetData, Portfolio } from '@/types/guideProfiles';
+import { ReviewData, ReviewGetByGuideData } from '@/types/reviews';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { router, useSegments } from 'expo-router';
@@ -53,6 +55,16 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
   >(undefined);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [profileError, setProfileError] = useState<string | null>(null);
+
+  // 리뷰 데이터 상태
+  const [reviews, setReviews] = useState<ReviewGetByGuideData | undefined>(
+    undefined
+  );
+  const [isLoadingReviews, setIsLoadingReviews] = useState(false);
+  // 이미지 로드 실패 추적
+  const [imageLoadErrors, setImageLoadErrors] = useState<Set<number>>(
+    new Set()
+  );
 
   // 편집 상태
   const [isEditingBio, setIsEditingBio] = useState(false);
@@ -109,10 +121,88 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
     [guideProfileId, isOwnProfile]
   );
 
+  // 리뷰 조회 함수 (템플릿 기반과 동일한 방식)
+  const fetchReviews = useCallback(
+    async (profileId?: number) => {
+      const targetId = profileId || guideProfileId;
+
+      // guideProfileId가 없으면 리뷰를 조회하지 않음
+      if (!targetId) {
+        return;
+      }
+
+      setIsLoadingReviews(true);
+      try {
+        const response = await reviewsApi.getReviewsByGuide(targetId);
+        if (response.data) {
+          const { averageRating = 0, totalReviewCount = 0 } = response.data;
+          const rawReviews =
+            (response.data as any)?.review ??
+            (response.data as any)?.reviews ??
+            (response.data as any)?.reviewList ??
+            [];
+
+          const normalizedReviews = Array.isArray(rawReviews) ? rawReviews : [];
+
+          const mappedReviews = (
+            normalizedReviews as (Partial<ReviewData> & Record<string, any>)[]
+          ).map((review) => {
+            const fallbackProfile =
+              review.authorProfile ??
+              review.authorProfileImage ??
+              review.authorProfileImageUrl ??
+              review.authorProfileUrl ??
+              review.profileImageUrl ??
+              review.profileImage ??
+              '';
+
+            return {
+              ...review,
+              authorProfile: fallbackProfile,
+            } as ReviewData;
+          });
+
+          setReviews({
+            averageRating,
+            totalReviewCount:
+              typeof totalReviewCount === 'number'
+                ? totalReviewCount
+                : mappedReviews.length,
+            review: mappedReviews,
+          });
+        } else {
+          setReviews({
+            averageRating: 0,
+            totalReviewCount: 0,
+            review: [],
+          });
+        }
+      } catch (error) {
+        console.error('리뷰 조회 실패:', error);
+        // 에러가 발생해도 UI는 계속 표시
+        setReviews({
+          averageRating: 0,
+          totalReviewCount: 0,
+          review: [],
+        });
+      } finally {
+        setIsLoadingReviews(false);
+      }
+    },
+    [guideProfileId]
+  );
+
   // 가이드 프로필 조회
   useEffect(() => {
     fetchGuideProfile();
   }, [fetchGuideProfile]);
+
+  // 가이드 프로필 조회 후 리뷰 조회
+  useEffect(() => {
+    if (guideProfileId) {
+      fetchReviews();
+    }
+  }, [guideProfileId, fetchReviews]);
 
   // 새로고침 핸들러
   const handleRefresh = useCallback(async () => {
@@ -824,18 +914,153 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
           </View>
 
           {/* 리뷰 목록 */}
-          <View className='mx-5 mb-5'>
-            <View className='flex-row items-center justify-between mb-4'>
-              <Text className='text-2xl font-bold text-gray-900'>리뷰</Text>
-            </View>
+          {guideProfileId && (
+            <View className='mx-5 mb-5'>
+              <View className='flex-row items-center justify-between mb-4'>
+                <Text className='text-2xl font-bold text-gray-900'>리뷰</Text>
+              </View>
 
-            <View className='bg-white rounded-2xl p-6 items-center justify-center shadow-sm border border-gray-200'>
-              <Ionicons name='star-outline' size={48} color='#9CA3AF' />
-              <Text className='text-gray-500 mt-2 text-base'>
-                아직 리뷰가 없습니다
-              </Text>
+              {isLoadingReviews ? (
+                <View className='bg-white rounded-2xl p-6 items-center justify-center shadow-sm border border-gray-200'>
+                  <ActivityIndicator size='small' color='#5B67F5' />
+                  <Text className='text-gray-500 mt-2 text-sm'>
+                    리뷰를 불러오는 중...
+                  </Text>
+                </View>
+              ) : reviews && reviews.totalReviewCount > 0 ? (
+                <>
+                  {/* 평균 평점 및 총 리뷰 수 */}
+                  <View className='bg-gray-50 rounded-xl p-4 mb-4 flex-row items-center justify-between'>
+                    <View className='flex-row items-center'>
+                      <Ionicons name='star' size={24} color='#FBBF24' />
+                      <Text className='text-xl font-bold text-gray-900 ml-2'>
+                        {reviews.averageRating.toFixed(1)}
+                      </Text>
+                    </View>
+                    <Text className='text-sm text-gray-600'>
+                      총 {reviews.totalReviewCount}개의 리뷰
+                    </Text>
+                  </View>
+
+                  {/* 리뷰 목록 */}
+                  <View className='bg-white rounded-2xl shadow-sm overflow-hidden'>
+                    {reviews.review.map((review, index) => {
+                      const hasValidProfile =
+                        review.authorProfile &&
+                        review.authorProfile.trim() !== '' &&
+                        !imageLoadErrors.has(review.reviewId);
+
+                      return (
+                        <View
+                          key={review.reviewId}
+                          className='p-4'
+                          style={
+                            index < reviews.review.length - 1
+                              ? {
+                                  borderBottomWidth: 1,
+                                  borderBottomColor: '#E5E7EB',
+                                }
+                              : undefined
+                          }
+                        >
+                          <View className='flex-row items-center justify-between mb-3'>
+                            <View className='flex-row items-center flex-1'>
+                              {hasValidProfile ? (
+                                <Image
+                                  source={{ uri: review.authorProfile }}
+                                  style={{
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: 16,
+                                    marginRight: 8,
+                                  }}
+                                  contentFit='cover'
+                                  onError={() => {
+                                    setImageLoadErrors((prev) =>
+                                      new Set(prev).add(review.reviewId)
+                                    );
+                                  }}
+                                />
+                              ) : (
+                                <View
+                                  className='bg-gray-100 rounded-full items-center justify-center'
+                                  style={{
+                                    width: 32,
+                                    height: 32,
+                                    marginRight: 8,
+                                  }}
+                                >
+                                  <Ionicons
+                                    name='person-outline'
+                                    size={16}
+                                    color='#9CA3AF'
+                                  />
+                                </View>
+                              )}
+                              <Text className='text-sm font-semibold text-gray-900'>
+                                {review.authorNickname}
+                              </Text>
+                            </View>
+                            <View className='flex-row items-center'>
+                              {Array.from({ length: 5 }, (_, i) => (
+                                <Ionicons
+                                  key={i}
+                                  name={
+                                    i < review.rating ? 'star' : 'star-outline'
+                                  }
+                                  size={16}
+                                  color={
+                                    i < review.rating ? '#FBBF24' : '#D1D5DB'
+                                  }
+                                />
+                              ))}
+                            </View>
+                          </View>
+                          {review.templateTitle && (
+                            <View className='mb-2'>
+                              <View className='flex-row items-center'>
+                                <Ionicons
+                                  name='location-outline'
+                                  size={14}
+                                  color='#6B7280'
+                                />
+                                <Text className='text-sm text-gray-600 ml-1'>
+                                  {review.templateTitle}
+                                </Text>
+                              </View>
+                            </View>
+                          )}
+                          <Text className='text-base text-gray-900 mb-2 leading-6'>
+                            {review.content}
+                          </Text>
+                          <Text className='text-xs text-gray-500'>
+                            {new Date(
+                              review.createdAt + 'Z'
+                            ).toLocaleDateString('ko-KR', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                            })}
+                          </Text>
+                        </View>
+                      );
+                    })}
+                  </View>
+                </>
+              ) : (
+                <View className='bg-white rounded-2xl p-6 items-center justify-center shadow-sm border border-gray-200'>
+                  <Ionicons
+                    name='chatbubbles-outline'
+                    size={48}
+                    color='#9CA3AF'
+                  />
+                  <Text className='text-gray-500 mt-2 text-base'>
+                    아직 작성된 리뷰가 없습니다
+                  </Text>
+                </View>
+              )}
             </View>
-          </View>
+          )}
         </ScrollView>
 
         {/* 이미지 편집 모달 */}
