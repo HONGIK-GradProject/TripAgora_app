@@ -540,7 +540,7 @@ const GuideProfileScreen: React.FC<GuideProfileScreenProps> = ({
 
         <ScrollView
           className='flex-1'
-          contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
+          contentContainerStyle={{ paddingBottom: insets.bottom }}
           showsVerticalScrollIndicator={false}
           refreshControl={
             isOwnProfile ? (

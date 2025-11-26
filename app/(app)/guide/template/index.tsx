@@ -138,7 +138,7 @@ const MyTemplatesScreen: React.FC = () => {
                 }
                 onRefresh={handleRefetch}
                 refreshing={isLoading}
-                contentContainerStyle={{ paddingBottom: 180 + bottom }}
+                contentContainerStyle={{ paddingBottom: 70 + bottom }}
               />
             </View>
           </>

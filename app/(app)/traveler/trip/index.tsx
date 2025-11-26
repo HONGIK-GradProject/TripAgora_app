@@ -470,7 +470,7 @@ const TravelerTripListScreen: React.FC = () => {
         </View>
 
         {/* 여행 목록 */}
-        <View className='flex-1 px-6 py-4'>
+        <View className='flex-1 px-6 pt-4'>
           {(() => {
             if (isLoading && filteredSessions.length === 0) {
               return (

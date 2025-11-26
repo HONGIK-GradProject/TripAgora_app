@@ -309,7 +309,7 @@ const MyPageScreen: React.FC = () => {
       {/* 메뉴 섹션 */}
       <ScrollView
         className='flex-1 mt-5'
-        contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
+        contentContainerStyle={{ paddingBottom: insets.bottom }}
       >
         <View className='mx-5'>
           <View className='bg-white rounded-2xl shadow-sm overflow-hidden'>
